@@ -21,25 +21,40 @@ where SchedulerTimeType: Strideable, SchedulerTimeType.Stride: SchedulerTimeInte
   ///
   /// - Parameter stride: A stride.
   public func advance(by stride: SchedulerTimeType.Stride = .zero) {
+//    self.scheduled.sort { $0.date < $1.date || ($0.date == $1.date && $0.id < $1.id) }
+//
+//    guard
+//      let nextDate = self.scheduled.first?.date,
+//      self.now.advanced(by: stride) >= nextDate
+//    else {
+//      self.now = self.now.advanced(by: stride)
+//      return
+//    }
+//
+//    let delta = self.now.distance(to: nextDate)
+//    self.now = nextDate
+//
+//    while let (_, date, action) = self.scheduled.first, date == nextDate {
+//      action()
+//      self.scheduled.removeFirst()
+//    }
+//
+//    self.advance(by: stride - delta)
+
+    self.now = self.now.advanced(by: stride)
     self.scheduled.sort { $0.date < $1.date || ($0.date == $1.date && $0.id < $1.id) }
 
-    guard
-      let nextDate = self.scheduled.first?.date,
-      self.now.advanced(by: stride) >= nextDate
-    else {
-      self.now = self.now.advanced(by: stride)
-      return
+    var index = 0
+    while index < self.scheduled.count {
+      let work = self.scheduled[index]
+      if work.date <= self.now {
+        work.action()
+        self.scheduled.remove(at: index)
+        self.scheduled.sort { $0.date < $1.date || ($0.date == $1.date && $0.id < $1.id) }
+      } else {
+        index += 1
+      }
     }
-
-    let delta = self.now.distance(to: nextDate)
-    self.now = nextDate
-
-    while let (_, date, action) = self.scheduled.first, date == nextDate {
-      action()
-      self.scheduled.removeFirst()
-    }
-
-    self.advance(by: stride - delta)
   }
 
   /// Runs the scheduler until it has no scheduled items left.
