@@ -4,6 +4,14 @@ import CoreLocation
 
 extension LocationManagerClient {
 
+  @available(macOS, unavailable)
+  @available(tvOS, unavailable)
+  public static func live(
+    shouldDisplayHeadingCalibration: @escaping (LocationManagerClient.Properties) -> Bool
+  ) -> Self {
+    Self._live(shouldDisplayHeadingCalibration: shouldDisplayHeadingCalibration)
+  }
+
   /// The live implementation of the `LocationManagerClient` interface. This implementation is
   /// capable of creating real `CLLocationManager` instances, listening to its delegate methods,
   /// and invoking its methods. You will typically use this when building for the simulator
@@ -17,12 +25,16 @@ extension LocationManagerClient {
   ///       )
   ///     )
   ///
-  public static let live: LocationManagerClient = { () -> LocationManagerClient in
-    var client = LocationManagerClient()
+  public static let live = Self._live(shouldDisplayHeadingCalibration: nil)
+
+  private static func _live(
+    shouldDisplayHeadingCalibration: ((LocationManagerClient.Properties) -> Bool)?
+  ) -> Self {
+    var client = Self()
 
     client.authorizationStatus = CLLocationManager.authorizationStatus
 
-    client.create = { id in
+    client.create = { id, shouldDisplayHeadingCalibration in
       Effect.run { callback in
         let manager = CLLocationManager()
         var delegate = LocationManagerDelegate()
@@ -101,6 +113,7 @@ extension LocationManagerClient {
             callback.send(.didVisit(Visit(visit: visit)))
           }
         #endif
+        delegate.shouldDisplayHeadingCalibration = shouldDisplayHeadingCalibration
         manager.delegate = delegate
 
         dependencies[id] = Dependencies(
@@ -201,7 +214,7 @@ extension LocationManagerClient {
     }
 
     return client
-  }()
+  }
 }
 
 private struct Dependencies {
@@ -258,6 +271,7 @@ private class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
   #if os(iOS) || os(macOS) || targetEnvironment(macCatalyst)
     var monitoringDidFailForRegionWithError: (CLRegion?, Error) -> Void = { _, _ in fatalError() }
   #endif
+  var shouldDisplayHeadingCalibration: ((LocationManagerClient.Properties) -> Bool)?
 
   func locationManager(
     _ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus
@@ -364,5 +378,36 @@ private class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didVisit visit: CLVisit) {
       self.didVisit(visit)
     }
+  #endif
+
+  #if os(iOS) || targetEnvironment(macCatalyst) || os(watchOS)
+  func locationManagerShouldDisplayHeadingCalibration(_ manager: CLLocationManager) -> Bool {
+    guard let shouldDisplayHeadingCalibration = self.shouldDisplayHeadingCalibration else {
+      return false
+    }
+    let properties: LocationManagerClient.Properties
+    #if os(iOS) || targetEnvironment(macCatalyst)
+      properties = LocationManagerClient.Properties(
+        activityType: manager.activityType,
+        allowsBackgroundLocationUpdates: manager.allowsBackgroundLocationUpdates,
+        desiredAccuracy: manager.desiredAccuracy,
+        distanceFilter: manager.distanceFilter,
+        headingFilter: manager.headingFilter,
+        headingOrientation: manager.headingOrientation,
+        pausesLocationUpdatesAutomatically: manager.pausesLocationUpdatesAutomatically,
+        showsBackgroundLocationIndicator: manager.showsBackgroundLocationIndicator
+      )
+    #elseif os(watchOS)
+      properties = LocationManagerClient.Properties(
+        activityType: manager.activityType,
+        allowsBackgroundLocationUpdates: manager.allowsBackgroundLocationUpdates,
+        desiredAccuracy: manager.desiredAccuracy,
+        distanceFilter: manager.distanceFilter,
+        headingFilter: manager.headingFilter,
+        headingOrientation: manager.headingOrientation
+      )
+    #endif
+    return shouldDisplayHeadingCalibration(properties)
+  }
   #endif
 }

@@ -8,7 +8,7 @@
     @available(watchOS, unavailable)
     public static func mock(
       authorizationStatus: @escaping () -> CLAuthorizationStatus = { fatalError() },
-      create: @escaping (_ id: AnyHashable) -> Effect<Action, Never> = { _ in fatalError() },
+      create: @escaping (AnyHashable, ((Properties) -> Bool)?) -> Effect<Action, Never> = { _, _ in fatalError() },
       destroy: @escaping (AnyHashable) -> Effect<Never, Never> = { _ in fatalError() },
       dismissHeadingCalibrationDisplay: @escaping (AnyHashable) -> Effect<Never, Never> = { _ in
         fatalError()
@@ -90,7 +90,7 @@
     @available(tvOS, unavailable)
     public static func mock(
       authorizationStatus: @escaping () -> CLAuthorizationStatus = { fatalError() },
-      create: @escaping (_ id: AnyHashable) -> Effect<Action, Never> = { _ in fatalError() },
+      create: @escaping (AnyHashable, ((Properties) -> Bool)?) -> Effect<Action, Never> = { _, _ in fatalError() },
       destroy: @escaping (AnyHashable) -> Effect<Never, Never> = { _ in fatalError() },
       dismissHeadingCalibrationDisplay: @escaping (AnyHashable) -> Effect<Never, Never> = { _ in
         fatalError()
@@ -141,7 +141,7 @@
     @available(watchOS, unavailable)
     public static func mock(
       authorizationStatus: @escaping () -> CLAuthorizationStatus = { fatalError() },
-      create: @escaping (_ id: AnyHashable) -> Effect<Action, Never> = { _ in fatalError() },
+      create: @escaping (AnyHashable, ((Properties) -> Bool)?) -> Effect<Action, Never> = { _, _ in fatalError() },
       destroy: @escaping (AnyHashable) -> Effect<Never, Never> = { _ in fatalError() },
       location: @escaping (AnyHashable) -> Location = { _ in fatalError() },
       locationServicesEnabled: @escaping () -> Bool = { fatalError() },
@@ -173,7 +173,7 @@
     @available(watchOS, unavailable)
     public static func mock(
       authorizationStatus: @escaping () -> CLAuthorizationStatus = { fatalError() },
-      create: @escaping (_ id: AnyHashable) -> Effect<Action, Never> = { _ in fatalError() },
+      create: @escaping (AnyHashable, ((Properties) -> Bool)?) -> Effect<Action, Never> = { _, _ in fatalError() },
       destroy: @escaping (AnyHashable) -> Effect<Never, Never> = { _ in fatalError() },
       headingAvailable: @escaping () -> Bool = { fatalError() },
       location: @escaping (AnyHashable) -> Location = { _ in fatalError() },

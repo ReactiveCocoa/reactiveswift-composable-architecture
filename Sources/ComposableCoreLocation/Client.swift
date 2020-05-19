@@ -139,7 +139,7 @@ public struct LocationManagerClient {
 
   public var authorizationStatus: () -> CLAuthorizationStatus = { fatalError() }
 
-  var create: (AnyHashable) -> Effect<Action, Never> = { _ in fatalError() }
+  var create: (AnyHashable, ((Properties) -> Bool)?) -> Effect<Action, Never> = { _, _ in fatalError() }
 
   var destroy: (AnyHashable) -> Effect<Never, Never> = { _ in fatalError() }
 
@@ -235,7 +235,12 @@ public struct LocationManagerClient {
 
   // TODO: finish public methods
 
-  public func create(id: AnyHashable) -> Effect<Action, Never> { self.create(id) }
+  public func create(
+    id: AnyHashable,
+    shouldDisplayHeadingCalibration: ((Properties) -> Bool)? = nil
+  ) -> Effect<Action, Never> {
+    self.create(id, shouldDisplayHeadingCalibration)
+  }
 
   public func destroy(id: AnyHashable) -> Effect<Never, Never> { self.destroy(id) }
 
