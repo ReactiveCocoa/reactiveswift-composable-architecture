@@ -1,5 +1,60 @@
 import Combine
+import ReactiveSwift
 import Foundation
+
+public typealias Effect<Output, Failure: Error> = SignalProducer<Output, Failure>
+
+extension Effect {
+  /// An effect that does nothing and completes immediately. Useful for situations where you must
+  /// return an effect, but you don't need to do anything.
+  public static var none: Effect {
+    return .empty 
+  }
+
+  /// Creates an effect that executes some work in the real world that doesn't need to feed data
+  /// back into the store.
+  ///
+  /// - Parameter work: A closure encapsulating some work to execute in the real world.
+  /// - Returns: An effect.
+  public static func fireAndForget(_ work: @escaping () -> Void) -> Effect {
+    .deferred { () -> SignalProducer<Value, Error> in
+      work()
+      return .empty
+    }
+  }
+  
+  /// Concatenates a variadic list of effects together into a single effect, which runs the effects
+  /// one after the other.
+  ///
+  /// - Parameter effects: A variadic list of effects.
+  /// - Returns: A new effect
+  public static func concatenate(_ effects: Effect...) -> Effect {
+    .concatenate(effects)
+  }
+
+  /// Concatenates a collection of effects together into a single effect, which runs the effects one
+  /// after the other.
+  ///
+  /// - Parameter effects: A collection of effects.
+  /// - Returns: A new effect
+  public static func concatenate<C: Collection>(
+    _ effects: C
+  ) -> Effect where C.Element == Effect {
+    guard let first = effects.first else { return .none }
+
+    return
+      effects
+      .suffix(effects.count - 1)
+      .reduce(into: first) { effects, effect in
+        effects = effects.concat(effect)
+      }
+  }  
+  
+  public static func deferred(_ createProducer: @escaping () -> SignalProducer<Value, Error>) -> SignalProducer<Value, Error> {
+    return SignalProducer<Void, Error>(value: ())
+      .flatMap(.merge, createProducer)
+  }    
+}
 
 /// The `Effect` type encapsulates a unit of work that can be run in the outside world, and can feed
 /// data back to the `Store`. It is the perfect place to do side effects, such as network requests,
@@ -12,7 +67,7 @@ import Foundation
 ///
 /// An effect simply wraps a `Publisher` value and provides some convenience initializers for
 /// constructing some common types of effects.
-public struct Effect<Output, Failure: Error>: Publisher {
+public struct _Effect<Output, Failure: Error>: Publisher {
   public let upstream: AnyPublisher<Output, Failure>
 
   /// Initializes an effect that wraps a publisher. Each emission of the wrapped publisher will be
@@ -59,7 +114,7 @@ public struct Effect<Output, Failure: Error>: Publisher {
 
   /// An effect that does nothing and completes immediately. Useful for situations where you must
   /// return an effect, but you don't need to do anything.
-  public static var none: Effect {
+  public static var none: _Effect {
     Empty(completeImmediately: true).eraseToEffect()
   }
 
@@ -93,7 +148,7 @@ public struct Effect<Output, Failure: Error>: Publisher {
   ///   used to feed it `Result<Output, Failure>` values.
   public static func future(
     _ attemptToFulfill: @escaping (@escaping (Result<Output, Failure>) -> Void) -> Void
-  ) -> Effect {
+  ) -> _Effect {
     Deferred {
       Future { callback in
         attemptToFulfill { result in callback(result) }
@@ -161,18 +216,18 @@ public struct Effect<Output, Failure: Error>: Publisher {
   /// - Parameter work: A closure that accepts a `Subscriber` value and returns a cancellable. When
   ///   the `Effect` is completed, the cancellable will be used to clean up any resources created
   ///   when the effect was started.
-  public static func run(
-    _ work: @escaping (Effect.Subscriber<Output, Failure>) -> Cancellable
-  ) -> Self {
-    AnyPublisher.create(work).eraseToEffect()
-  }
+//  public static func run(
+//    _ work: @escaping (_Effect.Subscriber<Output, Failure>) -> Cancellable
+//  ) -> Self {
+//    AnyPublisher.create(work).eraseToEffect()
+//  }
 
   /// Concatenates a variadic list of effects together into a single effect, which runs the effects
   /// one after the other.
   ///
   /// - Parameter effects: A variadic list of effects.
   /// - Returns: A new effect
-  public static func concatenate(_ effects: Effect...) -> Effect {
+  public static func concatenate(_ effects: _Effect...) -> _Effect {
     .concatenate(effects)
   }
 
@@ -183,7 +238,7 @@ public struct Effect<Output, Failure: Error>: Publisher {
   /// - Returns: A new effect
   public static func concatenate<C: Collection>(
     _ effects: C
-  ) -> Effect where C.Element == Effect {
+  ) -> _Effect where C.Element == _Effect {
     guard let first = effects.first else { return .none }
 
     return
@@ -200,8 +255,8 @@ public struct Effect<Output, Failure: Error>: Publisher {
   /// - Parameter effects: A list of effects.
   /// - Returns: A new effect
   public static func merge(
-    _ effects: Effect...
-  ) -> Effect {
+    _ effects: _Effect...
+  ) -> _Effect {
     .merge(effects)
   }
 
@@ -210,7 +265,7 @@ public struct Effect<Output, Failure: Error>: Publisher {
   ///
   /// - Parameter effects: A sequence of effects.
   /// - Returns: A new effect
-  public static func merge<S: Sequence>(_ effects: S) -> Effect where S.Element == Effect {
+  public static func merge<S: Sequence>(_ effects: S) -> _Effect where S.Element == _Effect {
     Publishers.MergeMany(effects).eraseToEffect()
   }
 
@@ -219,7 +274,7 @@ public struct Effect<Output, Failure: Error>: Publisher {
   ///
   /// - Parameter work: A closure encapsulating some work to execute in the real world.
   /// - Returns: An effect.
-  public static func fireAndForget(_ work: @escaping () -> Void) -> Effect {
+  public static func fireAndForget(_ work: @escaping () -> Void) -> _Effect {
     Deferred { () -> Empty<Output, Failure> in
       work()
       return Empty(completeImmediately: true)
@@ -232,12 +287,12 @@ public struct Effect<Output, Failure: Error>: Publisher {
   /// - Parameter transform: A closure that transforms the upstream effect's output to a new output.
   /// - Returns: A publisher that uses the provided closure to map elements from the upstream effect
   ///   to new elements that it then publishes.
-  public func map<T>(_ transform: @escaping (Output) -> T) -> Effect<T, Failure> {
+  public func map<T>(_ transform: @escaping (Output) -> T) -> _Effect<T, Failure> {
     .init(self.map(transform) as Publishers.Map<Self, T>)
   }
 }
 
-extension Effect where Failure == Swift.Error {
+extension _Effect where Failure == Swift.Error {
   /// Initializes an effect that lazily executes some work in the real world and synchronously sends
   /// that data back into the store.
   ///
@@ -262,7 +317,7 @@ extension Effect where Failure == Swift.Error {
   }
 }
 
-extension Effect where Output == Never {
+extension _Effect where Output == Never {
   /// Upcasts an `Effect<Never, Failure>` to an `Effect<T, Failure>` for any type `T`. This is
   /// possible to do because an `Effect<Never, Failure>` can never produce any values to feed back
   /// into the store (hence the name "fire and forget"), and therefore we can act like it's an
@@ -276,7 +331,7 @@ extension Effect where Output == Never {
   ///         .fireAndForget()
   ///
   /// - Returns: An effect.
-  public func fireAndForget<T>() -> Effect<T, Failure> {
+  public func fireAndForget<T>() -> _Effect<T, Failure> {
     func absurd<A>(_ never: Never) -> A {}
     return self.map(absurd)
   }
@@ -294,8 +349,8 @@ extension Publisher {
   ///         .eraseToEffect()
   ///
   /// - Returns: An effect that wraps `self`.
-  public func eraseToEffect() -> Effect<Output, Failure> {
-    Effect(self)
+  public func eraseToEffect() -> _Effect<Output, Failure> {
+    _Effect(self)
   }
 
   /// Turns any publisher into an `Effect` that cannot fail by wrapping its output and failure in a
@@ -310,7 +365,7 @@ extension Publisher {
   ///         .map(ProfileAction.userResponse)
   ///
   /// - Returns: An effect that wraps `self`.
-  public func catchToEffect() -> Effect<Result<Output, Failure>, Never> {
+  public func catchToEffect() -> _Effect<Result<Output, Failure>, Never> {
     self.map(Result.success)
       .catch { Just(.failure($0)) }
       .eraseToEffect()

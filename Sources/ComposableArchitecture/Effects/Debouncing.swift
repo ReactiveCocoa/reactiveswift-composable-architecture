@@ -1,6 +1,6 @@
 import Combine
 
-extension Effect {
+extension _Effect {
   /// Turns an effect into one that can be debounced.
   ///
   /// To turn an effect into a debounce-able one you must provide an identifier, which is used to
@@ -27,7 +27,7 @@ extension Effect {
     for dueTime: S.SchedulerTimeType.Stride,
     scheduler: S,
     options: S.SchedulerOptions? = nil
-  ) -> Effect {
+  ) -> _Effect {
     Just(())
       .setFailureType(to: Failure.self)
       .delay(for: dueTime, scheduler: scheduler, options: options)

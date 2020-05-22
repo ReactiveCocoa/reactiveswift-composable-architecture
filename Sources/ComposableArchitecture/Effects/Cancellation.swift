@@ -1,7 +1,7 @@
 import Combine
 import Foundation
 
-extension Effect {
+extension _Effect {
   /// Turns an effect into one that is capable of being canceled.
   ///
   /// To turn an effect into a cancellable one you must provide an identifier, which is used in
@@ -26,7 +26,7 @@ extension Effect {
   ///   - cancelInFlight: Determines if any in-flight effect with the same identifier should be
   ///     canceled before starting this new one.
   /// - Returns: A new effect that is capable of being canceled by an identifier.
-  public func cancellable(id: AnyHashable, cancelInFlight: Bool = false) -> Effect {
+  public func cancellable(id: AnyHashable, cancelInFlight: Bool = false) -> _Effect {
     return Deferred { () -> Publishers.HandleEvents<PassthroughSubject<Output, Failure>> in
       let subject = PassthroughSubject<Output, Failure>()
       let uuid = UUID()
@@ -73,7 +73,7 @@ extension Effect {
   /// - Parameter id: An effect identifier.
   /// - Returns: A new effect that will cancel any currently in-flight effect with the given
   ///   identifier.
-  public static func cancel(id: AnyHashable) -> Effect {
+  public static func cancel(id: AnyHashable) -> _Effect {
     .fireAndForget {
       cancellablesLock.sync {
         cancellationCancellables[id]?.forEach { _, cancellable in cancellable.cancel() }

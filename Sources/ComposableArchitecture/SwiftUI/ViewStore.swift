@@ -1,4 +1,5 @@
 import Combine
+import ReactiveSwift
 import SwiftUI
 
 /// A `ViewStore` is an object that can observe state changes and send actions. They are most
@@ -44,9 +45,9 @@ import SwiftUI
 @dynamicMemberLookup
 public final class ViewStore<State, Action>: ObservableObject {
   /// A publisher of state.
-  public let publisher: StorePublisher<State>
+  public let publisher: SignalProducer<State, Never>
 
-  private var viewCancellable: AnyCancellable?
+  private var viewCancellable: Disposable?
 
   /// Initializes a view store from a store.
   ///
@@ -58,11 +59,11 @@ public final class ViewStore<State, Action>: ObservableObject {
     _ store: Store<State, Action>,
     removeDuplicates isDuplicate: @escaping (State, State) -> Bool
   ) {
-    let publisher = store.$state.removeDuplicates(by: isDuplicate)
-    self.publisher = StorePublisher(publisher)
+    let publisher = store.$state.producer.skipRepeats(isDuplicate)
+    self.publisher = publisher // StorePublisher(publisher)
     self.state = store.state
     self._send = store.send
-    self.viewCancellable = publisher.sink { [weak self] in self?.state = $0 }
+    self.viewCancellable = publisher.startWithValues { [weak self] in self?.state = $0 }
   }
 
   /// The current state.

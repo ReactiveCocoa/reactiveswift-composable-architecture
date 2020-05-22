@@ -1,5 +1,6 @@
 #if DEBUG
-  import Combine
+//  import Combine
+  import ReactiveSwift
   import Foundation
 
   /// A testable runtime for a reducer.
@@ -172,22 +173,23 @@
     ) {
       var receivedActions: [Action] = []
 
-      var cancellables: [AnyCancellable] = []
+      var cancellables: [Disposable] = []
 
       func runReducer(action: Action) {
         let effect = self.reducer.run(&self.state, action, self.environment)
         var isComplete = false
-        var cancellable: AnyCancellable?
-        cancellable = effect.sink(
-          receiveCompletion: { _ in
+        var cancellable: Disposable?
+                
+        cancellable = effect.start { event in
+          switch event {
+          case .completed, .interrupted:
             isComplete = true
             guard let cancellable = cancellable else { return }
-            cancellables.removeAll(where: { $0 == cancellable })
-          },
-          receiveValue: {
-            receivedActions.append($0)
+            cancellables.removeAll(where: { $0 === cancellable })
+          case let .value(value):
+            receivedActions.append(value)
           }
-        )
+        }
         if !isComplete, let cancellable = cancellable {
           cancellables.append(cancellable)
         }
