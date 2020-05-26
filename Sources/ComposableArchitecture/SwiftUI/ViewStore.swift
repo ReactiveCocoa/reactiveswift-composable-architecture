@@ -45,7 +45,8 @@ import SwiftUI
 @dynamicMemberLookup
 public final class ViewStore<State, Action>: ObservableObject {
   /// A publisher of state.
-  public let publisher: SignalProducer<State, Never>
+  public let publisher: StorePublisher<State>
+  public let producer: SignalProducer<State, Never>
 
   private var viewCancellable: Disposable?
 
@@ -59,15 +60,15 @@ public final class ViewStore<State, Action>: ObservableObject {
     _ store: Store<State, Action>,
     removeDuplicates isDuplicate: @escaping (State, State) -> Bool
   ) {
-    let publisher = store.$state.producer.skipRepeats(isDuplicate)
-    self.publisher = publisher // StorePublisher(publisher)
+    self.producer = store.$state.producer.skipRepeats(isDuplicate)
+    self.publisher = StorePublisher(producer)
     self.state = store.state
     self._send = store.send
-    self.viewCancellable = publisher.startWithValues { [weak self] in self?.state = $0 }
+    self.viewCancellable = producer.startWithValues { [weak self] in self?.state = $0 }
   }
 
   /// The current state.
-  @Published public internal(set) var state: State
+  @MutableProperty public internal(set) var state: State
 
   let _send: (Action) -> Void
 

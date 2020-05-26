@@ -1,11 +1,10 @@
-import Combine
+import ReactiveSwift
 import XCTest
 
 @testable import ComposableArchitecture
 
 final class EffectThrottleTests: XCTestCase {
-  var cancellables: Set<AnyCancellable> = []
-  let scheduler = DispatchQueue.testScheduler
+  let scheduler = TestScheduler()
 
   func testThrottleLatest() {
     var values: [Int] = []
@@ -14,14 +13,12 @@ final class EffectThrottleTests: XCTestCase {
     func runThrottledEffect(value: Int) {
       struct CancelToken: Hashable {}
 
-      Deferred { () -> Just<Int> in
+      Effect.deferred { () -> Effect<Int, Never> in
         effectRuns += 1
-        return Just(value)
+        return .init(value: value)
       }
-      .eraseToEffect()
-      .throttle(id: CancelToken(), for: 1, scheduler: scheduler.eraseToAnyScheduler(), latest: true)
-      .sink { values.append($0) }
-      .store(in: &self.cancellables)
+      .throttle(id: CancelToken(), interval: 1, on: scheduler, latest: true)
+      .startWithValues { values.append($0) }
     }
 
     runThrottledEffect(value: 1)
@@ -34,22 +31,22 @@ final class EffectThrottleTests: XCTestCase {
     // A second value is throttled.
     XCTAssertEqual(values, [1])
 
-    scheduler.advance(by: 0.25)
+    scheduler.advance(by: .milliseconds(250))
 
     runThrottledEffect(value: 3)
 
-    scheduler.advance(by: 0.25)
+    scheduler.advance(by: .milliseconds(250))
 
     runThrottledEffect(value: 4)
 
-    scheduler.advance(by: 0.25)
+    scheduler.advance(by: .milliseconds(250))
 
     runThrottledEffect(value: 5)
 
     // A third value is throttled.
     XCTAssertEqual(values, [1])
 
-    scheduler.advance(by: 0.25)
+    scheduler.advance(by: .milliseconds(250))
 
     // The latest value emits.
     XCTAssertEqual(values, [1, 5])
@@ -62,16 +59,12 @@ final class EffectThrottleTests: XCTestCase {
     func runThrottledEffect(value: Int) {
       struct CancelToken: Hashable {}
 
-      Deferred { () -> Just<Int> in
+      Effect.deferred { () -> Effect<Int, Never> in
         effectRuns += 1
-        return Just(value)
+        return .init(value: value)
       }
-      .eraseToEffect()
-      .throttle(
-        id: CancelToken(), for: 1, scheduler: scheduler.eraseToAnyScheduler(), latest: false
-      )
-      .sink { values.append($0) }
-      .store(in: &self.cancellables)
+      .throttle(id: CancelToken(), interval: 1, on: scheduler, latest: false)
+      .startWithValues { values.append($0) }
     }
 
     runThrottledEffect(value: 1)
@@ -84,22 +77,22 @@ final class EffectThrottleTests: XCTestCase {
     // A second value is throttled.
     XCTAssertEqual(values, [1])
 
-    scheduler.advance(by: 0.25)
+    scheduler.advance(by: .milliseconds(250))
 
     runThrottledEffect(value: 3)
 
-    scheduler.advance(by: 0.25)
+    scheduler.advance(by: .milliseconds(250))
 
     runThrottledEffect(value: 4)
 
-    scheduler.advance(by: 0.25)
+    scheduler.advance(by: .milliseconds(250))
 
     runThrottledEffect(value: 5)
 
     // A third value is throttled.
     XCTAssertEqual(values, [1])
 
-    scheduler.advance(by: 0.25)
+    scheduler.advance(by: .milliseconds(250))
 
     // The first throttled value emits.
     XCTAssertEqual(values, [1, 2])
@@ -112,14 +105,12 @@ final class EffectThrottleTests: XCTestCase {
     func runThrottledEffect(value: Int) {
       struct CancelToken: Hashable {}
 
-      Deferred { () -> Just<Int> in
+      Effect.deferred { () -> Effect<Int, Never> in
         effectRuns += 1
-        return Just(value)
+        return .init(value: value)
       }
-      .eraseToEffect()
-      .throttle(id: CancelToken(), for: 1, scheduler: scheduler.eraseToAnyScheduler(), latest: true)
-      .sink { values.append($0) }
-      .store(in: &self.cancellables)
+      .throttle(id: CancelToken(), interval: 1, on: scheduler, latest: true)
+      .startWithValues { values.append($0) }
     }
 
     runThrottledEffect(value: 1)
@@ -127,7 +118,7 @@ final class EffectThrottleTests: XCTestCase {
     // A value emits right away.
     XCTAssertEqual(values, [1])
 
-    scheduler.advance(by: 2)
+    scheduler.advance(by: .seconds(2))
 
     runThrottledEffect(value: 2)
 

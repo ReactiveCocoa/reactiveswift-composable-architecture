@@ -1,41 +1,13 @@
 import ReactiveSwift
 import Foundation
 
-@propertyWrapper
-public struct Produced<Value> {
-  private let mutableProperty: MutableProperty<Value>
-  
-  /// A signal that will send the property's changes over time,
-  /// then complete when the property has deinitialized.
-  public var signal: Signal<Value, Never> { mutableProperty.signal }
-
-  /// A producer for Signals that will send the property's current value,
-  /// followed by all changes over time, then complete when the property has
-  /// deinitialized.
-  public var producer: SignalProducer<Value, Never> { mutableProperty.producer }  
-  
-  public var wrappedValue: Value {
-    set { mutableProperty.value = newValue }
-    get { mutableProperty.value }
-  }
-  
-  public var projectedValue: Self {
-    get { self }
-    set { self = newValue }
-  }
-  
-  public init(wrappedValue: Value) {
-    self.mutableProperty = MutableProperty<Value>(wrappedValue)
-  }    
-} 
-
 /// A store represents the runtime that powers the application. It is the object that you will pass
 /// around to views that need to interact with the application.
 ///
 /// You will typically construct a single one of these at the root of your application, and then use
 /// the `scope` method to derive more focused stores that can be passed to subviews.
 public final class Store<State, Action> {
-  @Produced private(set) var state: State
+  @MutableProperty private(set) var state: State
   var effectCancellables: [UUID: Disposable] = [:]
   private var isSending = false
   private var parentCancellable: Disposable?
@@ -95,8 +67,11 @@ public final class Store<State, Action> {
         return .none
       }
     )
-    localStore.parentCancellable = self.$state.producer
-      .startWithValues { [weak localStore] newValue in localStore?.state = toLocalState(newValue) }
+    localStore.parentCancellable = self.$state.signal
+      .observeValues { [weak localStore] newValue in localStore?.state = toLocalState(newValue) }
+
+//    localStore.parentCancellable = self.$state.producer
+//      .startWithValues { [weak localStore] newValue in localStore?.state = toLocalState(newValue) }
     return localStore
   }
 
@@ -226,28 +201,20 @@ public final class Store<State, Action> {
   }
 }
 
-/// A publisher of store state.
-//@dynamicMemberLookup
-//public struct StorePublisher<State>: Publisher {
-//  public typealias Output = State
-//  public typealias Failure = Never
-//
-//  public let upstream: AnyPublisher<State, Never>
-//
-//  public func receive<S>(subscriber: S)
-//  where S: Subscriber, Failure == S.Failure, Output == S.Input {
-//    self.upstream.receive(subscriber: subscriber)
-//  }
-//
-//  init<P>(_ upstream: P) where P: Publisher, Failure == P.Failure, Output == P.Output {
-//    self.upstream = upstream.eraseToAnyPublisher()
-//  }
-//
-//  /// Returns the resulting publisher of a given key path.
-//  public subscript<LocalState>(
-//    dynamicMember keyPath: KeyPath<State, LocalState>
-//  ) -> StorePublisher<LocalState>
-//  where LocalState: Equatable {
-//    .init(self.upstream.map(keyPath).removeDuplicates())
-//  }
-//}
+// A publisher of store state.
+@dynamicMemberLookup
+public struct StorePublisher<State>: SignalProducerConvertible {
+  public let producer: SignalProducer<State, Never>
+
+  init(_ upstream: SignalProducer<State, Never>) {
+    self.producer = upstream
+  } 
+  
+  /// Returns the resulting publisher of a given key path.
+  public subscript<LocalState>(
+    dynamicMember keyPath: KeyPath<State, LocalState>
+  ) -> SignalProducer<LocalState, Never>
+  where LocalState: Equatable {
+    self.producer.map(keyPath).skipRepeats()
+  }  
+}

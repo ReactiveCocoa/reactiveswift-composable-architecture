@@ -1,7 +1,7 @@
-import Combine
+import ReactiveSwift
 import Foundation
 
-extension _Effect {
+extension Effect {
   /// Turns an effect into one that is capable of being canceled.
   ///
   /// To turn an effect into a cancellable one you must provide an identifier, which is used in
@@ -26,26 +26,27 @@ extension _Effect {
   ///   - cancelInFlight: Determines if any in-flight effect with the same identifier should be
   ///     canceled before starting this new one.
   /// - Returns: A new effect that is capable of being canceled by an identifier.
-  public func cancellable(id: AnyHashable, cancelInFlight: Bool = false) -> _Effect {
-    return Deferred { () -> Publishers.HandleEvents<PassthroughSubject<Output, Failure>> in
-      let subject = PassthroughSubject<Output, Failure>()
+  public func cancellable(id: AnyHashable, cancelInFlight: Bool = false) -> Effect {
+    return .deferred { () -> SignalProducer<Value, Error> in
+      let subject = Signal<Value, Error>.pipe()
+      
       let uuid = UUID()
 
       var isCleaningUp = false
 
       cancellablesLock.sync {
         if cancelInFlight {
-          cancellationCancellables[id]?.forEach { _, cancellable in cancellable.cancel() }
+          cancellationCancellables[id]?.forEach { _, cancellable in cancellable.dispose() }
           cancellationCancellables[id] = nil
         }
 
-        let cancellable = self.subscribe(subject)
+        let cancellable = self.start()
 
         cancellationCancellables[id] = cancellationCancellables[id] ?? [:]
-        cancellationCancellables[id]?[uuid] = AnyCancellable {
-          cancellable.cancel()
+        cancellationCancellables[id]?[uuid] = AnyDisposable {
+          cancellable.dispose()
           if !isCleaningUp {
-            subject.send(completion: .finished)
+            subject.input.sendCompleted()
           }
         }
       }
@@ -60,12 +61,13 @@ extension _Effect {
         }
       }
 
-      return subject.handleEvents(
-        receiveCompletion: { _ in cleanup() },
-        receiveCancel: cleanup
-      )
+      return subject.output.on(
+        completed: cleanup, 
+        interrupted: cleanup, 
+        terminated: cleanup, 
+        disposed: cleanup
+      ).producer
     }
-    .eraseToEffect()
   }
 
   /// An effect that will cancel any currently in-flight effect with the given identifier.
@@ -73,15 +75,15 @@ extension _Effect {
   /// - Parameter id: An effect identifier.
   /// - Returns: A new effect that will cancel any currently in-flight effect with the given
   ///   identifier.
-  public static func cancel(id: AnyHashable) -> _Effect {
+  public static func cancel(id: AnyHashable) -> Effect {
     .fireAndForget {
       cancellablesLock.sync {
-        cancellationCancellables[id]?.forEach { _, cancellable in cancellable.cancel() }
+        cancellationCancellables[id]?.forEach { _, cancellable in cancellable.dispose() }
         cancellationCancellables[id] = nil
       }
     }
   }
 }
 
-var cancellationCancellables: [AnyHashable: [UUID: AnyCancellable]] = [:]
+var cancellationCancellables: [AnyHashable: [UUID: Disposable]] = [:]
 let cancellablesLock = NSRecursiveLock()

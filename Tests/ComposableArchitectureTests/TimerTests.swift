@@ -1,65 +1,59 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import XCTest
 
 final class TimerTests: XCTestCase {
-  var cancellables: Set<AnyCancellable> = []
-
   func testTimer() {
-    let scheduler = DispatchQueue.testScheduler
+    let scheduler = TestScheduler()
 
     var count = 0
 
     Effect.timer(id: 1, every: .seconds(1), on: scheduler)
-      .sink { _ in count += 1 }
-      .store(in: &self.cancellables)
+      .startWithValues { _ in count += 1 }
 
-    scheduler.advance(by: 1)
+    scheduler.advance(by: .seconds(1))
     XCTAssertEqual(count, 1)
 
-    scheduler.advance(by: 1)
+    scheduler.advance(by: .seconds(1))
     XCTAssertEqual(count, 2)
 
-    scheduler.advance(by: 1)
+    scheduler.advance(by: .seconds(1))
     XCTAssertEqual(count, 3)
 
-    scheduler.advance(by: 3)
+    scheduler.advance(by: .seconds(3))
     XCTAssertEqual(count, 6)
   }
 
   func testInterleavingTimer() {
-    let scheduler = DispatchQueue.testScheduler
+    let scheduler = TestScheduler()
 
     var count2 = 0
     var count3 = 0
 
     Effect.merge(
       Effect.timer(id: 1, every: .seconds(2), on: scheduler)
-        .handleEvents(receiveOutput: { _ in count2 += 1 })
-        .eraseToEffect(),
+        .on(value: { _ in count2 += 1 }),
       Effect.timer(id: 2, every: .seconds(3), on: scheduler)
-        .handleEvents(receiveOutput: { _ in count3 += 1 })
-        .eraseToEffect()
+        .on(value:  { _ in count3 += 1 })
     )
-    .sink { _ in }
-    .store(in: &self.cancellables)
+    .start()
 
-    scheduler.advance(by: 1)
+    scheduler.advance(by: .seconds(1))
     XCTAssertEqual(count2, 0)
     XCTAssertEqual(count3, 0)
-    scheduler.advance(by: 1)
+    scheduler.advance(by: .seconds(1))
     XCTAssertEqual(count2, 1)
     XCTAssertEqual(count3, 0)
-    scheduler.advance(by: 1)
+    scheduler.advance(by: .seconds(1))
     XCTAssertEqual(count2, 1)
     XCTAssertEqual(count3, 1)
-    scheduler.advance(by: 1)
+    scheduler.advance(by: .seconds(1))
     XCTAssertEqual(count2, 2)
     XCTAssertEqual(count3, 1)
   }
 
   func testTimerCancellation() {
-    let scheduler = DispatchQueue.testScheduler
+    let scheduler = TestScheduler()
 
     var count2 = 0
     var count3 = 0
@@ -68,35 +62,31 @@ final class TimerTests: XCTestCase {
 
     Effect.merge(
       Effect.timer(id: CancelToken(), every: .seconds(2), on: scheduler)
-        .handleEvents(receiveOutput: { _ in count2 += 1 })
-        .eraseToEffect(),
+        .on(value: { _ in count2 += 1 }),
       Effect.timer(id: CancelToken(), every: .seconds(3), on: scheduler)
-        .handleEvents(receiveOutput: { _ in count3 += 1 })
-        .eraseToEffect(),
-      Just(())
-        .delay(for: 30, scheduler: scheduler)
-        .flatMap { Effect.cancel(id: CancelToken()) }
-        .eraseToEffect()
+        .on(value: { _ in count3 += 1 }),
+      Effect(value: ())
+        .delay(30, on: scheduler)
+        .flatMap(.latest) { Effect.cancel(id: CancelToken()) }
     )
-    .sink { _ in }
-    .store(in: &self.cancellables)
+    .start()
 
-    scheduler.advance(by: 1)
+    scheduler.advance(by: .seconds(1))
 
     XCTAssertEqual(count2, 0)
     XCTAssertEqual(count3, 0)
 
-    scheduler.advance(by: 1)
+    scheduler.advance(by: .seconds(1))
 
     XCTAssertEqual(count2, 1)
     XCTAssertEqual(count3, 0)
 
-    scheduler.advance(by: 1)
+    scheduler.advance(by: .seconds(1))
 
     XCTAssertEqual(count2, 1)
     XCTAssertEqual(count3, 1)
 
-    scheduler.advance(by: 1)
+    scheduler.advance(by: .seconds(1))
 
     XCTAssertEqual(count2, 2)
     XCTAssertEqual(count3, 1)
@@ -108,22 +98,21 @@ final class TimerTests: XCTestCase {
   }
 
   func testTimerCompletion() {
-    let scheduler = DispatchQueue.testScheduler
+    let scheduler = TestScheduler()
 
     var count = 0
 
     Effect.timer(id: 1, every: .seconds(1), on: scheduler)
-      .prefix(3)
-      .sink { _ in count += 1 }
-      .store(in: &self.cancellables)
+      .take(first: 3)
+      .startWithValues { _ in count += 1 }
 
-    scheduler.advance(by: 1)
+    scheduler.advance(by: .seconds(1))
     XCTAssertEqual(count, 1)
 
-    scheduler.advance(by: 1)
+    scheduler.advance(by: .seconds(1))
     XCTAssertEqual(count, 2)
 
-    scheduler.advance(by: 1)
+    scheduler.advance(by: .seconds(1))
     XCTAssertEqual(count, 3)
 
     scheduler.run()

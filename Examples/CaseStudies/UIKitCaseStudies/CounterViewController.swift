@@ -67,10 +67,9 @@ final class CounterViewController: UIViewController {
       rootStackView.centerYAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerYAnchor),
     ])
 
-    self.viewStore.publisher
+    self.viewStore.producer
       .map { "\($0.count)" }
       .assign(to: \.text, on: countLabel)
-      .store(in: &self.cancellables)
   }
 
   @objc func decrementButtonTapped() {
