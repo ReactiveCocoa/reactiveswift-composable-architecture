@@ -90,13 +90,13 @@ public final class Store<State, Action> {
   ///   - fromLocalAction: A function that transforms `LocalAction` into `Action`.
   /// - Returns: A publisher of stores with its domain (state and action) transformed.
   public func scope<LocalState, LocalAction>(
-    state toLocalState: @escaping (SignalProducer<State, Never>) -> SignalProducer<LocalState, Never>,
+    state toLocalState: @escaping (Effect<State, Never>) -> Effect<LocalState, Never>,
     action fromLocalAction: @escaping (LocalAction) -> Action
-  ) -> SignalProducer<Store<LocalState, LocalAction>, Never> {
+  ) -> Effect<Store<LocalState, LocalAction>, Never> {
 
     func extractLocalState(_ state: State) -> LocalState? {
       var localState: LocalState?
-      _ = toLocalState(SignalProducer.init(value: state))
+      _ = toLocalState(Effect(value: state))
         .startWithValues { localState = $0 }
       return localState
     }
@@ -127,8 +127,8 @@ public final class Store<State, Action> {
   /// - Returns: A publisher of stores with its domain (state and action)
   ///   transformed.
   public func scope<LocalState>(
-    state toLocalState: @escaping (SignalProducer<State, Never>) -> SignalProducer<LocalState, Never>
-  ) -> SignalProducer<Store<LocalState, Action>, Never> {
+    state toLocalState: @escaping (Effect<State, Never>) -> Effect<LocalState, Never>
+  ) -> Effect<Store<LocalState, Action>, Never> {
     self.scope(state: toLocalState, action: { $0 })
   }
 
@@ -153,7 +153,6 @@ public final class Store<State, Action> {
     var isProcessingEffects = true
     let effectCancellable = effect.start { [weak self] event in
       switch event {
-      // WARNING: check if handling `.interrupted` like this is valid
       case .completed, .interrupted:
         didComplete = true
         self?.effectCancellables[uuid] = nil
@@ -201,16 +200,16 @@ public final class Store<State, Action> {
 // A publisher of store state.
 @dynamicMemberLookup
 public struct StorePublisher<State>: SignalProducerConvertible {
-  public let producer: SignalProducer<State, Never>
+  public let producer: Effect<State, Never>
 
-  init(_ upstream: SignalProducer<State, Never>) {
+  init(_ upstream: Effect<State, Never>) {
     self.producer = upstream
   } 
   
   /// Returns the resulting publisher of a given key path.
   public subscript<LocalState>(
     dynamicMember keyPath: KeyPath<State, LocalState>
-  ) -> SignalProducer<LocalState, Never>
+  ) -> Effect<LocalState, Never>
   where LocalState: Equatable {
     self.producer.map(keyPath).skipRepeats()
   }  

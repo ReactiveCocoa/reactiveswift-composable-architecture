@@ -19,26 +19,26 @@ extension Effect {
     interval: TimeInterval, 
     on scheduler: DateScheduler,
     latest: Bool
-  ) -> SignalProducer<Value, Error> {
-    self.flatMap(.latest) { value -> SignalProducer<Value, Error> in
+  ) -> Effect<Value, Error> {
+    self.flatMap(.latest) { value -> Effect<Value, Error> in
       guard let throttleTime = throttleTimes[id] as! Date? else {
         throttleTimes[id] = scheduler.currentDate
         throttleValues[id] = nil
-        return SignalProducer(value: value)
+        return Effect(value: value)
       }
 
-      guard throttleTime.timeIntervalSince1970 - scheduler.currentDate.timeIntervalSince1970 < interval else {
+      guard scheduler.currentDate.timeIntervalSince1970 - throttleTime.timeIntervalSince1970 < interval else {
         throttleTimes[id] = scheduler.currentDate
         throttleValues[id] = nil
-        return SignalProducer(value: value)
+        return Effect(value: value)
       }
 
       let value = latest ? value : (throttleValues[id] as! Value? ?? value)
       throttleValues[id] = value
-      
-      return SignalProducer(value: value)
+
+      return Effect(value: value)
         .delay(
-          scheduler.currentDate.timeIntervalSince1970 - throttleTime.addingTimeInterval(interval).timeIntervalSince1970, 
+          throttleTime.addingTimeInterval(interval).timeIntervalSince1970 - scheduler.currentDate.timeIntervalSince1970,
           on: scheduler
         )
     }

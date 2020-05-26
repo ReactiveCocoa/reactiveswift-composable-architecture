@@ -68,7 +68,7 @@ final class ComposableArchitectureTests: XCTestCase {
     testScheduler.advance()
     XCTAssertEqual(values, [1, 42])
     testScheduler.advance(by: .seconds(2))
-    XCTAssertEqual(values, [1, 42, 1, 1, 42])
+    XCTAssertEqual(values, [1, 42, 1, 42, 1])
   }
 
   func testLongLivingEffects() {

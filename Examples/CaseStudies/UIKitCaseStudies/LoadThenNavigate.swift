@@ -1,4 +1,3 @@
-//import Combine
 import ReactiveSwift
 import ComposableArchitecture
 import SwiftUI
@@ -28,7 +27,6 @@ let lazyNavigationReducer = Reducer<
       state.isActivityIndicatorHidden = false
       return Effect(value: .setNavigationIsActiveDelayCompleted)      
         .delay(1, on: environment.mainQueue)
-//        .eraseToEffect()
     case .setNavigation(isActive: false):
       state.optionalCounter = nil
       return .none
@@ -48,7 +46,6 @@ let lazyNavigationReducer = Reducer<
 )
 
 class LazyNavigationViewController: UIViewController {
-  var cancellables: [Disposable] = []
   let store: Store<LazyNavigationState, LazyNavigationAction>
   let viewStore: ViewStore<LazyNavigationState, LazyNavigationAction>
 

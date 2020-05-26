@@ -32,19 +32,20 @@ extension Effect {
       let uuid = UUID()
 
       var isCleaningUp = false
-      var cancellable: Disposable?
-      
+
+      var disposable: Disposable?
+
       cancellablesLock.sync {
         if cancelInFlight {
           cancellationCancellables[id]?.forEach { _, cancellable in cancellable.dispose() }
           cancellationCancellables[id] = nil
         }
 
-        cancellable = self.start(subject.input)
+        disposable = self.start(subject.input)
 
         cancellationCancellables[id] = cancellationCancellables[id] ?? [:]
         cancellationCancellables[id]?[uuid] = AnyDisposable {
-          cancellable?.dispose()
+          disposable?.dispose()
           if !isCleaningUp {
             subject.input.sendCompleted()
           }
@@ -52,9 +53,9 @@ extension Effect {
       }
 
       func cleanup() {
-        cancellable?.dispose()
         isCleaningUp = true
-        cancellablesLock.sync {                    
+        disposable?.dispose()
+        cancellablesLock.sync {
           cancellationCancellables[id]?[uuid] = nil
           if cancellationCancellables[id]?.isEmpty == true {
             cancellationCancellables[id] = nil
@@ -62,12 +63,12 @@ extension Effect {
         }
       }
 
-      return subject.output.on(
+      return subject.output.producer.on(
         completed: cleanup, 
-        interrupted: cleanup, 
+        interrupted: cleanup,
         terminated: cleanup, 
         disposed: cleanup
-      ).producer
+      )
     }
   }
 

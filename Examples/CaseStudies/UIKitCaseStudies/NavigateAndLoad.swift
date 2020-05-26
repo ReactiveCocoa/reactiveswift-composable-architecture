@@ -46,7 +46,6 @@ let eagerNavigationReducer = Reducer<
 )
 
 class EagerNavigationViewController: UIViewController {
-  var cancellables: [Disposable] = []
   let store: Store<EagerNavigationState, EagerNavigationAction>
   let viewStore: ViewStore<EagerNavigationState, EagerNavigationAction>
 

@@ -133,8 +133,8 @@ final class EffectTests: XCTestCase {
     var values: [Int] = []
     var isComplete = false
     effect
-      .on(completed: { isComplete = true }, value: { values.append($0) })
-      .start()
+      .on(completed: { isComplete = true })
+      .startWithValues { values.append($0) }
 
     XCTAssertEqual(values, [1])
     XCTAssertEqual(isComplete, false)

@@ -47,7 +47,7 @@ extension Store {
   ) -> Disposable where State == Wrapped? {
     self
       .scope(
-        state: { state -> SignalProducer<Wrapped, Never> in
+        state: { state -> Effect<Wrapped, Never> in
           state
             .skipRepeats { ($0 != nil) == ($1 != nil) }
             .on(value: { if $0 == nil { `else`() } } )

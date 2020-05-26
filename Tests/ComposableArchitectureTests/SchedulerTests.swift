@@ -94,20 +94,6 @@ final class SchedulerTests: XCTestCase {
     XCTAssertEqual(value, 1)
   }
 
-//  func testDispatchQueueDefaults() {
-//    let scheduler = TestScheduler() 
-//    scheduler.advance(by: .nanoseconds(0))
-//
-//    XCTAssertEqual(
-//      scheduler.currentDate,
-//      .init(DispatchTime(uptimeNanoseconds: 1)),
-//      """
-//      Default of dispatchQueue.now should not be 0 because that has special meaning in DispatchTime's \
-//      initializer and causes it to default to DispatchTime.now().
-//      """
-//    )
-//  }
-
   func testTwoIntervalOrdering() {
     let testScheduler = TestScheduler() 
 
