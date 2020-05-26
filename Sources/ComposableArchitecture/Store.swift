@@ -67,11 +67,8 @@ public final class Store<State, Action> {
         return .none
       }
     )
-    localStore.parentCancellable = self.$state.signal
-      .observeValues { [weak localStore] newValue in localStore?.state = toLocalState(newValue) }
-
-//    localStore.parentCancellable = self.$state.producer
-//      .startWithValues { [weak localStore] newValue in localStore?.state = toLocalState(newValue) }
+    localStore.parentCancellable = self.$state.producer
+      .startWithValues { [weak localStore] newValue in localStore?.state = toLocalState(newValue) }
     return localStore
   }
 

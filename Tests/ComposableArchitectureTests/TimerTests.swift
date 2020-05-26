@@ -66,7 +66,7 @@ final class TimerTests: XCTestCase {
       Effect.timer(id: CancelToken(), every: .seconds(3), on: scheduler)
         .on(value: { _ in count3 += 1 }),
       Effect(value: ())
-        .delay(30, on: scheduler)
+        .delay(30.5, on: scheduler)
         .flatMap(.latest) { Effect.cancel(id: CancelToken()) }
     )
     .start()

@@ -28,23 +28,23 @@ extension Effect {
   /// - Returns: A new effect that is capable of being canceled by an identifier.
   public func cancellable(id: AnyHashable, cancelInFlight: Bool = false) -> Effect {
     return .deferred { () -> SignalProducer<Value, Error> in
-      let subject = Signal<Value, Error>.pipe()
-      
+      let subject = Signal<Value, Error>.pipe()      
       let uuid = UUID()
 
       var isCleaningUp = false
-
+      var cancellable: Disposable?
+      
       cancellablesLock.sync {
         if cancelInFlight {
           cancellationCancellables[id]?.forEach { _, cancellable in cancellable.dispose() }
           cancellationCancellables[id] = nil
         }
 
-        let cancellable = self.start()
+        cancellable = self.start(subject.input)
 
         cancellationCancellables[id] = cancellationCancellables[id] ?? [:]
         cancellationCancellables[id]?[uuid] = AnyDisposable {
-          cancellable.dispose()
+          cancellable?.dispose()
           if !isCleaningUp {
             subject.input.sendCompleted()
           }
@@ -52,8 +52,9 @@ extension Effect {
       }
 
       func cleanup() {
+        cancellable?.dispose()
         isCleaningUp = true
-        cancellablesLock.sync {
+        cancellablesLock.sync {                    
           cancellationCancellables[id]?[uuid] = nil
           if cancellationCancellables[id]?.isEmpty == true {
             cancellationCancellables[id] = nil
