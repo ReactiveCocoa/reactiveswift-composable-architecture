@@ -207,11 +207,34 @@ final class EffectCancellationTests: XCTestCase {
 
     XCTAssertTrue(cancellationCancellables.isEmpty)
   }
+
+  func testNestedCancels() {
+    var effect = Effect<Void, Never> { observer, _ in
+      DispatchQueue.main.asyncAfter(deadline: .distantFuture) {
+        observer.sendCompleted()
+      }
+    }
+    .cancellable(id: 1)
+
+    for _ in 1 ... .random(in: 1...1_000) {
+      effect = effect.cancellable(id: 1)
+    }
+
+    let composite = CompositeDisposable()
+    composite.add(effect.start())
+
+    composite.dispose()
+
+    XCTAssertEqual([:], cancellationCancellables)
+    XCTAssertEqual([], isCancelling)
+  }
 }
 
 func resetCancellables() {
-  for (id, _) in cancellationCancellables {
-    cancellationCancellables[id] = [:]
+  cancellablesLock.sync {
+    for (id, _) in cancellationCancellables {
+      cancellationCancellables[id] = []
+    }
+    cancellationCancellables = [:]
   }
-  cancellationCancellables = [:]
 }

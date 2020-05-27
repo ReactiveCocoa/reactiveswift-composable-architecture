@@ -1,6 +1,15 @@
+#if canImport (Combine)
 import Combine
-import ReactiveSwift
+#endif
+#if canImport (SwiftUI)
 import SwiftUI
+#endif
+import ReactiveSwift
+
+#if canImport(Combine)
+#else
+protocol ObservableObject { }
+#endif
 
 /// A `ViewStore` is an object that can observe state changes and send actions. They are most
 /// commonly used in views, such as SwiftUI views, UIView or UIViewController, but they can be

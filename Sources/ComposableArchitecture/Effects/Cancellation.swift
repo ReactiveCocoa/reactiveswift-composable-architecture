@@ -1,6 +1,35 @@
 import ReactiveSwift
 import Foundation
 
+extension AnyDisposable: Hashable {
+  public static func == (lhs: AnyDisposable, rhs: AnyDisposable) -> Bool {
+      return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+  }
+
+  public func hash(into hasher: inout Hasher) {
+      hasher.combine(ObjectIdentifier(self))
+  }
+}
+
+extension AnyDisposable {
+    /// Stores this AnyDisposable in the specified collection.
+    /// Parameters:
+    ///    - collection: The collection to store this AnyCancellable.
+    public func store<Disposables: RangeReplaceableCollection>(
+        in collection: inout Disposables
+    ) where Disposables.Element == AnyDisposable {
+        collection.append(self)
+    }
+
+    /// Stores this AnyCancellable in the specified set.
+    /// Parameters:
+    ///    - set: The set to store this AnyCancellable.
+    public func store(in set: inout Set<AnyDisposable>) {
+        set.insert(self)
+    }
+}
+
+
 extension Effect {
   /// Turns an effect into one that is capable of being canceled.
   ///
@@ -29,46 +58,52 @@ extension Effect {
   public func cancellable(id: AnyHashable, cancelInFlight: Bool = false) -> Effect {
     return .deferred { () -> SignalProducer<Value, Error> in
       let subject = Signal<Value, Error>.pipe()      
-      let uuid = UUID()
-
-      var isCleaningUp = false
 
       var disposable: Disposable?
+      var values: [Value] = []
+      var isCaching = true
 
       cancellablesLock.sync {
         if cancelInFlight {
-          cancellationCancellables[id]?.forEach { _, cancellable in cancellable.dispose() }
+          cancellationCancellables[id]?.forEach { cancellable in cancellable.dispose() }
           cancellationCancellables[id] = nil
         }
 
-        disposable = self.start(subject.input)
-
-        cancellationCancellables[id] = cancellationCancellables[id] ?? [:]
-        cancellationCancellables[id]?[uuid] = AnyDisposable {
-          disposable?.dispose()
-          if !isCleaningUp {
-            subject.input.sendCompleted()
+        disposable = self
+          .on {
+            guard isCaching else { return }
+            values.append($0)
           }
+          .start(subject.input)
+
+        AnyDisposable {
+          disposable?.dispose()
+          subject.input.sendCompleted()
         }
+        .store(in: &cancellationCancellables[id, default: []])
       }
 
-      func cleanup() {
-        isCleaningUp = true
+      func cleanUp() {
         disposable?.dispose()
         cancellablesLock.sync {
-          cancellationCancellables[id]?[uuid] = nil
-          if cancellationCancellables[id]?.isEmpty == true {
-            cancellationCancellables[id] = nil
-          }
+          guard !isCancelling.contains(id) else { return }
+          isCancelling.insert(id)
+          defer { isCancelling.remove(id) }
+          cancellationCancellables[id] = nil
         }
       }
 
-      return subject.output.producer.on(
-        completed: cleanup, 
-        interrupted: cleanup,
-        terminated: cleanup, 
-        disposed: cleanup
-      )
+      let prefix = SignalProducer(values)
+      let output = subject.output.producer
+        .on(
+          started: { isCaching = false },
+          completed: cleanUp,
+          interrupted: cleanUp,
+          terminated: cleanUp,
+          disposed: cleanUp
+        )
+
+      return prefix.concat(output)
     }
   }
 
@@ -80,12 +115,13 @@ extension Effect {
   public static func cancel(id: AnyHashable) -> Effect {
     .fireAndForget {
       cancellablesLock.sync {
-        cancellationCancellables[id]?.forEach { _, cancellable in cancellable.dispose() }
+        cancellationCancellables[id]?.forEach { cancellable in cancellable.dispose() }
         cancellationCancellables[id] = nil
       }
     }
   }
 }
 
-var cancellationCancellables: [AnyHashable: [UUID: Disposable]] = [:]
+var cancellationCancellables: [AnyHashable: Set<AnyDisposable>] = [:]
 let cancellablesLock = NSRecursiveLock()
+var isCancelling: Set<AnyHashable> = []
