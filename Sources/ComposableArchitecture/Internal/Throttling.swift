@@ -1,5 +1,6 @@
-import Combine
+import Foundation
 import Dispatch
+import ReactiveSwift
 
 extension Effect {
   /// Turns an effect into one that can be throttled.
@@ -13,36 +14,34 @@ extension Effect {
   ///     `false`, the publisher emits the first element received during the interval.
   /// - Returns: An effect that emits either the most-recent or first element received during the
   ///   specified interval.
-  func throttle<S>(
+  func throttle(
     id: AnyHashable,
-    for interval: S.SchedulerTimeType.Stride,
-    scheduler: S,
+    interval: TimeInterval, 
+    on scheduler: DateScheduler,
     latest: Bool
-  ) -> Effect where S: Scheduler {
-    self.flatMap { value -> AnyPublisher<Output, Failure> in
-      guard let throttleTime = throttleTimes[id] as! S.SchedulerTimeType? else {
-        throttleTimes[id] = scheduler.now
+  ) -> Effect<Value, Error> {
+    self.flatMap(.latest) { value -> Effect<Value, Error> in
+      guard let throttleTime = throttleTimes[id] as! Date? else {
+        throttleTimes[id] = scheduler.currentDate
         throttleValues[id] = nil
-        return Just(value).setFailureType(to: Failure.self).eraseToAnyPublisher()
+        return Effect(value: value)
       }
 
-      guard throttleTime.distance(to: scheduler.now) < interval else {
-        throttleTimes[id] = scheduler.now
+      guard scheduler.currentDate.timeIntervalSince1970 - throttleTime.timeIntervalSince1970 < interval else {
+        throttleTimes[id] = scheduler.currentDate
         throttleValues[id] = nil
-        return Just(value).setFailureType(to: Failure.self).eraseToAnyPublisher()
+        return Effect(value: value)
       }
 
-      let value = latest ? value : (throttleValues[id] as! Output? ?? value)
+      let value = latest ? value : (throttleValues[id] as! Value? ?? value)
       throttleValues[id] = value
 
-      return Just(value)
+      return Effect(value: value)
         .delay(
-          for: scheduler.now.distance(to: throttleTime.advanced(by: interval)), scheduler: scheduler
+          throttleTime.addingTimeInterval(interval).timeIntervalSince1970 - scheduler.currentDate.timeIntervalSince1970,
+          on: scheduler
         )
-        .setFailureType(to: Failure.self)
-        .eraseToAnyPublisher()
     }
-    .eraseToEffect()
     .cancellable(id: id, cancelInFlight: true)
   }
 }

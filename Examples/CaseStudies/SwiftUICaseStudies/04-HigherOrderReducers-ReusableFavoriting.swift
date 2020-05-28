@@ -1,6 +1,7 @@
 import Combine
 import ComposableArchitecture
 import SwiftUI
+import ReactiveSwift
 
 private let readMe = """
   This screen demonstrates how one can create reusable components in the Composable Architecture.
@@ -34,7 +35,7 @@ enum FavoriteAction: Equatable {
 
 struct FavoriteEnvironment<ID> {
   var request: (ID, Bool) -> Effect<Bool, Error>
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 /// A cancellation token that cancels in-flight favoriting requests.
@@ -66,7 +67,7 @@ extension Reducer {
           state.isFavorite.toggle()
 
           return environment.request(state.id, state.isFavorite)
-            .receive(on: environment.mainQueue)
+            .observe(on: environment.mainQueue)
             .mapError(FavoriteError.init(error:))
             .catchToEffect()
             .map(FavoriteAction.response)
@@ -126,7 +127,7 @@ enum EpisodeAction: Equatable {
 
 struct EpisodeEnvironment {
   var favorite: (EpisodeState.ID, Bool) -> Effect<Bool, Error>
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 struct EpisodeView: View {
@@ -164,7 +165,7 @@ enum EpisodesAction: Equatable {
 
 struct EpisodesEnvironment {
   var favorite: (UUID, Bool) -> Effect<Bool, Error>
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 let episodesReducer: Reducer<EpisodesState, EpisodesAction, EpisodesEnvironment> =
@@ -203,7 +204,7 @@ struct EpisodesView_Previews: PreviewProvider {
           reducer: episodesReducer,
           environment: EpisodesEnvironment(
             favorite: favorite(id:isFavorite:),
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+            mainQueue: QueueScheduler.main
           )
         )
       )

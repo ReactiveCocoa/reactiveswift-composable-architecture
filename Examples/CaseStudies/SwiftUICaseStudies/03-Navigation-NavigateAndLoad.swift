@@ -2,6 +2,7 @@ import Combine
 import ComposableArchitecture
 import SwiftUI
 import UIKit
+import ReactiveSwift
 
 private let readMe = """
   This screen demonstrates navigation that depends on loading optional state.
@@ -22,7 +23,7 @@ enum EagerNavigationAction: Equatable {
 }
 
 struct EagerNavigationEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 let eagerNavigationReducer = Reducer<
@@ -33,8 +34,7 @@ let eagerNavigationReducer = Reducer<
     case .setNavigation(isActive: true):
       state.isNavigationActive = true
       return Effect(value: .setNavigationIsActiveDelayCompleted)
-        .delay(for: 1, scheduler: environment.mainQueue)
-        .eraseToEffect()
+        .delay(1, on: environment.mainQueue)
 
     case .setNavigation(isActive: false):
       state.isNavigationActive = false
@@ -94,7 +94,7 @@ struct EagerNavigationView_Previews: PreviewProvider {
           initialState: EagerNavigationState(),
           reducer: eagerNavigationReducer,
           environment: EagerNavigationEnvironment(
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+            mainQueue: QueueScheduler.main
           )
         )
       )

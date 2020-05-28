@@ -5,10 +5,10 @@ import PackageDescription
 let package = Package(
   name: "swift-composable-architecture",
   platforms: [
-    .iOS(.v13),
-    .macOS(.v10_15),
-    .tvOS(.v13),
-    .watchOS(.v6),
+    .iOS(.v12),
+    .macOS(.v10_14),
+    .tvOS(.v12),
+    .watchOS(.v5),
   ],
   products: [
     .library(
@@ -21,13 +21,15 @@ let package = Package(
     ),
   ],
   dependencies: [
-    .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "0.1.1")
+    .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "0.1.1"),
+    .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift", from: "6.3.0")
   ],
   targets: [
     .target(
       name: "ComposableArchitecture",
       dependencies: [
-        "CasePaths"
+        "CasePaths",
+        "ReactiveSwift",
       ]
     ),
     .testTarget(

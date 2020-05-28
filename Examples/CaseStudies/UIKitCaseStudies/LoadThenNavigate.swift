@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import SwiftUI
 import UIKit
@@ -15,7 +15,7 @@ enum LazyNavigationAction: Equatable {
 }
 
 struct LazyNavigationEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 let lazyNavigationReducer = Reducer<
@@ -25,9 +25,8 @@ let lazyNavigationReducer = Reducer<
     switch action {
     case .setNavigation(isActive: true):
       state.isActivityIndicatorHidden = false
-      return Effect(value: .setNavigationIsActiveDelayCompleted)
-        .delay(for: 1, scheduler: environment.mainQueue)
-        .eraseToEffect()
+      return Effect(value: .setNavigationIsActiveDelayCompleted)      
+        .delay(1, on: environment.mainQueue)
     case .setNavigation(isActive: false):
       state.optionalCounter = nil
       return .none
@@ -47,7 +46,6 @@ let lazyNavigationReducer = Reducer<
 )
 
 class LazyNavigationViewController: UIViewController {
-  var cancellables: [AnyCancellable] = []
   let store: Store<LazyNavigationState, LazyNavigationAction>
   let viewStore: ViewStore<LazyNavigationState, LazyNavigationAction>
 
@@ -89,7 +87,6 @@ class LazyNavigationViewController: UIViewController {
 
     self.viewStore.publisher.isActivityIndicatorHidden
       .assign(to: \.isHidden, on: activityIndicator)
-      .store(in: &self.cancellables)
 
     self.store
       .scope(state: { $0.optionalCounter }, action: LazyNavigationAction.optionalCounter)
@@ -103,7 +100,6 @@ class LazyNavigationViewController: UIViewController {
           self.navigationController?.popToViewController(self, animated: true)
         }
       )
-      .store(in: &self.cancellables)
   }
 
   override func viewDidAppear(_ animated: Bool) {
@@ -127,7 +123,7 @@ struct LazyNavigationViewController_Previews: PreviewProvider {
           initialState: LazyNavigationState(),
           reducer: lazyNavigationReducer,
           environment: LazyNavigationEnvironment(
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+            mainQueue: QueueScheduler.main
           )
         )
       )

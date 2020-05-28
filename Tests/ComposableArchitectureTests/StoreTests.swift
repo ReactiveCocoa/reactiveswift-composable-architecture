@@ -1,11 +1,9 @@
-import Combine
+import ReactiveSwift
 import XCTest
 
 @testable import ComposableArchitecture
 
 final class StoreTests: XCTestCase {
-  var cancellables: Set<AnyCancellable> = []
-
   func testCancellableIsRemovedOnImmediatelyCompletingEffect() {
     let reducer = Reducer<Void, Void, Void> { _, _, _ in .none }
     let store = Store(initialState: (), reducer: reducer, environment: ())
@@ -18,10 +16,9 @@ final class StoreTests: XCTestCase {
   }
 
   func testCancellableIsRemovedWhenEffectCompletes() {
-    let scheduler = DispatchQueue.testScheduler
+    let scheduler = TestScheduler()
     let effect = Effect<Void, Never>(value: ())
-      .delay(for: 1, scheduler: scheduler)
-      .eraseToEffect()
+      .delay(1, on: scheduler)
 
     enum Action { case start, end }
 
@@ -41,7 +38,7 @@ final class StoreTests: XCTestCase {
 
     XCTAssertEqual(store.effectCancellables.count, 1)
 
-    scheduler.advance(by: 2)
+    scheduler.advance(by: .seconds(2))
 
     XCTAssertEqual(store.effectCancellables.count, 0)
   }
@@ -57,9 +54,8 @@ final class StoreTests: XCTestCase {
     let childStore = parentStore.scope(state: String.init)
 
     var values: [String] = []
-    childStore.$state
-      .sink(receiveValue: { values.append($0) })
-      .store(in: &self.cancellables)
+    childStore.$state.producer
+      .startWithValues { values.append($0) }
 
     XCTAssertEqual(values, ["0"])
 
@@ -79,9 +75,8 @@ final class StoreTests: XCTestCase {
     let childViewStore = ViewStore(childStore)
 
     var values: [Int] = []
-    parentStore.$state
-      .sink(receiveValue: { values.append($0) })
-      .store(in: &self.cancellables)
+    parentStore.$state.producer
+      .startWithValues { values.append($0) }
 
     XCTAssertEqual(values, [0])
 
@@ -100,13 +95,11 @@ final class StoreTests: XCTestCase {
     var outputs: [String] = []
 
     parentStore
-      .scope(state: { $0.map { "\($0)" }.removeDuplicates() })
-      .sink { childStore in
-        childStore.$state
-          .sink { outputs.append($0) }
-          .store(in: &self.cancellables)
+      .scope(state: { $0.map { "\($0)" }.skipRepeats() })
+      .startWithValues { childStore in
+        childStore.$state.producer
+          .startWithValues { outputs.append($0) }
       }
-      .store(in: &self.cancellables)
 
     parentStore.send(0)
     XCTAssertEqual(outputs, ["0"])
@@ -196,12 +189,12 @@ final class StoreTests: XCTestCase {
         return .merge(
           Effect(value: .next1),
           Effect(value: .next2),
-          .fireAndForget { values.append(1) }
+          Effect.fireAndForget { values.append(1) }
         )
       case .next1:
         return .merge(
           Effect(value: .end),
-          .fireAndForget { values.append(2) }
+          Effect.fireAndForget { values.append(2) }
         )
       case .next2:
         return .fireAndForget { values.append(3) }

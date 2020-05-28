@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import SwiftUI
+import ReactiveSwift
 
 private let readMe = """
   This screen demonstrates navigation that depends on loading optional state from a list element.
@@ -27,7 +28,7 @@ enum LazyListNavigationAction: Equatable {
 }
 
 struct LazyListNavigationEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 let lazyListNavigationReducer = Reducer<
@@ -46,8 +47,7 @@ let lazyListNavigationReducer = Reducer<
       struct CancelId: Hashable {}
 
       return Effect(value: .setNavigationSelectionDelayCompleted(id))
-        .delay(for: 1, scheduler: environment.mainQueue)
-        .eraseToEffect()
+        .delay(1, on: environment.mainQueue)
         .cancellable(id: CancelId(), cancelInFlight: true)
 
     case .setNavigation(selection: .none):
@@ -126,7 +126,7 @@ struct LazyListNavigationView_Previews: PreviewProvider {
           ),
           reducer: lazyListNavigationReducer,
           environment: LazyListNavigationEnvironment(
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+            mainQueue: QueueScheduler.main
           )
         )
       )

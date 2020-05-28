@@ -1,4 +1,5 @@
 import Combine
+import ReactiveSwift
 
 extension Store {
   /// Subscribes to updates when a store containing optional state goes from `nil` to non-`nil` or
@@ -39,21 +40,22 @@ extension Store {
   ///   - else: A function that is called whenever the store's optional state goes from non-`nil` to
   ///     `nil`.
   /// - Returns: A cancellable associated with the underlying subscription.
+  @discardableResult
   public func ifLet<Wrapped>(
     then unwrap: @escaping (Store<Wrapped, Action>) -> Void,
     else: @escaping () -> Void
-  ) -> Cancellable where State == Wrapped? {
+  ) -> Disposable where State == Wrapped? {
     self
       .scope(
-        state: { state in
+        state: { state -> Effect<Wrapped, Never> in
           state
-            .removeDuplicates(by: { ($0 != nil) == ($1 != nil) })
-            .handleEvents(receiveOutput: { if $0 == nil { `else`() } })
+            .skipRepeats { ($0 != nil) == ($1 != nil) }
+            .on(value: { if $0 == nil { `else`() } } )
             .compactMap { $0 }
         },
         action: { $0 }
       )
-      .sink(receiveValue: unwrap)
+      .startWithValues(unwrap)
   }
 
   /// An overload of `ifLet(then:else:)` for the times that you do not want to handle the `else`
@@ -64,7 +66,7 @@ extension Store {
   /// - Returns: A cancellable associated with the underlying subscription.
   public func ifLet<Wrapped>(
     then unwrap: @escaping (Store<Wrapped, Action>) -> Void
-  ) -> Cancellable where State == Wrapped? {
+  ) -> Disposable where State == Wrapped? {
     self.ifLet(then: unwrap, else: {})
   }
 }

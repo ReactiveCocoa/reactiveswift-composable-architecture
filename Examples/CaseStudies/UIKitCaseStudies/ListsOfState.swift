@@ -49,8 +49,7 @@ final class CountersTableViewController: UITableViewController {
     self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellIdentifier)
 
     self.viewStore.publisher.counters
-      .sink(receiveValue: { [weak self] in self?.dataSource = $0 })
-      .store(in: &self.cancellables)
+      .startWithValues({ [weak self] in self?.dataSource = $0 })
   }
 
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

@@ -1,51 +1,44 @@
-import Combine
+import ReactiveSwift
 import XCTest
 
 @testable import ComposableArchitecture
 
 final class EffectTests: XCTestCase {
-  var cancellables: Set<AnyCancellable> = []
-  let scheduler = DispatchQueue.testScheduler
+  let scheduler = TestScheduler()
 
   func testEraseToEffectWithError() {
     struct Error: Swift.Error, Equatable {}
 
-    Future<Int, Error> { $0(.success(42)) }
-      .catchToEffect()
-      .sink { XCTAssertEqual($0, .success(42)) }
-      .store(in: &self.cancellables)
+    SignalProducer<Int, Error>(result: .success(42))
+      .startWithResult { XCTAssertEqual($0, .success(42)) }
+    
+    SignalProducer<Int, Error>(result: .failure(Error()))
+      .startWithResult { XCTAssertEqual($0, .failure(Error())) }
 
-    Future<Int, Error> { $0(.failure(Error())) }
-      .catchToEffect()
-      .sink { XCTAssertEqual($0, .failure(Error())) }
-      .store(in: &self.cancellables)
-
-    Future<Int, Never> { $0(.success(42)) }
-      .eraseToEffect()
-      .sink { XCTAssertEqual($0, 42) }
-      .store(in: &self.cancellables)
+    SignalProducer<Int, Never>(result: .success(42))
+      .startWithResult { XCTAssertEqual($0, .success(42)) }
   }
 
   func testConcatenate() {
     var values: [Int] = []
 
     let effect = Effect<Int, Never>.concatenate(
-      Effect(value: 1).delay(for: 1, scheduler: scheduler).eraseToEffect(),
-      Effect(value: 2).delay(for: 2, scheduler: scheduler).eraseToEffect(),
-      Effect(value: 3).delay(for: 3, scheduler: scheduler).eraseToEffect()
+      Effect(value: 1).delay(1, on: scheduler),
+      Effect(value: 2).delay(2, on: scheduler),
+      Effect(value: 3).delay(3, on: scheduler)
     )
 
-    effect.sink(receiveValue: { values.append($0) }).store(in: &self.cancellables)
+    effect.startWithValues { values.append($0) }
 
     XCTAssertEqual(values, [])
 
-    self.scheduler.advance(by: 1)
+    self.scheduler.advance(by: .seconds(1))
     XCTAssertEqual(values, [1])
 
-    self.scheduler.advance(by: 2)
+    self.scheduler.advance(by: .seconds(2))
     XCTAssertEqual(values, [1, 2])
 
-    self.scheduler.advance(by: 3)
+    self.scheduler.advance(by: .seconds(3))
     XCTAssertEqual(values, [1, 2, 3])
 
     self.scheduler.run()
@@ -56,14 +49,14 @@ final class EffectTests: XCTestCase {
     var values: [Int] = []
 
     let effect = Effect<Int, Never>.concatenate(
-      Effect(value: 1).delay(for: 1, scheduler: scheduler).eraseToEffect()
+      Effect(value: 1).delay(1, on: scheduler)
     )
 
-    effect.sink(receiveValue: { values.append($0) }).store(in: &self.cancellables)
+    effect.startWithValues { values.append($0) }
 
     XCTAssertEqual(values, [])
 
-    self.scheduler.advance(by: 1)
+    self.scheduler.advance(by: .seconds(1))
     XCTAssertEqual(values, [1])
 
     self.scheduler.run()
@@ -72,56 +65,55 @@ final class EffectTests: XCTestCase {
 
   func testMerge() {
     let effect = Effect<Int, Never>.merge(
-      Effect(value: 1).delay(for: 1, scheduler: scheduler).eraseToEffect(),
-      Effect(value: 2).delay(for: 2, scheduler: scheduler).eraseToEffect(),
-      Effect(value: 3).delay(for: 3, scheduler: scheduler).eraseToEffect()
+      Effect(value: 1).delay(1, on: scheduler),
+      Effect(value: 2).delay(2, on: scheduler),
+      Effect(value: 3).delay(3, on: scheduler)
     )
 
     var values: [Int] = []
-    effect.sink(receiveValue: { values.append($0) }).store(in: &self.cancellables)
+    effect.startWithValues { values.append($0) }
 
     XCTAssertEqual(values, [])
 
-    self.scheduler.advance(by: 1)
+    self.scheduler.advance(by: .seconds(1))
     XCTAssertEqual(values, [1])
 
-    self.scheduler.advance(by: 1)
+    self.scheduler.advance(by: .seconds(1))
     XCTAssertEqual(values, [1, 2])
 
-    self.scheduler.advance(by: 1)
+    self.scheduler.advance(by: .seconds(1))
     XCTAssertEqual(values, [1, 2, 3])
   }
 
   func testEffectSubscriberInitializer() {
-    let effect = Effect<Int, Never>.run { subscriber in
-      subscriber.send(1)
-      subscriber.send(2)
-      self.scheduler.schedule(after: self.scheduler.now.advanced(by: .seconds(1))) {
-        subscriber.send(3)
+    let effect = Effect<Int, Never> { subscriber, _ in
+      subscriber.send(value: 1)
+      subscriber.send(value: 2)
+      self.scheduler.schedule(after: self.scheduler.currentDate.addingTimeInterval(1)) {
+        subscriber.send(value: 3)
       }
-      self.scheduler.schedule(after: self.scheduler.now.advanced(by: .seconds(2))) {
-        subscriber.send(4)
-        subscriber.send(completion: .finished)
+      self.scheduler.schedule(after: self.scheduler.currentDate.addingTimeInterval(2)) {
+        subscriber.send(value: 4)
+        subscriber.sendCompleted()
       }
-
-      return AnyCancellable {}
     }
 
     var values: [Int] = []
     var isComplete = false
     effect
-      .sink(receiveCompletion: { _ in isComplete = true }, receiveValue: { values.append($0) })
-      .store(in: &self.cancellables)
+      .on(completed: { isComplete = true }, value: { values.append($0) })
+      .start()
+      
 
     XCTAssertEqual(values, [1, 2])
     XCTAssertEqual(isComplete, false)
 
-    self.scheduler.advance(by: 1)
+    self.scheduler.advance(by: .seconds(1))
 
     XCTAssertEqual(values, [1, 2, 3])
     XCTAssertEqual(isComplete, false)
 
-    self.scheduler.advance(by: 1)
+    self.scheduler.advance(by: .seconds(1))
 
     XCTAssertEqual(values, [1, 2, 3, 4])
     XCTAssertEqual(isComplete, true)
@@ -130,30 +122,27 @@ final class EffectTests: XCTestCase {
   func testEffectSubscriberInitializer_WithCancellation() {
     struct CancelId: Hashable {}
 
-    let effect = Effect<Int, Never>.run { subscriber in
-      subscriber.send(1)
-      self.scheduler.schedule(after: self.scheduler.now.advanced(by: .seconds(1))) {
-        subscriber.send(2)
+    let effect = Effect<Int, Never> { subscriber, _ in
+      subscriber.send(value: 1)
+      self.scheduler.schedule(after: self.scheduler.currentDate.addingTimeInterval(1)) {
+        subscriber.send(value: 2)
       }
-
-      return AnyCancellable {}
     }
     .cancellable(id: CancelId())
 
     var values: [Int] = []
     var isComplete = false
     effect
-      .sink(receiveCompletion: { _ in isComplete = true }, receiveValue: { values.append($0) })
-      .store(in: &self.cancellables)
+      .on(completed: { isComplete = true })
+      .startWithValues { values.append($0) }
 
     XCTAssertEqual(values, [1])
     XCTAssertEqual(isComplete, false)
 
     Effect<Void, Never>.cancel(id: CancelId())
-      .sink(receiveValue: { _ in })
-      .store(in: &self.cancellables)
+      .startWithValues { _ in }
 
-    self.scheduler.advance(by: 1)
+    self.scheduler.advance(by: .seconds(1))
 
     XCTAssertEqual(values, [1])
     XCTAssertEqual(isComplete, true)

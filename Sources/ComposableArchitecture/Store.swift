@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import Foundation
 
 /// A store represents the runtime that powers the application. It is the object that you will pass
@@ -7,10 +7,10 @@ import Foundation
 /// You will typically construct a single one of these at the root of your application, and then use
 /// the `scope` method to derive more focused stores that can be passed to subviews.
 public final class Store<State, Action> {
-  @Published private(set) var state: State
-  var effectCancellables: [UUID: AnyCancellable] = [:]
+  @MutableProperty private(set) var state: State
+  var effectCancellables: [UUID: Disposable] = [:]
   private var isSending = false
-  private var parentCancellable: AnyCancellable?
+  private var parentCancellable: Disposable?
   private let reducer: (inout State, Action) -> Effect<Action, Never>
   private var synchronousActionsToSend: [Action] = []
 
@@ -67,8 +67,8 @@ public final class Store<State, Action> {
         return .none
       }
     )
-    localStore.parentCancellable = self.$state
-      .sink { [weak localStore] newValue in localStore?.state = toLocalState(newValue) }
+    localStore.parentCancellable = self.$state.producer
+      .startWithValues { [weak localStore] newValue in localStore?.state = toLocalState(newValue) }
     return localStore
   }
 
@@ -89,20 +89,19 @@ public final class Store<State, Action> {
   ///     `LocalState`.
   ///   - fromLocalAction: A function that transforms `LocalAction` into `Action`.
   /// - Returns: A publisher of stores with its domain (state and action) transformed.
-  public func scope<P: Publisher, LocalState, LocalAction>(
-    state toLocalState: @escaping (AnyPublisher<State, Never>) -> P,
+  public func scope<LocalState, LocalAction>(
+    state toLocalState: @escaping (Effect<State, Never>) -> Effect<LocalState, Never>,
     action fromLocalAction: @escaping (LocalAction) -> Action
-  ) -> AnyPublisher<Store<LocalState, LocalAction>, Never>
-  where P.Output == LocalState, P.Failure == Never {
+  ) -> Effect<Store<LocalState, LocalAction>, Never> {
 
     func extractLocalState(_ state: State) -> LocalState? {
       var localState: LocalState?
-      _ = toLocalState(Just(state).eraseToAnyPublisher())
-        .sink { localState = $0 }
+      _ = toLocalState(Effect(value: state))
+        .startWithValues { localState = $0 }
       return localState
     }
 
-    return toLocalState(self.$state.eraseToAnyPublisher())
+    return toLocalState(self.$state.producer)
       .map { localState in
         let localStore = Store<LocalState, LocalAction>(
           initialState: localState,
@@ -112,14 +111,13 @@ public final class Store<State, Action> {
             return .none
           })
 
-        localStore.parentCancellable = self.$state
-          .sink { [weak localStore] state in
+        localStore.parentCancellable = self.$state.producer
+          .startWithValues { [weak localStore] state in
             guard let localStore = localStore else { return }
             localStore.state = extractLocalState(state) ?? localStore.state
           }
         return localStore
       }
-      .eraseToAnyPublisher()
   }
 
   /// Scopes the store to a publisher of stores of more local state and local actions.
@@ -128,10 +126,9 @@ public final class Store<State, Action> {
   ///   of `LocalState`.
   /// - Returns: A publisher of stores with its domain (state and action)
   ///   transformed.
-  public func scope<P: Publisher, LocalState>(
-    state toLocalState: @escaping (AnyPublisher<State, Never>) -> P
-  ) -> AnyPublisher<Store<LocalState, Action>, Never>
-  where P.Output == LocalState, P.Failure == Never {
+  public func scope<LocalState>(
+    state toLocalState: @escaping (Effect<State, Never>) -> Effect<LocalState, Never>
+  ) -> Effect<Store<LocalState, Action>, Never> {
     self.scope(state: toLocalState, action: { $0 })
   }
 
@@ -154,21 +151,22 @@ public final class Store<State, Action> {
     let uuid = UUID()
 
     var isProcessingEffects = true
-    let effectCancellable = effect.sink(
-      receiveCompletion: { [weak self] _ in
+    let effectCancellable = effect.start { [weak self] event in
+      switch event {
+      case .completed, .interrupted:
         didComplete = true
         self?.effectCancellables[uuid] = nil
-      },
-      receiveValue: { [weak self] action in
+        
+      case let .value(action):
         if isProcessingEffects {
           self?.synchronousActionsToSend.append(action)
         } else {
           self?.send(action)
         }
-      }
-    )
+      }            
+    }
     isProcessingEffects = false
-
+    
     if !didComplete {
       self.effectCancellables[uuid] = effectCancellable
     }
@@ -199,28 +197,20 @@ public final class Store<State, Action> {
   }
 }
 
-/// A publisher of store state.
+// A publisher of store state.
 @dynamicMemberLookup
-public struct StorePublisher<State>: Publisher {
-  public typealias Output = State
-  public typealias Failure = Never
+public struct StorePublisher<State>: SignalProducerConvertible {
+  public let producer: Effect<State, Never>
 
-  public let upstream: AnyPublisher<State, Never>
-
-  public func receive<S>(subscriber: S)
-  where S: Subscriber, Failure == S.Failure, Output == S.Input {
-    self.upstream.receive(subscriber: subscriber)
-  }
-
-  init<P>(_ upstream: P) where P: Publisher, Failure == P.Failure, Output == P.Output {
-    self.upstream = upstream.eraseToAnyPublisher()
-  }
-
+  init(_ upstream: Effect<State, Never>) {
+    self.producer = upstream
+  } 
+  
   /// Returns the resulting publisher of a given key path.
   public subscript<LocalState>(
     dynamicMember keyPath: KeyPath<State, LocalState>
-  ) -> StorePublisher<LocalState>
+  ) -> Effect<LocalState, Never>
   where LocalState: Equatable {
-    .init(self.upstream.map(keyPath).removeDuplicates())
-  }
+    self.producer.map(keyPath).skipRepeats()
+  }  
 }

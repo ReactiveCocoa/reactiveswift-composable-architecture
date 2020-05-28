@@ -47,6 +47,5 @@ final class IfLetStoreController<State, Action>: UIViewController {
         self.viewController = self.elseDestination()
       }
     )
-    .store(in: &self.cancellables)
   }
 }

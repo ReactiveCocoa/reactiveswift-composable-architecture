@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import SwiftUI
+import ReactiveSwift
 
 private let readMe = """
   This screen demonstrates navigation that depends on loading optional data into state.
@@ -20,7 +21,7 @@ enum EagerSheetAction {
 }
 
 struct EagerSheetEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 let eagerSheetReducer = Reducer<
@@ -31,8 +32,7 @@ let eagerSheetReducer = Reducer<
     case .setSheet(isPresented: true):
       state.isSheetPresented = true
       return Effect(value: .setSheetIsPresentedDelayCompleted)
-        .delay(for: 1, scheduler: environment.mainQueue)
-        .eraseToEffect()
+        .delay(1, on: environment.mainQueue)
 
     case .setSheet(isPresented: false):
       state.isSheetPresented = false
@@ -91,7 +91,7 @@ struct EagerSheetView_Previews: PreviewProvider {
           initialState: EagerSheetState(),
           reducer: eagerSheetReducer,
           environment: EagerSheetEnvironment(
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+            mainQueue: QueueScheduler.main
           )
         )
       )

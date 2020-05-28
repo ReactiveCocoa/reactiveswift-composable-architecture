@@ -1,7 +1,7 @@
-import Combine
+import ReactiveSwift
 import Foundation
 
-extension Effect {
+extension Effect where Value == Date, Error == Never {
   /// Returns an effect that repeatedly emits the current time of the given
   /// scheduler on the given interval.
   ///
@@ -28,32 +28,13 @@ extension Effect {
   ///   - tolerance: The allowed timing variance when emitting events. Defaults to `nil`, which
   ///     allows any variance.
   ///   - options: Scheduler options passed to the timer. Defaults to `nil`.
-  public static func timer<S>(
+  public static func timer(
     id: AnyHashable,
-    every interval: S.SchedulerTimeType.Stride,
-    tolerance: S.SchedulerTimeType.Stride? = nil,
-    on scheduler: S,
-    options: S.SchedulerOptions? = nil
-  ) -> Effect where S: Scheduler, S.SchedulerTimeType == Output {
-
-    Deferred { () -> Publishers.HandleEvents<PassthroughSubject<Output, Failure>> in
-      let subject = PassthroughSubject<S.SchedulerTimeType, Failure>()
-
-      let cancellable = scheduler.schedule(
-        after: scheduler.now.advanced(by: interval),
-        interval: interval,
-        tolerance: tolerance ?? .seconds(.max),
-        options: options
-      ) {
-        subject.send(scheduler.now)
-      }
-
-      return subject.handleEvents(
-        receiveCompletion: { _ in cancellable.cancel() },
-        receiveCancel: cancellable.cancel
-      )
-    }
-    .eraseToEffect()
-    .cancellable(id: id)
+    every interval: DispatchTimeInterval,
+    tolerance: DispatchTimeInterval? = nil,
+    on scheduler: DateScheduler
+  ) -> Effect<Value, Error> {
+    return SignalProducer.timer(interval: interval, on: scheduler, leeway: tolerance ?? .seconds(.max))
+      .cancellable(id: id)      
   }
 }

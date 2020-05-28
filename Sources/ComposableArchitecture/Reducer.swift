@@ -1,5 +1,4 @@
 import CasePaths
-import Combine
 
 /// A reducer describes how to evolve the current state of an application to the next state, given
 /// an action, and describes what `Effect`s should be executed later by the store, if any.
@@ -250,6 +249,7 @@ public struct Reducer<State, Action, Environment> {
   ///     `GlobalAction`.
   ///   - toLocalEnvironment: A function that transforms `GlobalEnvironment` into `Environment`.
   /// - Returns: A reducer that works on `GlobalState`, `GlobalAction`, `GlobalEnvironment`.
+  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
   public func forEach<GlobalState, GlobalAction, GlobalEnvironment, ID>(
     state toLocalState: WritableKeyPath<GlobalState, IdentifiedArray<ID, State>>,
     action toLocalAction: CasePath<GlobalAction, (ID, Action)>,

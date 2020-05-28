@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import Foundation
 import SwiftUI
+import ReactiveSwift
 
 private let readMe = """
   This screen demonstrates how one can share system-wide dependencies across many features with \
@@ -46,8 +47,7 @@ let multipleDependenciesReducer = Reducer<
   switch action {
   case .alertButtonTapped:
     return Effect(value: .alertDelayReceived)
-      .delay(for: 1, scheduler: environment.mainQueue())
-      .eraseToEffect()
+      .delay(1, on: environment.mainQueue())
 
   case .alertDelayReceived:
     state.alertTitle = "Here's an alert after a delay!"
@@ -157,8 +157,7 @@ struct MultipleDependenciesView_Previews: PreviewProvider {
             environment: MultipleDependenciesEnvironment(
               fetchNumber: {
                 Effect(value: Int.random(in: 1...1_000))
-                  .delay(for: 1, scheduler: DispatchQueue.main)
-                  .eraseToEffect()
+                  .delay(1, on: QueueScheduler.main)
               })
           )
         )
@@ -171,7 +170,7 @@ struct MultipleDependenciesView_Previews: PreviewProvider {
 struct SystemEnvironment<Environment> {
   var date: () -> Date
   var environment: Environment
-  var mainQueue: () -> AnySchedulerOf<DispatchQueue>
+  var mainQueue: () -> DateScheduler
   var uuid: () -> UUID
 
   subscript<Dependency>(
@@ -189,7 +188,7 @@ struct SystemEnvironment<Environment> {
     Self(
       date: Date.init,
       environment: environment,
-      mainQueue: { DispatchQueue.main.eraseToAnyScheduler() },
+      mainQueue: { QueueScheduler.main },
       uuid: UUID.init
     )
   }
@@ -212,13 +211,13 @@ struct SystemEnvironment<Environment> {
     static func mock(
       date: @escaping () -> Date = { fatalError("date dependency is unimplemented.") },
       environment: Environment,
-      mainQueue: @escaping () -> AnySchedulerOf<DispatchQueue> = { fatalError() },
+      mainQueue: @escaping () -> DateScheduler = { fatalError() },
       uuid: @escaping () -> UUID = { fatalError("UUID dependency is unimplemented.") }
     ) -> Self {
       Self(
         date: date,
         environment: environment,
-        mainQueue: { mainQueue().eraseToAnyScheduler() },
+        mainQueue: { mainQueue() },
         uuid: uuid
       )
     }

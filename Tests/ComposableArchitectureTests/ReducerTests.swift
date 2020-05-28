@@ -1,10 +1,8 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import XCTest
 
 final class ReducerTests: XCTestCase {
-  var cancellables: Set<AnyCancellable> = []
-
   func testCallableAsFunction() {
     let reducer = Reducer<Int, Void, Void> { state, _, _ in
       state += 1
@@ -17,7 +15,7 @@ final class ReducerTests: XCTestCase {
   }
 
   func testCombine_EffectsAreMerged() {
-    typealias Scheduler = AnySchedulerOf<DispatchQueue>
+    typealias Scheduler = DateScheduler
     enum Action: Equatable {
       case increment
     }
@@ -26,23 +24,21 @@ final class ReducerTests: XCTestCase {
     let fastReducer = Reducer<Int, Action, Scheduler> { state, _, scheduler in
       state += 1
       return Effect.fireAndForget { fastValue = 42 }
-        .delay(for: 1, scheduler: scheduler)
-        .eraseToEffect()
+        .delay(1, on: scheduler)
     }
 
     var slowValue: Int?
     let slowReducer = Reducer<Int, Action, Scheduler> { state, _, scheduler in
       state += 1
       return Effect.fireAndForget { slowValue = 1729 }
-        .delay(for: 2, scheduler: scheduler)
-        .eraseToEffect()
+        .delay(2, on: scheduler)
     }
 
-    let scheduler = DispatchQueue.testScheduler
+    let scheduler = TestScheduler()
     let store = TestStore(
       initialState: 0,
       reducer: .combine(fastReducer, slowReducer),
-      environment: scheduler.eraseToAnyScheduler()
+      environment: scheduler
     )
 
     store.assert(
@@ -50,11 +46,11 @@ final class ReducerTests: XCTestCase {
         $0 = 2
       },
       // Waiting a second causes the fast effect to fire.
-      .do { scheduler.advance(by: 1) },
+      .do { scheduler.advance(by: .seconds(1)) },
       .do { XCTAssertEqual(fastValue, 42) },
       // Waiting one more second causes the slow effect to fire. This proves that the effects
       // are merged together, as opposed to concatenated.
-      .do { scheduler.advance(by: 1) },
+      .do { scheduler.advance(by: .seconds(1)) },
       .do { XCTAssertEqual(slowValue, 1729) }
     )
   }
@@ -68,14 +64,12 @@ final class ReducerTests: XCTestCase {
     let childReducer = Reducer<Int, Action, Void> { state, _, _ in
       state += 1
       return Effect.fireAndForget { childEffectExecuted = true }
-        .eraseToEffect()
     }
 
     var mainEffectExecuted = false
     let mainReducer = Reducer<Int, Action, Void> { state, _, _ in
       state += 1
       return Effect.fireAndForget { mainEffectExecuted = true }
-        .eraseToEffect()
     }
     .combined(with: childReducer)
 

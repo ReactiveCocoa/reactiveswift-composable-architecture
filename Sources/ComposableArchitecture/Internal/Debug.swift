@@ -250,7 +250,7 @@ extension Effect: CustomDebugOutputConvertible {
 
     if let value = just, let transform = transform {
       let transform = withUnsafePointer(to: transform) {
-        $0.withMemoryRebound(to: ((Any) -> Output).self, capacity: 1, { $0.pointee })
+        $0.withMemoryRebound(to: ((Any) -> Value).self, capacity: 1, { $0.pointee })
       }
       just = transform(value)
     }

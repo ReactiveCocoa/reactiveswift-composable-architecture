@@ -1,6 +1,7 @@
 import Combine
 import ComposableArchitecture
 import SwiftUI
+import ReactiveSwift
 
 private let readMe = """
   This screen demonstrates how one can create reusable components in the Composable Architecture.
@@ -51,7 +52,7 @@ enum CityMapAction {
 
 struct CityMapEnvironment {
   var downloadClient: DownloadClient
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 let cityMapReducer = Reducer<CityMapState, CityMapAction, CityMapEnvironment> {
@@ -154,7 +155,7 @@ enum MapAppAction {
 
 struct MapAppEnvironment {
   var downloadClient: DownloadClient
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 let mapAppReducer: Reducer<MapAppState, MapAppAction, MapAppEnvironment> = cityMapReducer.forEach(
@@ -198,7 +199,7 @@ struct DownloadList_Previews: PreviewProvider {
             reducer: mapAppReducer,
             environment: .init(
               downloadClient: .live,
-              mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+              mainQueue: QueueScheduler.main
             )
           )
         )

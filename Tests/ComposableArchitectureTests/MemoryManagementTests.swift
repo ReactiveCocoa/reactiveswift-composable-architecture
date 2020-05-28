@@ -3,8 +3,6 @@ import ComposableArchitecture
 import XCTest
 
 final class MemoryManagementTests: XCTestCase {
-  var cancellables: Set<AnyCancellable> = []
-
   func testOwnership_ScopeHoldsOntoParent() {
     let counterReducer = Reducer<Int, Void, Void> { state, _, _ in
       state += 1
@@ -16,7 +14,7 @@ final class MemoryManagementTests: XCTestCase {
     let viewStore = ViewStore(store)
 
     var count = 0
-    viewStore.publisher.sink { count = $0 }.store(in: &self.cancellables)
+    viewStore.producer.startWithValues { count = $0 }
 
     XCTAssertEqual(count, 0)
     viewStore.send(())
@@ -31,7 +29,7 @@ final class MemoryManagementTests: XCTestCase {
     let viewStore = ViewStore(Store(initialState: 0, reducer: counterReducer, environment: ()))
 
     var count = 0
-    viewStore.publisher.sink { count = $0 }.store(in: &self.cancellables)
+    viewStore.producer.startWithValues { count = $0 }
 
     XCTAssertEqual(count, 0)
     viewStore.send(())

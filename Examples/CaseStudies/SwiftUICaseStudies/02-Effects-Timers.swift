@@ -1,6 +1,7 @@
 import Combine
 import ComposableArchitecture
 import SwiftUI
+import ReactiveSwift
 
 private let readMe = """
   This application demonstrates how to work with timers in the Composable Architecture.
@@ -23,7 +24,7 @@ enum TimersAction {
 }
 
 struct TimersEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 let timersReducer = Reducer<TimersState, TimersAction, TimersEnvironment> {
@@ -38,7 +39,7 @@ let timersReducer = Reducer<TimersState, TimersAction, TimersEnvironment> {
   case .toggleTimerButtonTapped:
     state.isTimerActive.toggle()
     return state.isTimerActive
-      ? Effect.timer(id: TimerId(), every: 1, tolerance: .zero, on: environment.mainQueue)
+      ? Effect.timer(id: TimerId(), every: .seconds(1), tolerance: .seconds(0), on: environment.mainQueue)
         .map { _ in TimersAction.timerTicked }
       : Effect.cancel(id: TimerId())
   }
@@ -127,7 +128,7 @@ struct TimersView_Previews: PreviewProvider {
           initialState: TimersState(),
           reducer: timersReducer,
           environment: TimersEnvironment(
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+            mainQueue: QueueScheduler.main
           )
         )
       )

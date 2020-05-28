@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import SwiftUI
 import UIKit
@@ -15,7 +15,7 @@ enum EagerNavigationAction: Equatable {
 }
 
 struct EagerNavigationEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 let eagerNavigationReducer = Reducer<
@@ -26,8 +26,7 @@ let eagerNavigationReducer = Reducer<
     case .setNavigation(isActive: true):
       state.isNavigationActive = true
       return Effect(value: .setNavigationIsActiveDelayCompleted)
-        .delay(for: 1, scheduler: environment.mainQueue)
-        .eraseToEffect()
+        .delay(1, on: environment.mainQueue)
     case .setNavigation(isActive: false):
       state.isNavigationActive = false
       state.optionalCounter = nil
@@ -47,7 +46,6 @@ let eagerNavigationReducer = Reducer<
 )
 
 class EagerNavigationViewController: UIViewController {
-  var cancellables: [AnyCancellable] = []
   let store: Store<EagerNavigationState, EagerNavigationAction>
   let viewStore: ViewStore<EagerNavigationState, EagerNavigationAction>
 
@@ -79,7 +77,7 @@ class EagerNavigationViewController: UIViewController {
       button.centerYAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerYAnchor),
     ])
 
-    self.viewStore.publisher.isNavigationActive.sink { [weak self] isNavigationActive in
+    self.viewStore.publisher.isNavigationActive.startWithValues { [weak self] isNavigationActive in
       guard let self = self else { return }
       if isNavigationActive {
         self.navigationController?.pushViewController(
@@ -95,7 +93,6 @@ class EagerNavigationViewController: UIViewController {
         self.navigationController?.popToViewController(self, animated: true)
       }
     }
-    .store(in: &self.cancellables)
   }
 
   override func viewDidAppear(_ animated: Bool) {
@@ -119,7 +116,7 @@ struct EagerNavigationViewController_Previews: PreviewProvider {
           initialState: EagerNavigationState(),
           reducer: eagerNavigationReducer,
           environment: EagerNavigationEnvironment(
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+            mainQueue: QueueScheduler.main
           )
         )
       )

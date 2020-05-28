@@ -1,3 +1,4 @@
+import ReactiveSwift
 import ComposableArchitecture
 import SwiftUI
 import UIKit
@@ -46,7 +47,7 @@ let dataSource: [CaseStudy] = [
         initialState: EagerNavigationState(),
         reducer: eagerNavigationReducer,
         environment: EagerNavigationEnvironment(
-          mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+          mainQueue: QueueScheduler.main
         )
       )
     )
@@ -58,7 +59,7 @@ let dataSource: [CaseStudy] = [
         initialState: LazyNavigationState(),
         reducer: lazyNavigationReducer,
         environment: LazyNavigationEnvironment(
-          mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+          mainQueue: QueueScheduler.main
         )
       )
     )

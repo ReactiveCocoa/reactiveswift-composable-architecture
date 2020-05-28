@@ -1,3 +1,21 @@
+# A [Reactive Swift](https://github.com/ReactiveCocoa/ReactiveSwift) fork of [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture)
+
+The Composable Architecture uses Apple's Combine framework as the basis of its `Effect` type. Unfortunately, Combine is only available on iOS 13 and macOS 10.15 and above. In order to be able to use it with earlier versions of the OSes, this fork has adapted The Composable Architecture to use Reactive Swift as the basis for the `Effect` type.
+
+The fork is currently in a very early stage. Current status:
+
+* ComposableArchitecture library builds
+* ComposableArchitectureTests build and all tests pass
+* The UIKit Case Studies examples build and run correctly
+* The SwiftUI Case Studies examples build and run correctly
+
+The following changes are still needed:
+
+* [ ] Change the documentation (docs and code comments) to reflect the use or ReactiveSwift
+* [ ] Get ComposableCoreLocation to build and run
+* [ ] Get all the remaining example projects to build and run
+* [ ] Sync changes from the main TCA repo.
+
 # The Composable Architecture
 
 [![Swift 5.2](https://img.shields.io/badge/swift-5.2-ED523F.svg?style=flat)](https://swift.org/download/)

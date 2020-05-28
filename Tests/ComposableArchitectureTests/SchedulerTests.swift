@@ -1,19 +1,16 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import XCTest
 
 final class SchedulerTests: XCTestCase {
-  var cancellables: Set<AnyCancellable> = []
-
   func testAdvance() {
-    let scheduler = DispatchQueue.testScheduler
+    let scheduler = TestScheduler() 
 
     var value: Int?
-    Just(1)
-      .delay(for: 1, scheduler: scheduler)
-      .sink { value = $0 }
-      .store(in: &self.cancellables)
-
+    Effect(value: 1)
+      .delay(1, on: scheduler)
+      .startWithValues { value = $0 }
+  
     XCTAssertEqual(value, nil)
 
     scheduler.advance(by: .milliseconds(250))
@@ -34,17 +31,16 @@ final class SchedulerTests: XCTestCase {
   }
 
   func testRunScheduler() {
-    let scheduler = DispatchQueue.testScheduler
+    let scheduler = TestScheduler() 
 
     var value: Int?
-    Just(1)
-      .delay(for: 1_000_000_000, scheduler: scheduler)
-      .sink { value = $0 }
-      .store(in: &self.cancellables)
+    Effect(value: 1)
+      .delay(1_000_000_000, on: scheduler)
+      .startWithValues { value = $0 }
 
     XCTAssertEqual(value, nil)
 
-    scheduler.advance(by: 1_000_000)
+    scheduler.advance(by: .seconds(1_000_000))
 
     XCTAssertEqual(value, nil)
 
@@ -54,13 +50,12 @@ final class SchedulerTests: XCTestCase {
   }
 
   func testDelay0Advance() {
-    let scheduler = DispatchQueue.testScheduler
+    let scheduler = TestScheduler() 
 
     var value: Int?
-    Just(1)
-      .delay(for: 0, scheduler: scheduler)
-      .sink { value = $0 }
-      .store(in: &self.cancellables)
+    Effect(value: 1)
+      .delay(0, on: scheduler)
+      .startWithValues { value = $0 }
 
     XCTAssertEqual(value, nil)
 
@@ -70,13 +65,12 @@ final class SchedulerTests: XCTestCase {
   }
 
   func testSubscribeOnAdvance() {
-    let scheduler = DispatchQueue.testScheduler
+    let scheduler = TestScheduler() 
 
     var value: Int?
-    Just(1)
-      .subscribe(on: scheduler)
-      .sink { value = $0 }
-      .store(in: &self.cancellables)
+    Effect(value: 1)
+      .start(on: scheduler)
+      .startWithValues { value = $0 }
 
     XCTAssertEqual(value, nil)
 
@@ -86,13 +80,12 @@ final class SchedulerTests: XCTestCase {
   }
 
   func testReceiveOnAdvance() {
-    let scheduler = DispatchQueue.testScheduler
+    let scheduler = TestScheduler() 
 
     var value: Int?
-    Just(1)
-      .receive(on: scheduler)
-      .sink { value = $0 }
-      .store(in: &self.cancellables)
+    Effect(value: 1)
+      .observe(on: scheduler)
+      .startWithValues { value = $0 }
 
     XCTAssertEqual(value, nil)
 
@@ -101,35 +94,19 @@ final class SchedulerTests: XCTestCase {
     XCTAssertEqual(value, 1)
   }
 
-  func testDispatchQueueDefaults() {
-    let scheduler = DispatchQueue.testScheduler
-    scheduler.advance(by: .nanoseconds(0))
-
-    XCTAssertEqual(
-      scheduler.now,
-      .init(DispatchTime(uptimeNanoseconds: 1)),
-      """
-      Default of dispatchQueue.now should not be 0 because that has special meaning in DispatchTime's \
-      initializer and causes it to default to DispatchTime.now().
-      """
-    )
-  }
-
   func testTwoIntervalOrdering() {
-    let testScheduler = DispatchQueue.testScheduler
+    let testScheduler = TestScheduler() 
 
     var values: [Int] = []
 
-    testScheduler.schedule(after: testScheduler.now, interval: 2) { values.append(1) }
-      .store(in: &self.cancellables)
+    testScheduler.schedule(after: .seconds(0), interval: .seconds(2)) { values.append(1) }
 
-    testScheduler.schedule(after: testScheduler.now, interval: 1) { values.append(42) }
-      .store(in: &self.cancellables)
+    testScheduler.schedule(after: .seconds(0), interval: .seconds(1)) { values.append(42) }
 
     XCTAssertEqual(values, [])
     testScheduler.advance()
     XCTAssertEqual(values, [1, 42])
-    testScheduler.advance(by: 2)
+    testScheduler.advance(by: .seconds(2))
     XCTAssertEqual(values, [1, 42, 42, 1, 42])
   }
 }

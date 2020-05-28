@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import SwiftUI
+import ReactiveSwift
 
 struct DownloadComponentState<ID: Equatable>: Equatable {
   var alert: DownloadAlert?
@@ -75,7 +76,7 @@ enum DownloadComponentAction: Equatable {
 
 struct DownloadComponentEnvironment {
   var downloadClient: DownloadClient
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 extension Reducer {
@@ -118,7 +119,7 @@ extension Reducer {
             state.mode = .startingToDownload
             return environment.downloadClient
               .download(state.id, state.url)
-              .throttle(for: 1, scheduler: environment.mainQueue, latest: true)
+              .throttle(1, on: environment.mainQueue)
               .catchToEffect()
               .map(DownloadComponentAction.downloadClient)
 
