@@ -28,6 +28,7 @@ import SwiftUI
 ///        Text("Start!")
 ///      }
 ///
+@available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 public struct IfLetStore<State, Action, IfContent, ElseContent>: View
 where IfContent: View, ElseContent: View {
   public let store: Store<State?, Action>
@@ -67,6 +68,7 @@ where IfContent: View, ElseContent: View {
   }
 }
 
+@available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 extension IfLetStore where ElseContent == EmptyView {
   /// An overload of `IfLetStore.init(_:then:else:)` that does not take the `else` argument and
   /// instead uses an `EmptyView`.

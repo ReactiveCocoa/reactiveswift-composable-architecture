@@ -1,6 +1,7 @@
 import Combine
 import ComposableArchitecture
 import SwiftUI
+import ReactiveSwift
 
 private let readMe = """
   This screen demonstrates how one can cancel in-flight effects in the Composable Architecture.
@@ -31,11 +32,11 @@ enum EffectsCancellationAction: Equatable {
 struct TriviaApiError: Error, Equatable {}
 
 struct EffectsCancellationEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
   var trivia: (Int) -> Effect<String, TriviaApiError>
 
   static let live = EffectsCancellationEnvironment(
-    mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
+    mainQueue: QueueScheduler.main,
     trivia: liveTrivia(for:)
   )
 }
@@ -64,7 +65,7 @@ let effectsCancellationReducer = Reducer<
     state.isTriviaRequestInFlight = true
 
     return environment.trivia(state.count)
-      .receive(on: environment.mainQueue)
+      .observe(on: environment.mainQueue)
       .catchToEffect()
       .map(EffectsCancellationAction.triviaResponse)
       .cancellable(id: TriviaRequestId())
@@ -132,7 +133,7 @@ struct EffectsCancellation_Previews: PreviewProvider {
           initialState: EffectsCancellationState(),
           reducer: effectsCancellationReducer,
           environment: EffectsCancellationEnvironment(
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
+            mainQueue: QueueScheduler.main,
             trivia: liveTrivia(for:)
           )
         )
@@ -145,14 +146,17 @@ struct EffectsCancellation_Previews: PreviewProvider {
 // Typically this live implementation of the dependency would live in its own module so that the
 // main feature doesn't need to compile it.
 private func liveTrivia(for n: Int) -> Effect<String, TriviaApiError> {
-  URLSession.shared.dataTaskPublisher(for: URL(string: "http://numbersapi.com/\(n)/trivia")!)
-    .map { data, _ in String.init(decoding: data, as: UTF8.self) }
-    .catch { _ in
-      // Sometimes numbersapi.com can be flakey, so if it ever fails we will just
-      // default to a mock response.
-      Just("\(n) is a good number Brent")
-        .delay(for: 1, scheduler: DispatchQueue.main)
+  return Effect<String, TriviaApiError> { observer, lifetime in
+    let task = URLSession.shared.dataTask(with: URL(string: "http://numbersapi.com/\(n)/trivia")!) { data, response, error in
+      if let data = data {
+        observer.send(value: String.init(decoding: data, as: UTF8.self))
+      } else {
+        observer.send(value: "\(n) is a good number Brent")
+      }
+      observer.sendCompleted()
     }
-    .mapError { _ in TriviaApiError() }
-    .eraseToEffect()
+
+    lifetime += AnyDisposable(task.cancel)
+    task.resume()
+  }
 }

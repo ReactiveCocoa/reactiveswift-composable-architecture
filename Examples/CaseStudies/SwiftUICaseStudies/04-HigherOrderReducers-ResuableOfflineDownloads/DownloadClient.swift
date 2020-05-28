@@ -1,6 +1,7 @@
 import Combine
 import ComposableArchitecture
 import Foundation
+import ReactiveSwift
 
 struct DownloadClient {
   var cancel: (AnyHashable) -> Effect<Never, Never>
@@ -24,21 +25,21 @@ extension DownloadClient {
       }
     },
     download: { id, url in
-      .run { subscriber in
+      .init { subscriber, lifetime in
         let task = URLSession.shared.dataTask(with: url) { data, _, error in
           switch (data, error) {
           case let (.some(data), _):
-            subscriber.send(.response(data))
-            subscriber.send(completion: .finished)
+            subscriber.send(value: .response(data))
+            subscriber.sendCompleted()
           case let (_, .some(error)):
-            subscriber.send(completion: .failure(Error()))
+            subscriber.send(error: Error())
           case (.none, .none):
             fatalError("Data and Error should not both be nil")
           }
         }
 
         let observation = task.progress.observe(\.fractionCompleted) { progress, _ in
-          subscriber.send(.updateProgress(progress.fractionCompleted))
+          subscriber.send(value: .updateProgress(progress.fractionCompleted))
         }
 
         dependencies[id] = Dependencies(
@@ -46,13 +47,12 @@ extension DownloadClient {
           task: task
         )
 
-        task.resume()
-
-        return AnyCancellable {
+        lifetime += AnyDisposable {
           observation.invalidate()
           task.cancel()
           dependencies[id] = nil
         }
+        task.resume()
       }
     }
   )

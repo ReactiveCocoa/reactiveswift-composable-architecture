@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import SwiftUI
+import ReactiveSwift
 
 private let readMe = """
   This screen demonstrates navigation that depends on loading optional state.
@@ -23,7 +24,7 @@ enum LazyNavigationAction: Equatable {
 }
 
 struct LazyNavigationEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 let lazyNavigationReducer = Reducer<
@@ -34,8 +35,7 @@ let lazyNavigationReducer = Reducer<
     case .setNavigation(isActive: true):
       state.isActivityIndicatorVisible = true
       return Effect(value: .setNavigationIsActiveDelayCompleted)
-        .delay(for: 1, scheduler: environment.mainQueue)
-        .eraseToEffect()
+        .delay(1, on: environment.mainQueue)
 
     case .setNavigation(isActive: false):
       state.optionalCounter = nil
@@ -98,7 +98,7 @@ struct LazyNavigationView_Previews: PreviewProvider {
           initialState: LazyNavigationState(),
           reducer: lazyNavigationReducer,
           environment: LazyNavigationEnvironment(
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+            mainQueue: QueueScheduler.main
           )
         )
       )

@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import SwiftUI
+import ReactiveSwift
 
 private let readMe = """
   This screen demonstrates how the `Reducer` struct can be extended to enhance reducers with \
@@ -45,7 +46,7 @@ enum ClockAction: Equatable {
 }
 
 struct ClockEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 let clockReducer = Reducer<ClockState, ClockAction, ClockEnvironment>.combine(
@@ -65,7 +66,7 @@ let clockReducer = Reducer<ClockState, ClockAction, ClockEnvironment>.combine(
     return [
       TimerId():
         Effect
-        .timer(id: TimerId(), every: 1, tolerance: .zero, on: environment.mainQueue)
+          .timer(id: TimerId(), every: .seconds(1), tolerance: .seconds(0), on: environment.mainQueue)
         .map { _ in .timerTicked }
     ]
   }
@@ -150,7 +151,7 @@ struct Subscriptions_Previews: PreviewProvider {
           initialState: ClockState(),
           reducer: clockReducer,
           environment: ClockEnvironment(
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+            mainQueue: QueueScheduler.main
           )
         )
       )

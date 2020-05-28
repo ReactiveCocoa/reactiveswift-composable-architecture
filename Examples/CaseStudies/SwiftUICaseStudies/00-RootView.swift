@@ -1,6 +1,7 @@
 import Combine
 import ComposableArchitecture
 import SwiftUI
+import ReactiveSwift
 
 struct RootView: View {
   var body: some View {
@@ -114,7 +115,7 @@ struct RootView: View {
                 initialState: TimersState(),
                 reducer: timersReducer,
                 environment: TimersEnvironment(
-                  mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+                  mainQueue: QueueScheduler.main
                 )
               )
             )
@@ -130,8 +131,7 @@ struct RootView: View {
                   environment: MultipleDependenciesEnvironment(
                     fetchNumber: {
                       Effect(value: Int.random(in: 1...1_000))
-                        .delay(for: 1, scheduler: DispatchQueue.main)
-                        .eraseToEffect()
+                        .delay(1, on: QueueScheduler.main)
                     }
                   )
                 )
@@ -148,7 +148,7 @@ struct RootView: View {
                 initialState: EagerNavigationState(),
                 reducer: eagerNavigationReducer,
                 environment: EagerNavigationEnvironment(
-                  mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+                  mainQueue: QueueScheduler.main
                 )
               )
             )
@@ -161,7 +161,7 @@ struct RootView: View {
                 initialState: LazyNavigationState(),
                 reducer: lazyNavigationReducer,
                 environment: LazyNavigationEnvironment(
-                  mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+                  mainQueue: QueueScheduler.main
                 )
               )
             )
@@ -180,7 +180,7 @@ struct RootView: View {
                 ),
                 reducer: eagerListNavigationReducer,
                 environment: EagerListNavigationEnvironment(
-                  mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+                  mainQueue: QueueScheduler.main
                 )
               )
             )
@@ -199,7 +199,7 @@ struct RootView: View {
                 ),
                 reducer: lazyListNavigationReducer,
                 environment: LazyListNavigationEnvironment(
-                  mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+                  mainQueue: QueueScheduler.main
                 )
               )
             )
@@ -212,7 +212,7 @@ struct RootView: View {
                 initialState: EagerSheetState(),
                 reducer: eagerSheetReducer,
                 environment: EagerSheetEnvironment(
-                  mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+                  mainQueue: QueueScheduler.main
                 )
               )
             )
@@ -225,7 +225,7 @@ struct RootView: View {
                 initialState: LazySheetState(),
                 reducer: lazySheetReducer,
                 environment: LazySheetEnvironment(
-                  mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+                  mainQueue: QueueScheduler.main
                 )
               )
             )
@@ -243,7 +243,7 @@ struct RootView: View {
                 reducer: episodesReducer,
                 environment: EpisodesEnvironment(
                   favorite: favorite(id:isFavorite:),
-                  mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+                  mainQueue: QueueScheduler.main
                 )
               )
             )
@@ -257,7 +257,7 @@ struct RootView: View {
                 reducer: mapAppReducer,
                 environment: .init(
                   downloadClient: .live,
-                  mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+                  mainQueue: QueueScheduler.main
                 )
               )
             )
@@ -283,7 +283,7 @@ struct RootView: View {
                 initialState: ClockState(),
                 reducer: clockReducer,
                 environment: ClockEnvironment(
-                  mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+                  mainQueue: QueueScheduler.main
                 )
               )
             )

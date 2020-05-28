@@ -96,6 +96,23 @@ extension Effect {
       }
     }
   }
+
+  /// Turns any publisher into an `Effect` that cannot fail by wrapping its output and failure in a
+  /// result.
+  ///
+  /// This can be useful when you are working with a failing API but want to deliver its data to an
+  /// action that handles both success and failure.
+  ///
+  ///     case .buttonTapped:
+  ///       return fetchUser(id: 1)
+  ///         .catchToEffect()
+  ///         .map(ProfileAction.userResponse)
+  ///
+  /// - Returns: An effect that wraps `self`.
+  public func catchToEffect() -> Effect<Result<Value, Error>, Never> {
+    self.map(Result<Value, Error>.success)
+      .flatMapError { Effect<Result<Value, Error>, Never>(value: Result.failure($0)) }
+  }
 }
 
 extension Effect where Value == Never {

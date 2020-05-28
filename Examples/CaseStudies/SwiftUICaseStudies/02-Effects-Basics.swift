@@ -1,6 +1,7 @@
 import Combine
 import ComposableArchitecture
 import SwiftUI
+import ReactiveSwift
 
 private let readMe = """
   This screen demonstrates how to introduce side effects into a feature built with the \
@@ -41,11 +42,11 @@ enum EffectsBasicsAction: Equatable {
 struct NumbersApiError: Error, Equatable {}
 
 struct EffectsBasicsEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
   var numberFact: (Int) -> Effect<String, NumbersApiError>
 
   static let live = EffectsBasicsEnvironment(
-    mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
+    mainQueue: QueueScheduler.main,
     numberFact: liveNumberFact(for:)
   )
 }
@@ -61,8 +62,7 @@ let effectsBasicsReducer = Reducer<
     state.numberFact = nil
     // Return an effect that re-increments the count after 1 second.
     return Effect(value: EffectsBasicsAction.incrementButtonTapped)
-      .delay(for: 1, scheduler: environment.mainQueue)
-      .eraseToEffect()
+      .delay(1, on: environment.mainQueue)
 
   case .incrementButtonTapped:
     state.count += 1
@@ -75,7 +75,7 @@ let effectsBasicsReducer = Reducer<
     // Return an effect that fetches a number fact from the API and returns the
     // value back to the reducer's `numberFactResponse` action.
     return environment.numberFact(state.count)
-      .receive(on: environment.mainQueue)
+      .observe(on: environment.mainQueue)
       .catchToEffect()
       .map(EffectsBasicsAction.numberFactResponse)
 
@@ -140,7 +140,7 @@ struct EffectsBasicsView_Previews: PreviewProvider {
           initialState: EffectsBasicsState(),
           reducer: effectsBasicsReducer,
           environment: EffectsBasicsEnvironment(
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
+            mainQueue: QueueScheduler.main,
             numberFact: liveNumberFact(for:))
         )
       )
@@ -152,14 +152,17 @@ struct EffectsBasicsView_Previews: PreviewProvider {
 // Typically this live implementation of the dependency would live in its own module so that the
 // main feature doesn't need to compile it.
 private func liveNumberFact(for n: Int) -> Effect<String, NumbersApiError> {
-  return URLSession.shared.dataTaskPublisher(for: URL(string: "http://numbersapi.com/\(n)/trivia")!)
-    .map { data, _ in String(decoding: data, as: UTF8.self) }
-    .catch { _ in
-      // Sometimes numbersapi.com can be flakey, so if it ever fails we will just
-      // default to a mock response.
-      Just("\(n) is a good number Brent")
-        .delay(for: 1, scheduler: DispatchQueue.main)
+  return Effect<String, NumbersApiError> { observer, lifetime in
+    let task = URLSession.shared.dataTask(with: URL(string: "http://numbersapi.com/\(n)/trivia")!) { data, response, error in
+      if let data = data {
+        observer.send(value: String.init(decoding: data, as: UTF8.self))
+      } else {
+        observer.send(value: "\(n) is a good number Brent")
+      }
+      observer.sendCompleted()
     }
-    .mapError { _ in NumbersApiError() }
-    .eraseToEffect()
+
+    lifetime += AnyDisposable(task.cancel)
+    task.resume()
+  }
 }

@@ -1,15 +1,6 @@
-#if canImport (Combine)
 import Combine
-#endif
-#if canImport (SwiftUI)
 import SwiftUI
-#endif
 import ReactiveSwift
-
-#if canImport(Combine)
-#else
-protocol ObservableObject { }
-#endif
 
 /// A `ViewStore` is an object that can observe state changes and send actions. They are most
 /// commonly used in views, such as SwiftUI views, UIView or UIViewController, but they can be
@@ -74,10 +65,19 @@ public final class ViewStore<State, Action>: ObservableObject {
     self.state = store.state
     self._send = store.send
     self.viewCancellable = producer.startWithValues { [weak self] in self?.state = $0 }
+
+    if #available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *) {
+      self.producer.startWithValues { _ in
+        self.objectWillChange.send()
+      }
+    }
   }
 
   /// The current state.
   @MutableProperty public internal(set) var state: State
+
+  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
+  public lazy var objectWillChange: ObservableObjectPublisher  = ObjectWillChangePublisher()
 
   let _send: (Action) -> Void
 
@@ -121,6 +121,7 @@ public final class ViewStore<State, Action>: ObservableObject {
   ///   - localStateToViewAction: A function that transforms the binding's value
   ///     into an action that can be sent to the store.
   /// - Returns: A binding.
+  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
   public func binding<LocalState>(
     get: @escaping (State) -> LocalState,
     send localStateToViewAction: @escaping (LocalState) -> Action
@@ -157,6 +158,7 @@ public final class ViewStore<State, Action>: ObservableObject {
   ///   - get: A function to get the state for the binding from the view store's full state.
   ///   - action: The action to send when the binding is written to.
   /// - Returns: A binding.
+  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
   public func binding<LocalState>(
     get: @escaping (State) -> LocalState,
     send action: Action
@@ -187,6 +189,7 @@ public final class ViewStore<State, Action>: ObservableObject {
   ///   - localStateToViewAction: A function that transforms the binding's value
   ///     into an action that can be sent to the store.
   /// - Returns: A binding.
+  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
   public func binding(
     send localStateToViewAction: @escaping (State) -> Action
   ) -> Binding<State> {
@@ -214,6 +217,7 @@ public final class ViewStore<State, Action>: ObservableObject {
   /// - Parameters:
   ///   - action: The action to send when the binding is written to.
   /// - Returns: A binding.
+  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
   public func binding(send action: Action) -> Binding<State> {
     self.binding(send: { _ in action })
   }

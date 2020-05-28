@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import SwiftUI
+import ReactiveSwift
 
 private let readMe = """
   This screen demonstrates navigation that depends on loading optional data into state.
@@ -23,7 +24,7 @@ enum LazySheetAction {
 }
 
 struct LazySheetEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 let lazySheetReducer = Reducer<
@@ -34,8 +35,7 @@ let lazySheetReducer = Reducer<
     case .setSheet(isPresented: true):
       state.isActivityIndicatorVisible = true
       return Effect(value: .setSheetIsPresentedDelayCompleted)
-        .delay(for: 1, scheduler: environment.mainQueue)
-        .eraseToEffect()
+        .delay(1, on: environment.mainQueue)
 
     case .setSheet(isPresented: false):
       state.optionalCounter = nil
@@ -99,7 +99,7 @@ struct LazySheetView_Previews: PreviewProvider {
           initialState: LazySheetState(),
           reducer: lazySheetReducer,
           environment: LazySheetEnvironment(
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+            mainQueue: QueueScheduler.main
           )
         )
       )

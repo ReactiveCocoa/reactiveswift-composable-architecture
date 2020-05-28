@@ -33,10 +33,10 @@ struct LongLivingEffectsEnvironment {
   var userDidTakeScreenshot: Effect<Void, Never>
 
   static let live = LongLivingEffectsEnvironment(
-    userDidTakeScreenshot: NotificationCenter.default
-      .publisher(for: UIApplication.userDidTakeScreenshotNotification)
+    userDidTakeScreenshot: NotificationCenter.default.reactive
+      .notifications(forName: UIApplication.userDidTakeScreenshotNotification)
+      .producer
       .map { _ in () }
-      .eraseToEffect()
   )
 }
 
