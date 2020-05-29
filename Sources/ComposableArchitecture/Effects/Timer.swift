@@ -14,7 +14,6 @@ extension Effect where Value == Date, Error == Never {
   ///     case .startTimer:
   ///       return Effect.timer(id: TimerId(), every: 1, on: environment.scheduler)
   ///         .map { .timerUpdated($0) }
-  ///         .cancellable(id: TimerId())
   ///     case let .timerUpdated(date):
   ///       state.date = date
   ///       return .none
