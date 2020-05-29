@@ -1,26 +1,26 @@
-# A [Reactive Swift](https://github.com/ReactiveCocoa/ReactiveSwift) fork of [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture)
+# A Reactive Swift fork of The Composable Architecture
 
-The Composable Architecture uses Apple's Combine framework as the basis of its `Effect` type. Unfortunately, Combine is only available on iOS 13 and macOS 10.15 and above. In order to be able to use it with earlier versions of the OSes, this fork has adapted The Composable Architecture to use Reactive Swift as the basis for the `Effect` type.
+[Pointfreeco's](https://github.com/pointfreeco) [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) uses Apple's Combine framework as the basis of its `Effect` type. Unfortunately, Combine is only available on iOS 13 and macOS 10.15 and above. In order to be able to use it with earlier versions of the OSes, this fork has adapted The Composable Architecture to use [Reactive Swift](https://github.com/ReactiveCocoa/ReactiveSwift) as the basis for the `Effect` type.
 
 The fork is currently in a very early stage. Current status:
 
-* ComposableArchitecture library builds
-* ComposableArchitectureTests build and all tests pass
-* The UIKit Case Studies examples build and run correctly
-* The SwiftUI Case Studies examples build and run correctly
+* [x] ComposableArchitecture library builds
+* [x] ComposableArchitecture library builds
+* [x] ComposableArchitectureTests build and all tests pass
+* [x] The UIKit Case Studies examples build and run correctly
+* [x] The SwiftUI Case Studies examples build and run correctly
 
 The following changes are still needed:
 
 * [ ] Change the documentation (docs and code comments) to reflect the use or ReactiveSwift
 * [ ] Get ComposableCoreLocation to build and run
 * [ ] Get all the remaining example projects to build and run
-* [ ] Sync changes from the main TCA repo.
 
 # The Composable Architecture
 
 [![Swift 5.2](https://img.shields.io/badge/swift-5.2-ED523F.svg?style=flat)](https://swift.org/download/)
 [![Swift 5.1](https://img.shields.io/badge/swift-5.1-ED523F.svg?style=flat)](https://swift.org/download/)
-[![CI](https://github.com/pointfreeco/swift-composable-architecture/workflows/CI/badge.svg)](https://github.com/pointfreeco/swift-composable-architecture/actions?query=workflow%3ACI)
+[![CI](https://github.com/trading-point/swift-composable-architecture/workflows/CI/badge.svg)](https://github.com/trading-point/swift-composable-architecture/actions?query=workflow%3ACI)
 [![@pointfreeco](https://img.shields.io/badge/contact-@pointfreeco-5AA9E7.svg?style=flat)](https://twitter.com/pointfreeco)
 
 The Composable Architecture is a library for building applications in a consistent and understandable way, with composition, testing, and ergonomics in mind. It can be used in SwiftUI, UIKit, and more, and on any Apple platform (iOS, macOS, tvOS, and watchOS).
@@ -78,6 +78,8 @@ This repo comes with _lots_ of examples to demonstrate how to solve common and c
   * Navigation
   * Higher-order reducers
   * Reusable components
+  
+The following examples have not yet been adapted for ReactiveSwift  
 * [Location manager](./Examples/LocationManager)
 * [Motion manager](./Examples/MotionManager)
 * [Search](./Examples/Search)
@@ -123,11 +125,11 @@ enum AppAction: Equatable {
 struct ApiError: Error, Equatable {}
 ```
 
-Next we model the environment of dependencies this feature needs to do its job. In particular, to fetch a number fact we need to construct an `Effect` value that encapsulates the network request. So that dependency is a function from `Int` to `Effect<String, ApiError>`, where `String` represents the response from the request. Further, the effect will typically do its work on a background thread (as is the case with `URLSession`), and so we need a way to receive the effect's values on the main queue. We do this via a main queue scheduler, which is a dependency that is important to control so that we can write tests. We must use an `AnyScheduler` so that we can use a live `DispatchQueue` in production and a test scheduler in tests.
+Next we model the environment of dependencies this feature needs to do its job. In particular, to fetch a number fact we need to construct an `Effect` value that encapsulates the network request. So that dependency is a function from `Int` to `Effect<String, ApiError>`, where `String` represents the response from the request. Further, the effect will typically do its work on a background thread (as is the case with `URLSession`), and so we need a way to receive the effect's values on the main queue. We do this via a main queue scheduler, which is a dependency that is important to control so that we can write tests. We must use an `DateScheduler` so that we can use a live `QueueScheduler` in production and a test scheduler in tests.
 
 ```swift
 struct AppEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
   var numberFact: (Int) -> Effect<String, ApiError>
 }
 ```
@@ -151,7 +153,7 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, action, e
 
   case .numberFactButtonTapped:
     return environment.numberFact(state.count)
-      .receive(on: environment.mainQueue)
+      .observe(on: environment.mainQueue)
       .catchToEffect()
       .map(AppAction.numberFactResponse)
 
@@ -210,7 +212,6 @@ It is also straightforward to have a UIKit controller driven off of this store. 
   ```swift
   class AppViewController: UIViewController {
     let viewStore: ViewStore<AppState, AppAction>
-    var cancellables: Set<AnyCancellable> = []
 
     init(store: Store<AppState, AppAction>) {
       self.viewStore = ViewStore(store)
@@ -231,13 +232,12 @@ It is also straightforward to have a UIKit controller driven off of this store. 
 
       // Omitted: Add subviews and set up constraints...
 
-      self.viewStore.publisher
+      self.viewStore.producer
         .map { "\($0.count)" }
         .assign(to: \.text, on: countLabel)
-        .store(in: &self.cancellables)
 
-      self.viewStore.publisher.numberFactAlert
-        .sink { [weak self] numberFactAlert in
+      self.viewStore.producer.numberFactAlert
+        .startWithValues { [weak self] numberFactAlert in
           let alertController = UIAlertController(
             title: numberFactAlert, message: nil, preferredStyle: .alert
           )
@@ -250,7 +250,6 @@ It is also straightforward to have a UIKit controller driven off of this store. 
           )
           self?.present(alertController, animated: true, completion: nil)
         }
-        .store(in: &self.cancellables)
     }
 
     @objc private func incrementButtonTapped() {
@@ -274,7 +273,7 @@ let appView = AppView(
     initialState: AppState(),
     reducer: appReducer,
     environment: AppEnvironment(
-      mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
+      mainQueue: QueueScheduler.main,
       numberFact: { number in Effect(value: "\(number) is a good number Brent") }
     )
   )
@@ -285,16 +284,16 @@ And that is enough to get something on the screen to play around with. It's defi
 
 ### Testing
 
-To test, you first create a `TestStore` with the same information that you would to create a regular `Store`, except this time we can supply test-friendly dependencies. In particular, we use a test scheduler instead of the live `DispatchQueue.main` scheduler because that allows us to control when work is executed, and we don't have to artificially wait for queues to catch up.
+To test, you first create a `TestStore` with the same information that you would to create a regular `Store`, except this time we can supply test-friendly dependencies. In particular, we use a test scheduler instead of the live `QueueScheduler.main` scheduler because that allows us to control when work is executed, and we don't have to artificially wait for queues to catch up.
 
 ```swift
-let scheduler = DispatchQueue.testScheduler
+let scheduler = TestScheduler()
 
 let store = TestStore(
   initialState: AppState(),
   reducer: appReducer,
   environment: AppEnvironment(
-    mainQueue: scheduler.eraseToAnyScheduler(),
+    mainQueue: scheduler,
     numberFact: { number in Effect(value: "\(number) is a good number Brent") }
   )
 )
@@ -403,7 +402,7 @@ If you are interested in contributing a wrapper library for a framework that we 
 
     2. It is possible to create a scheduler that performs its work immediately when on the main thread and otherwise uses `DispatchQueue.main.async` (_e.g._ see ReactiveSwift's [`UIScheduler`](https://github.com/ReactiveCocoa/ReactiveSwift/blob/f97db218c0236b0c6ef74d32adb3d578792969c0/Sources/Scheduler.swift)). This introduces a lot more complexity, and should probably not be adopted without having a very good reason.
 
-    At the end of the day, we require `Store` to be used in much the same way that you interact with Apple's APIs. Just as `URLSession` delivers its results on a background thread, thus making you responsible for dispatching back to the main thread, the Composable Architecture makes you responsible for making sure to send actions on the main thread. If you are using an effect that may deliver its output on a non-main thread, you must explicitly perform `.receive(on:)` in order to force it back on the main thread.
+    At the end of the day, we require `Store` to be used in much the same way that you interact with Apple's APIs. Just as `URLSession` delivers its results on a background thread, thus making you responsible for dispatching back to the main thread, the Composable Architecture makes you responsible for making sure to send actions on the main thread. If you are using an effect that may deliver its output on a non-main thread, you must explicitly perform `.observe(on:)` in order to force it back on the main thread.
 
     This approach makes the fewest number of assumptions about how effects are created and transformed, and prevents unnecessary thread hops and re-dispatching. It also provides some testing benefits. If your effects are not responsible for their own scheduling, then in tests all of the effects would run synchronously and immediately. You would not be able to test how multiple in-flight effects interleave with each other and affect the state of your application. However, by leaving scheduling out of the `Store` we get to test these aspects of our effects if we so desire, or we can ignore if we prefer. We have that flexibility.
 
@@ -411,11 +410,10 @@ If you are interested in contributing a wrapper library for a framework that we 
 
     ```swift
     extension Reducer {
-      func receive<S: Scheduler>(on scheduler: S) -> Self {
+      func receive<S: DateScheduler>(on scheduler: S) -> Self {
         Self { state, action, environment in
           self(&state, action, environment)
-            .receive(on: scheduler)
-            .eraseToEffect()
+            .observe(on: scheduler)
         }
       }
     }
@@ -426,14 +424,14 @@ If you are interested in contributing a wrapper library for a framework that we 
   
 ## Requirements
 
-The Composable Architecture depends on the Combine framework, so it requires minimum deployment targets of iOS 13, macOS 10.15, Mac Catalyst 13, tvOS 13, and watchOS 6. If your application must support older OSes, there is [a ReactiveSwift fork](https://github.com/trading-point/swift-composable-architecture) that you can adopt!
+This fork of The Composable Architecture uses the ReactiveSwift framework, it currently requires minimum deployment targets of iOS 12, macOS 10.14, Mac Catalyst 14, tvOS 14, and watchOS 5, although it may be possible to support earlier versions too.
 
 ## Installation
 
 You can add ComposableArchitecture to an Xcode project by adding it as a package dependency.
 
   1. From the **File** menu, select **Swift Packages › Add Package Dependency…**
-  2. Enter "https://github.com/pointfreeco/swift-composable-architecture" into the package repository URL text field
+  2. Enter "https://github.com/trading-point/swift-composable-architecture" into the package repository URL text field
   3. Depending on how your project is structured:
       - If you have a single application target that needs access to the library, then add **ComposableArchitecture** directly to your application.
       - If you want to use this library from multiple targets you must create a shared framework that depends on **ComposableArchitecture** and then depend on that framework in all of your targets. For an example of this, check out the [Tic-Tac-Toe](./Examples/TicTacToe) demo application, which splits lots of features into modules and consumes the static library in this fashion using the **TicTacToeCommon** framework.
@@ -449,8 +447,6 @@ The following people gave feedback on the library at its early stages and helped
 Paul Colton, Kaan Dedeoglu, Matt Diephouse, Josef Doležal, Eimantas, Matthew Johnson, George Kaimakas, Nikita Leonov, Christopher Liscio, Jeffrey Macko, Alejandro Martinez, Shai Mishali, Willis Plummer, Simon-Pierre Roy, Justin Price, Sven A. Schmidt, Kyle Sherman, Petr Šíma, Jasdev Singh, Maxim Smirnov, Ryan Stone, Daniel Hollis Tavares, and all of the [Point-Free](https://www.pointfree.co) subscribers 😁.
 
 Special thanks to [Chris Liscio](https://twitter.com/liscio) who helped us work through many strange SwiftUI quirks and helped refine the final API.
-
-And thanks to [Shai Mishali](https://github.com/freak4pc) and the [CombineCommunity](https://github.com/CombineCommunity/CombineExt/) project, from which we took their implementation of `Publishers.Create`, which we use in `Effect` to help bridge delegate and callback-based APIs, making it much easier to interface with 3rd party frameworks.
 
 ## Other libraries
 
