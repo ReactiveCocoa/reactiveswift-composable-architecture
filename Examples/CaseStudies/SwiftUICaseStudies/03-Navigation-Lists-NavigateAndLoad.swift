@@ -1,6 +1,6 @@
 import ComposableArchitecture
-import SwiftUI
 import ReactiveSwift
+import SwiftUI
 
 private let readMe = """
   This screen demonstrates navigation that depends on loading optional state from a list element.

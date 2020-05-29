@@ -1,7 +1,7 @@
 import Combine
 import ComposableArchitecture
-import SwiftUI
 import ReactiveSwift
+import SwiftUI
 
 private let readMe = """
   This screen demonstrates how to introduce side effects into a feature built with the \
@@ -153,7 +153,8 @@ struct EffectsBasicsView_Previews: PreviewProvider {
 // main feature doesn't need to compile it.
 private func liveNumberFact(for n: Int) -> Effect<String, NumbersApiError> {
   return Effect<String, NumbersApiError> { observer, lifetime in
-    let task = URLSession.shared.dataTask(with: URL(string: "http://numbersapi.com/\(n)/trivia")!) { data, response, error in
+    let task = URLSession.shared.dataTask(with: URL(string: "http://numbersapi.com/\(n)/trivia")!) {
+      data, response, error in
       if let data = data {
         observer.send(value: String.init(decoding: data, as: UTF8.self))
       } else {

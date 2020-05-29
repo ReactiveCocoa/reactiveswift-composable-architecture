@@ -1,16 +1,16 @@
-import ReactiveSwift
 import ComposableArchitecture
+import ReactiveSwift
 import XCTest
 
 final class SchedulerTests: XCTestCase {
   func testAdvance() {
-    let scheduler = TestScheduler() 
+    let scheduler = TestScheduler()
 
     var value: Int?
     Effect(value: 1)
       .delay(1, on: scheduler)
       .startWithValues { value = $0 }
-  
+
     XCTAssertEqual(value, nil)
 
     scheduler.advance(by: .milliseconds(250))
@@ -31,7 +31,7 @@ final class SchedulerTests: XCTestCase {
   }
 
   func testRunScheduler() {
-    let scheduler = TestScheduler() 
+    let scheduler = TestScheduler()
 
     var value: Int?
     Effect(value: 1)
@@ -50,7 +50,7 @@ final class SchedulerTests: XCTestCase {
   }
 
   func testDelay0Advance() {
-    let scheduler = TestScheduler() 
+    let scheduler = TestScheduler()
 
     var value: Int?
     Effect(value: 1)
@@ -65,7 +65,7 @@ final class SchedulerTests: XCTestCase {
   }
 
   func testSubscribeOnAdvance() {
-    let scheduler = TestScheduler() 
+    let scheduler = TestScheduler()
 
     var value: Int?
     Effect(value: 1)
@@ -80,7 +80,7 @@ final class SchedulerTests: XCTestCase {
   }
 
   func testReceiveOnAdvance() {
-    let scheduler = TestScheduler() 
+    let scheduler = TestScheduler()
 
     var value: Int?
     Effect(value: 1)
@@ -95,7 +95,7 @@ final class SchedulerTests: XCTestCase {
   }
 
   func testTwoIntervalOrdering() {
-    let testScheduler = TestScheduler() 
+    let testScheduler = TestScheduler()
 
     var values: [Int] = []
 

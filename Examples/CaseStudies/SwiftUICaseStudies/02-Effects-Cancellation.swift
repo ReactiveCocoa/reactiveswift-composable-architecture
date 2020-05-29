@@ -1,7 +1,7 @@
 import Combine
 import ComposableArchitecture
-import SwiftUI
 import ReactiveSwift
+import SwiftUI
 
 private let readMe = """
   This screen demonstrates how one can cancel in-flight effects in the Composable Architecture.
@@ -147,7 +147,8 @@ struct EffectsCancellation_Previews: PreviewProvider {
 // main feature doesn't need to compile it.
 private func liveTrivia(for n: Int) -> Effect<String, TriviaApiError> {
   return Effect<String, TriviaApiError> { observer, lifetime in
-    let task = URLSession.shared.dataTask(with: URL(string: "http://numbersapi.com/\(n)/trivia")!) { data, response, error in
+    let task = URLSession.shared.dataTask(with: URL(string: "http://numbersapi.com/\(n)/trivia")!) {
+      data, response, error in
       if let data = data {
         observer.send(value: String.init(decoding: data, as: UTF8.self))
       } else {

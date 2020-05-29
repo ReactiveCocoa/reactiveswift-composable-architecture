@@ -78,7 +78,7 @@ extension Effect where Error == Never {
         os_signpost(
           .event, log: log, name: "Effect Output", "%sOutput from %s", prefix, actionOutput
         )
-    })
+      })
   }
 }
 

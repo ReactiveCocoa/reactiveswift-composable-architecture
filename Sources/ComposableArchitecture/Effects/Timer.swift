@@ -1,5 +1,5 @@
-import ReactiveSwift
 import Foundation
+import ReactiveSwift
 
 extension Effect where Value == Date, Error == Never {
   /// Returns an effect that repeatedly emits the current time of the given
@@ -33,7 +33,9 @@ extension Effect where Value == Date, Error == Never {
     tolerance: DispatchTimeInterval? = nil,
     on scheduler: DateScheduler
   ) -> Effect<Value, Error> {
-    return SignalProducer.timer(interval: interval, on: scheduler, leeway: tolerance ?? .seconds(.max))
-      .cancellable(id: id)      
+    return SignalProducer.timer(
+      interval: interval, on: scheduler, leeway: tolerance ?? .seconds(.max)
+    )
+    .cancellable(id: id)
   }
 }

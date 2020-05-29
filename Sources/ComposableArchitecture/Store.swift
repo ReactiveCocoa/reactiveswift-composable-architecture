@@ -1,5 +1,5 @@
-import ReactiveSwift
 import Foundation
+import ReactiveSwift
 
 /// A store represents the runtime that powers the application. It is the object that you will pass
 /// around to views that need to interact with the application.
@@ -156,17 +156,17 @@ public final class Store<State, Action> {
       case .completed, .interrupted:
         didComplete = true
         self?.effectCancellables[uuid] = nil
-        
+
       case let .value(action):
         if isProcessingEffects {
           self?.synchronousActionsToSend.append(action)
         } else {
           self?.send(action)
         }
-      }            
+      }
     }
     isProcessingEffects = false
-    
+
     if !didComplete {
       self.effectCancellables[uuid] = effectCancellable
     }
@@ -204,13 +204,13 @@ public struct StorePublisher<State>: SignalProducerConvertible {
 
   init(_ upstream: Effect<State, Never>) {
     self.producer = upstream
-  } 
-  
+  }
+
   /// Returns the resulting publisher of a given key path.
   public subscript<LocalState>(
     dynamicMember keyPath: KeyPath<State, LocalState>
   ) -> Effect<LocalState, Never>
   where LocalState: Equatable {
     self.producer.map(keyPath).skipRepeats()
-  }  
+  }
 }

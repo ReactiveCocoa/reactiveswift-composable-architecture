@@ -1,7 +1,7 @@
-@testable import ReactiveSwift
 import XCTest
 
 @testable import ComposableArchitecture
+@testable import ReactiveSwift
 
 final class EffectCancellationTests: XCTestCase {
   override func setUp() {
@@ -178,7 +178,6 @@ final class EffectCancellationTests: XCTestCase {
       DispatchQueue.global(qos: .utility),
     ]
 
-    
     let effect = Effect.merge(
       (1...1_000).map { idx -> Effect<Int, Never> in
         let id = idx % 10
@@ -186,13 +185,15 @@ final class EffectCancellationTests: XCTestCase {
         return Effect.merge(
           Effect(value: idx)
             .delay(
-              Double.random(in: 1...100) / 1000, on: QueueScheduler(internalQueue: queues.randomElement()!)
+              Double.random(in: 1...100) / 1000,
+              on: QueueScheduler(internalQueue: queues.randomElement()!)
             )
             .cancellable(id: id),
 
           Effect(value: ())
             .delay(
-              Double.random(in: 1...100) / 1000, on: QueueScheduler(internalQueue: queues.randomElement()!)
+              Double.random(in: 1...100) / 1000,
+              on: QueueScheduler(internalQueue: queues.randomElement()!)
             )
             .flatMap(.latest) { Effect.cancel(id: id) }
         )

@@ -1,6 +1,6 @@
 import Combine
-import SwiftUI
 import ReactiveSwift
+import SwiftUI
 
 /// A `ViewStore` is an object that can observe state changes and send actions. They are most
 /// commonly used in views, such as SwiftUI views, UIView or UIViewController, but they can be
@@ -77,7 +77,7 @@ public final class ViewStore<State, Action>: ObservableObject {
   @MutableProperty public internal(set) var state: State
 
   @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-  public lazy var objectWillChange: ObservableObjectPublisher  = ObjectWillChangePublisher()
+  public lazy var objectWillChange: ObservableObjectPublisher = ObjectWillChangePublisher()
 
   let _send: (Action) -> Void
 

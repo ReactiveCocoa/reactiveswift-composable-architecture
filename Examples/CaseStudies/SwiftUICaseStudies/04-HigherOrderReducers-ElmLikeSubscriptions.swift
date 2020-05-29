@@ -1,6 +1,6 @@
 import ComposableArchitecture
-import SwiftUI
 import ReactiveSwift
+import SwiftUI
 
 private let readMe = """
   This screen demonstrates how the `Reducer` struct can be extended to enhance reducers with \
@@ -66,7 +66,7 @@ let clockReducer = Reducer<ClockState, ClockAction, ClockEnvironment>.combine(
     return [
       TimerId():
         Effect
-          .timer(id: TimerId(), every: .seconds(1), tolerance: .seconds(0), on: environment.mainQueue)
+        .timer(id: TimerId(), every: .seconds(1), tolerance: .seconds(0), on: environment.mainQueue)
         .map { _ in .timerTicked }
     ]
   }

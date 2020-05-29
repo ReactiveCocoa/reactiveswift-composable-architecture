@@ -11,7 +11,7 @@ final class EffectTests: XCTestCase {
 
     SignalProducer<Int, Error>(result: .success(42))
       .startWithResult { XCTAssertEqual($0, .success(42)) }
-    
+
     SignalProducer<Int, Error>(result: .failure(Error()))
       .startWithResult { XCTAssertEqual($0, .failure(Error())) }
 
@@ -103,7 +103,6 @@ final class EffectTests: XCTestCase {
     effect
       .on(completed: { isComplete = true }, value: { values.append($0) })
       .start()
-      
 
     XCTAssertEqual(values, [1, 2])
     XCTAssertEqual(isComplete, false)

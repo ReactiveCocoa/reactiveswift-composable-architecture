@@ -1,5 +1,5 @@
-import ReactiveSwift
 import ComposableArchitecture
+import ReactiveSwift
 import SwiftUI
 import UIKit
 
@@ -25,7 +25,7 @@ let lazyNavigationReducer = Reducer<
     switch action {
     case .setNavigation(isActive: true):
       state.isActivityIndicatorHidden = false
-      return Effect(value: .setNavigationIsActiveDelayCompleted)      
+      return Effect(value: .setNavigationIsActiveDelayCompleted)
         .delay(1, on: environment.mainQueue)
     case .setNavigation(isActive: false):
       state.optionalCounter = nil

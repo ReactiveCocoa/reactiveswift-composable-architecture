@@ -1,5 +1,5 @@
-import ReactiveSwift
 import Foundation
+import ReactiveSwift
 
 /// The `Effect` type encapsulates a unit of work that can be run in the outside world, and can feed
 /// data back to the `Store`. It is the perfect place to do side effects, such as network requests,
@@ -18,7 +18,7 @@ extension Effect {
   /// An effect that does nothing and completes immediately. Useful for situations where you must
   /// return an effect, but you don't need to do anything.
   public static var none: Effect {
-    return .empty 
+    return .empty
   }
 
   /// Creates an effect that executes some work in the real world that doesn't need to feed data
@@ -32,7 +32,7 @@ extension Effect {
       return .empty
     }
   }
-  
+
   /// Concatenates a variadic list of effects together into a single effect, which runs the effects
   /// one after the other.
   ///
@@ -58,15 +58,17 @@ extension Effect {
       .reduce(into: first) { effects, effect in
         effects = effects.concat(effect)
       }
-  }  
+  }
 
   /// An Effect that waits until it is started before running
   /// the supplied closure to create a new Effect, whose values
   /// are then sent to the subscriber of this effect.
-  public static func deferred(_ createProducer: @escaping () -> SignalProducer<Value, Error>) -> SignalProducer<Value, Error> {
+  public static func deferred(_ createProducer: @escaping () -> SignalProducer<Value, Error>)
+    -> SignalProducer<Value, Error>
+  {
     return Effect<Void, Error>(value: ())
       .flatMap(.merge, createProducer)
-  }    
+  }
 
   /// Creates an effect that can supply a single value asynchronously in the future.
   ///
@@ -97,8 +99,8 @@ extension Effect {
     _ attemptToFulfill: @escaping (@escaping (Result<Value, Error>) -> Void) -> Void
   ) -> Effect {
     return deferred { () -> SignalProducer<Value, Error> in
-      return SignalProducer { observer, _ in 
-        attemptToFulfill { result in 
+      return SignalProducer { observer, _ in
+        attemptToFulfill { result in
           switch result {
           case let .success(value):
             observer.send(value: value)
@@ -158,7 +160,9 @@ extension Effect where Self.Error == Never {
   ///   - object: The object on which to assign the value.
   /// - Returns: Disposable instance
   @discardableResult
-  public func assign<Root>(to keyPath: ReferenceWritableKeyPath<Root, Self.Value>, on object: Root) -> Disposable {
+  public func assign<Root>(to keyPath: ReferenceWritableKeyPath<Root, Self.Value>, on object: Root)
+    -> Disposable
+  {
     self.startWithValues { value in
       object[keyPath: keyPath] = value
     }

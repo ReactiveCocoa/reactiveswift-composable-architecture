@@ -50,7 +50,7 @@ extension Store {
         state: { state -> Effect<Wrapped, Never> in
           state
             .skipRepeats { ($0 != nil) == ($1 != nil) }
-            .on(value: { if $0 == nil { `else`() } } )
+            .on(value: { if $0 == nil { `else`() } })
             .compactMap { $0 }
         },
         action: { $0 }

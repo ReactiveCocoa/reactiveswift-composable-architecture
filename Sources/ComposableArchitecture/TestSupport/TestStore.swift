@@ -178,7 +178,7 @@
         let effect = self.reducer.run(&self.state, action, self.environment)
         var isComplete = false
         var cancellable: Disposable?
-                
+
         cancellable = effect.start { event in
           switch event {
           case .completed, .interrupted:

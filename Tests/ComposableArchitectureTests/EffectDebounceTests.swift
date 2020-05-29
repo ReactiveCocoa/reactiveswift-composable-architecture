@@ -1,5 +1,5 @@
-import ReactiveSwift
 import ComposableArchitecture
+import ReactiveSwift
 import XCTest
 
 final class EffectDebounceTests: XCTestCase {
@@ -9,7 +9,7 @@ final class EffectDebounceTests: XCTestCase {
 
     func runDebouncedEffect(value: Int) {
       struct CancelToken: Hashable {}
-      
+
       Effect(value: value)
         .debounce(id: CancelToken(), interval: 1, scheduler: scheduler)
         .startWithValues { values.append($0) }
@@ -58,7 +58,7 @@ final class EffectDebounceTests: XCTestCase {
       Effect.deferred { () -> SignalProducer<Int, Never> in
         effectRuns += 1
         return Effect(value: value)
-      }        
+      }
       .debounce(id: CancelToken(), interval: 1, scheduler: scheduler)
       .startWithValues { values.append($0) }
     }

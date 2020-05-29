@@ -1,7 +1,7 @@
 import Combine
 import ComposableArchitecture
-import SwiftUI
 import ReactiveSwift
+import SwiftUI
 
 private let readMe = """
   This application demonstrates how to work with timers in the Composable Architecture.
@@ -39,8 +39,10 @@ let timersReducer = Reducer<TimersState, TimersAction, TimersEnvironment> {
   case .toggleTimerButtonTapped:
     state.isTimerActive.toggle()
     return state.isTimerActive
-      ? Effect.timer(id: TimerId(), every: .seconds(1), tolerance: .seconds(0), on: environment.mainQueue)
-        .map { _ in TimersAction.timerTicked }
+      ? Effect.timer(
+        id: TimerId(), every: .seconds(1), tolerance: .seconds(0), on: environment.mainQueue
+      )
+      .map { _ in TimersAction.timerTicked }
       : Effect.cancel(id: TimerId())
   }
 }

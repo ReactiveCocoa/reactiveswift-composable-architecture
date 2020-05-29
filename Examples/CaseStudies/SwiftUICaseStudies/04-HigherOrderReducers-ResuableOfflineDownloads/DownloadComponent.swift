@@ -1,6 +1,6 @@
 import ComposableArchitecture
-import SwiftUI
 import ReactiveSwift
+import SwiftUI
 
 struct DownloadComponentState<ID: Equatable>: Equatable {
   var alert: DownloadAlert?

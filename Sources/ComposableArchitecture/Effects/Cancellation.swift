@@ -1,34 +1,33 @@
-import ReactiveSwift
 import Foundation
+import ReactiveSwift
 
 extension AnyDisposable: Hashable {
   public static func == (lhs: AnyDisposable, rhs: AnyDisposable) -> Bool {
-      return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+    return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
   }
 
   public func hash(into hasher: inout Hasher) {
-      hasher.combine(ObjectIdentifier(self))
+    hasher.combine(ObjectIdentifier(self))
   }
 }
 
 extension AnyDisposable {
-    /// Stores this AnyDisposable in the specified collection.
-    /// Parameters:
-    ///    - collection: The collection to store this AnyCancellable.
-    public func store<Disposables: RangeReplaceableCollection>(
-        in collection: inout Disposables
-    ) where Disposables.Element == AnyDisposable {
-        collection.append(self)
-    }
+  /// Stores this AnyDisposable in the specified collection.
+  /// Parameters:
+  ///    - collection: The collection to store this AnyCancellable.
+  public func store<Disposables: RangeReplaceableCollection>(
+    in collection: inout Disposables
+  ) where Disposables.Element == AnyDisposable {
+    collection.append(self)
+  }
 
-    /// Stores this AnyCancellable in the specified set.
-    /// Parameters:
-    ///    - set: The set to store this AnyCancellable.
-    public func store(in set: inout Set<AnyDisposable>) {
-        set.insert(self)
-    }
+  /// Stores this AnyCancellable in the specified set.
+  /// Parameters:
+  ///    - set: The set to store this AnyCancellable.
+  public func store(in set: inout Set<AnyDisposable>) {
+    set.insert(self)
+  }
 }
-
 
 extension Effect {
   /// Turns an effect into one that is capable of being canceled.
@@ -57,7 +56,7 @@ extension Effect {
   /// - Returns: A new effect that is capable of being canceled by an identifier.
   public func cancellable(id: AnyHashable, cancelInFlight: Bool = false) -> Effect {
     return .deferred { () -> SignalProducer<Value, Error> in
-      let subject = Signal<Value, Error>.pipe()      
+      let subject = Signal<Value, Error>.pipe()
 
       var disposable: Disposable?
       var values: [Value] = []
@@ -69,7 +68,8 @@ extension Effect {
           cancellationCancellables[id] = nil
         }
 
-        disposable = self
+        disposable =
+          self
           .on {
             guard isCaching else { return }
             values.append($0)

@@ -1,5 +1,5 @@
-import ReactiveSwift
 import ComposableArchitecture
+import ReactiveSwift
 import XCTest
 
 final class TimerTests: XCTestCase {
@@ -34,7 +34,7 @@ final class TimerTests: XCTestCase {
       Effect.timer(id: 1, every: .seconds(2), on: scheduler)
         .on(value: { _ in count2 += 1 }),
       Effect.timer(id: 2, every: .seconds(3), on: scheduler)
-        .on(value:  { _ in count3 += 1 })
+        .on(value: { _ in count3 += 1 })
     )
     .start()
 

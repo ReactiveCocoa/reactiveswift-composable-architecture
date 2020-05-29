@@ -1,7 +1,7 @@
 import ComposableArchitecture
 import Foundation
-import SwiftUI
 import ReactiveSwift
+import SwiftUI
 
 private let readMe = """
   This screen demonstrates how one can share system-wide dependencies across many features with \

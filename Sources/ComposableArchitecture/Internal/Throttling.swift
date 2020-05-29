@@ -1,5 +1,5 @@
-import Foundation
 import Dispatch
+import Foundation
 import ReactiveSwift
 
 extension Effect {
@@ -16,7 +16,7 @@ extension Effect {
   ///   specified interval.
   func throttle(
     id: AnyHashable,
-    interval: TimeInterval, 
+    interval: TimeInterval,
     on scheduler: DateScheduler,
     latest: Bool
   ) -> Effect<Value, Error> {
@@ -27,7 +27,9 @@ extension Effect {
         return Effect(value: value)
       }
 
-      guard scheduler.currentDate.timeIntervalSince1970 - throttleTime.timeIntervalSince1970 < interval else {
+      guard
+        scheduler.currentDate.timeIntervalSince1970 - throttleTime.timeIntervalSince1970 < interval
+      else {
         throttleTimes[id] = scheduler.currentDate
         throttleValues[id] = nil
         return Effect(value: value)
@@ -38,7 +40,8 @@ extension Effect {
 
       return Effect(value: value)
         .delay(
-          throttleTime.addingTimeInterval(interval).timeIntervalSince1970 - scheduler.currentDate.timeIntervalSince1970,
+          throttleTime.addingTimeInterval(interval).timeIntervalSince1970
+            - scheduler.currentDate.timeIntervalSince1970,
           on: scheduler
         )
     }

@@ -1,7 +1,7 @@
 import Combine
 import ComposableArchitecture
-import SwiftUI
 import ReactiveSwift
+import SwiftUI
 
 private let readMe = """
   This screen demonstrates how one can create reusable components in the Composable Architecture.

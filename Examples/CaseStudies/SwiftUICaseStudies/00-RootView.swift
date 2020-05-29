@@ -1,7 +1,7 @@
 import Combine
 import ComposableArchitecture
-import SwiftUI
 import ReactiveSwift
+import SwiftUI
 
 struct RootView: View {
   var body: some View {
