@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import os.signpost
 
 extension Reducer {
@@ -47,42 +47,38 @@ extension Reducer {
         return
           effects
           .effectSignpost(prefix, log: log, actionOutput: actionOutput)
-          .eraseToEffect()
       }
       return effects
     }
   }
 }
 
-extension Publisher where Failure == Never {
+extension Effect where Error == Never {
   func effectSignpost(
     _ prefix: String,
     log: OSLog,
     actionOutput: String
-  ) -> Publishers.HandleEvents<Self> {
+  ) -> Effect<Value, Error> {
     let sid = OSSignpostID(log: log)
 
-    return
-      self
-      .handleEvents(
-        receiveSubscription: { _ in
-          os_signpost(
-            .begin, log: log, name: "Effect", signpostID: sid, "%sStarted from %s", prefix,
-            actionOutput)
-        },
-        receiveOutput: { value in
-          os_signpost(
-            .event, log: log, name: "Effect Output", "%sOutput from %s", prefix, actionOutput)
-        },
-        receiveCompletion: { completion in
-          switch completion {
-          case .finished:
-            os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sFinished", prefix)
-          }
-        },
-        receiveCancel: {
-          os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sCancelled", prefix)
-        })
+    return self.on(
+      started: {
+        os_signpost(
+          .begin, log: log, name: "Effect", signpostID: sid, "%sStarted from %s", prefix,
+          actionOutput
+        )
+      },
+      completed: {
+        os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sFinished", prefix)
+      },
+      disposed: {
+        os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sCancelled", prefix)
+      },
+      value: { value in
+        os_signpost(
+          .event, log: log, name: "Effect Output", "%sOutput from %s", prefix, actionOutput
+        )
+    })
   }
 }
 

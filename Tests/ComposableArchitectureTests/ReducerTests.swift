@@ -153,8 +153,9 @@ final class ReducerTests: XCTestCase {
     let effect = reducer.run(&n, (), ())
     let expectation = self.expectation(description: "effect")
     effect
-      .sink(receiveCompletion: { _ in expectation.fulfill() }, receiveValue: { _ in })
-      .store(in: &self.cancellables)
+      .startWithCompleted {
+        expectation.fulfill()
+      }
     self.wait(for: [expectation], timeout: 0.1)
   }
 
@@ -164,8 +165,9 @@ final class ReducerTests: XCTestCase {
     let effect = reducer.run(&n, (), ())
     let expectation = self.expectation(description: "effect")
     effect
-      .sink(receiveCompletion: { _ in expectation.fulfill() }, receiveValue: { _ in })
-      .store(in: &self.cancellables)
+      .startWithCompleted {
+        expectation.fulfill()
+      }
     self.wait(for: [expectation], timeout: 0.1)
   }
 }
