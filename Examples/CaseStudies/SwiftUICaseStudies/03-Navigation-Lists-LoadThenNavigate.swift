@@ -35,6 +35,8 @@ let lazyListNavigationReducer = Reducer<
   LazyListNavigationState, LazyListNavigationAction, LazyListNavigationEnvironment
 >.combine(
   Reducer { state, action, environment in
+    struct CancelId: Hashable {}
+
     switch action {
     case .counter:
       return .none
@@ -44,8 +46,6 @@ let lazyListNavigationReducer = Reducer<
         state.rows[index].isActivityIndicatorVisible = state.rows[index].id == id
       }
 
-      struct CancelId: Hashable {}
-
       return Effect(value: .setNavigationSelectionDelayCompleted(id))
         .delay(1, on: environment.mainQueue)
         .cancellable(id: CancelId(), cancelInFlight: true)
@@ -53,9 +53,9 @@ let lazyListNavigationReducer = Reducer<
     case .setNavigation(selection: .none):
       if let selection = state.selection {
         state.rows[id: selection.id]?.count = selection.count
-        state.selection = nil
       }
-      return .none
+      state.selection = nil
+      return .cancel(id: CancelId())
 
     case let .setNavigationSelectionDelayCompleted(id):
       state.rows[id: id]?.isActivityIndicatorVisible = false

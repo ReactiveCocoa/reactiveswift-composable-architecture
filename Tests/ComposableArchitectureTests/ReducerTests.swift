@@ -1,6 +1,7 @@
 import ReactiveSwift
 import ComposableArchitecture
 import XCTest
+import os.signpost
 
 final class ReducerTests: XCTestCase {
   func testCallableAsFunction() {
@@ -89,23 +90,25 @@ final class ReducerTests: XCTestCase {
     XCTAssertTrue(mainEffectExecuted)
   }
 
-  func testPrint() {
-    struct Unit: Equatable {}
+  func testDebug() {
+    enum Action: Equatable { case incr, noop }
     struct State: Equatable { var count = 0 }
 
     var logs: [String] = []
 
-    let expectation = self.expectation(description: "printed")
-
-    let reducer = Reducer<State, Unit, Void> { state, _, _ in
-      state.count += 1
-      return .none
+    let reducer = Reducer<State, Action, Void> { state, action, _ in
+      switch action {
+      case .incr:
+        state.count += 1
+        return .none
+      case .noop:
+        return .none
+      }
     }
     .debug("[prefix]") { _ in
       DebugEnvironment(
         printer: {
           logs.append($0)
-          expectation.fulfill()
         }
       )
     }
@@ -116,24 +119,53 @@ final class ReducerTests: XCTestCase {
       environment: ()
     )
     store.assert(
-      .send(Unit()) { $0.count = 1 }
+      .send(.incr) { $0.count = 1 },
+      .send(.noop)
     )
 
-    self.wait(for: [expectation], timeout: 1)
+    _ = XCTWaiter.wait(for: [self.expectation(description: "wait")], timeout: 0.1)
 
     XCTAssertEqual(
       logs,
       [
         #"""
         [prefix]: received action:
-          Unit()
+          Action.incr
           State(
         −   count: 0
         +   count: 1
           )
 
-        """#
+        """#,
+        #"""
+        [prefix]: received action:
+          Action.noop
+          (No state changes)
+
+        """#,
       ]
     )
+  }
+
+  func testDefaultSignpost() {
+    let reducer = Reducer<Int, Void, Void>.empty.signpost(log: .default)
+    var n = 0
+    let effect = reducer.run(&n, (), ())
+    let expectation = self.expectation(description: "effect")
+    effect
+      .sink(receiveCompletion: { _ in expectation.fulfill() }, receiveValue: { _ in })
+      .store(in: &self.cancellables)
+    self.wait(for: [expectation], timeout: 0.1)
+  }
+
+  func testDisabledSignpost() {
+    let reducer = Reducer<Int, Void, Void>.empty.signpost(log: .disabled)
+    var n = 0
+    let effect = reducer.run(&n, (), ())
+    let expectation = self.expectation(description: "effect")
+    effect
+      .sink(receiveCompletion: { _ in expectation.fulfill() }, receiveValue: { _ in })
+      .store(in: &self.cancellables)
+    self.wait(for: [expectation], timeout: 0.1)
   }
 }
