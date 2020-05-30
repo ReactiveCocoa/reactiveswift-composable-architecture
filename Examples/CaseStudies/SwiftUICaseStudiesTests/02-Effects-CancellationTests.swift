@@ -1,18 +1,18 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import XCTest
 
 @testable import SwiftUICaseStudies
 
 class EffectsCancellationTests: XCTestCase {
-  let scheduler = DispatchQueue.testScheduler
+  let scheduler = TestScheduler()
 
   func testTrivia_SuccessfulRequest() throws {
     let store = TestStore(
       initialState: .init(),
       reducer: effectsCancellationReducer,
       environment: .init(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
+        mainQueue: self.scheduler,
         trivia: { n in Effect(value: "\(n) is a good number Brent") }
       )
     )
@@ -42,8 +42,8 @@ class EffectsCancellationTests: XCTestCase {
       initialState: .init(),
       reducer: effectsCancellationReducer,
       environment: .init(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
-        trivia: { _ in Fail(error: TriviaApiError()).eraseToEffect() }
+        mainQueue: self.scheduler,
+        trivia: { _ in Effect(error: TriviaApiError()) }
       )
     )
 
@@ -71,7 +71,7 @@ class EffectsCancellationTests: XCTestCase {
       initialState: .init(),
       reducer: effectsCancellationReducer,
       environment: .init(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
+        mainQueue: self.scheduler,
         trivia: { n in Effect(value: "\(n) is a good number Brent") }
       )
     )
@@ -94,7 +94,7 @@ class EffectsCancellationTests: XCTestCase {
       initialState: .init(),
       reducer: effectsCancellationReducer,
       environment: .init(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
+        mainQueue: self.scheduler,
         trivia: { n in Effect(value: "\(n) is a good number Brent") }
       )
     )

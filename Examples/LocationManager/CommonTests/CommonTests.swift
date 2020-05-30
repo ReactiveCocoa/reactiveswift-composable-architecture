@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import ComposableCoreLocation
 import CoreLocation
@@ -15,7 +15,7 @@ class LocationManagerTests: XCTestCase {
   func testRequestLocation_Allow() {
     var didRequestInUseAuthorization = false
     var didRequestLocation = false
-    let locationManagerSubject = PassthroughSubject<LocationManager.Action, Never>()
+    let locationManagerSubject = Signal<LocationManager.Action, Never>.pipe()
 
     #if os(iOS)
       let store = TestStore(
@@ -25,7 +25,7 @@ class LocationManagerTests: XCTestCase {
           localSearch: .mock(),
           locationManager: .mock(
             authorizationStatus: { .notDetermined },
-            create: { _ in locationManagerSubject.eraseToEffect() },
+            create: { _ in locationManagerSubject.output.producer },
             locationServicesEnabled: { true },
             requestLocation: { _ in .fireAndForget { didRequestLocation = true } },
             requestWhenInUseAuthorization: { _ in
@@ -42,7 +42,7 @@ class LocationManagerTests: XCTestCase {
           localSearch: .mock(),
           locationManager: .mock(
             authorizationStatus: { .notDetermined },
-            create: { _ in locationManagerSubject.eraseToEffect() },
+            create: { _ in locationManagerSubject.output.producer },
             locationServicesEnabled: { true },
             requestAlwaysAuthorization: { _ in
               .fireAndForget { didRequestInUseAuthorization = true }
@@ -77,7 +77,7 @@ class LocationManagerTests: XCTestCase {
 
       // Simulate being given authorized to access location
       .do {
-        locationManagerSubject.send(.didChangeAuthorization(.authorizedAlways))
+        locationManagerSubject.input.send(value: .didChangeAuthorization(.authorizedAlways))
       },
       .receive(.locationManager(.didChangeAuthorization(.authorizedAlways))),
       .do {
@@ -86,7 +86,7 @@ class LocationManagerTests: XCTestCase {
 
       // Simulate finding the user's current location
       .do {
-        locationManagerSubject.send(.didUpdateLocations([currentLocation]))
+        locationManagerSubject.input.send(value: .didUpdateLocations([currentLocation]))
       },
       .receive(.locationManager(.didUpdateLocations([currentLocation]))) {
         $0.isRequestingCurrentLocation = false
@@ -97,14 +97,14 @@ class LocationManagerTests: XCTestCase {
       },
 
       .do {
-        locationManagerSubject.send(completion: .finished)
+        locationManagerSubject.input.sendCompleted()
       }
     )
   }
 
   func testRequestLocation_Deny() {
     var didRequestInUseAuthorization = false
-    let locationManagerSubject = PassthroughSubject<LocationManager.Action, Never>()
+    let locationManagerSubject = Signal<LocationManager.Action, Never>.pipe()
 
     #if os(iOS)
       let store = TestStore(
@@ -114,7 +114,7 @@ class LocationManagerTests: XCTestCase {
           localSearch: .mock(),
           locationManager: .mock(
             authorizationStatus: { .notDetermined },
-            create: { _ in locationManagerSubject.eraseToEffect() },
+            create: { _ in locationManagerSubject.output.producer },
             locationServicesEnabled: { true },
             requestWhenInUseAuthorization: { _ in
               .fireAndForget { didRequestInUseAuthorization = true }
@@ -130,7 +130,7 @@ class LocationManagerTests: XCTestCase {
           localSearch: .mock(),
           locationManager: .mock(
             authorizationStatus: { .notDetermined },
-            create: { _ in locationManagerSubject.eraseToEffect() },
+            create: { _ in locationManagerSubject.output.producer },
             locationServicesEnabled: { true },
             requestAlwaysAuthorization: { _ in
               .fireAndForget { didRequestInUseAuthorization = true }
@@ -152,7 +152,7 @@ class LocationManagerTests: XCTestCase {
 
       // Simulate the user denying location access
       .do {
-        locationManagerSubject.send(.didChangeAuthorization(.denied))
+        locationManagerSubject.input.send(value: .didChangeAuthorization(.denied))
       },
       .receive(.locationManager(.didChangeAuthorization(.denied))) {
         $0.alert = "Location makes this app better. Please consider giving us access."
@@ -160,7 +160,7 @@ class LocationManagerTests: XCTestCase {
       },
 
       .do {
-        locationManagerSubject.send(completion: .finished)
+        locationManagerSubject.input.sendCompleted()
       }
     )
   }
@@ -185,7 +185,7 @@ class LocationManagerTests: XCTestCase {
       reducer: appReducer,
       environment: AppEnvironment(
         localSearch: .mock(
-          search: { _ in .result { .success(localSearchResponse) } }
+          search: { _ in Effect(value: localSearchResponse) }
         ),
         locationManager: .mock()
       )
@@ -230,7 +230,7 @@ class LocationManagerTests: XCTestCase {
       environment: AppEnvironment(
         localSearch: .mock(
           search: { request in
-            return .result { .success(localSearchResponse) }
+            Effect(value: localSearchResponse) 
           }),
         locationManager: .mock()
       )

@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import CoreLocation
 
@@ -22,63 +22,65 @@ extension LocationManager {
     manager.authorizationStatus = CLLocationManager.authorizationStatus
 
     manager.create = { id in
-      Effect.run { subscriber in
+      Effect { subscriber, lifetime in
         let manager = CLLocationManager()
         var delegate = LocationManagerDelegate()
         delegate.didChangeAuthorization = {
-          subscriber.send(.didChangeAuthorization($0))
+          subscriber.send(value: .didChangeAuthorization($0))
         }
         #if os(iOS) || os(macOS) || targetEnvironment(macCatalyst)
           delegate.didDetermineStateForRegion = { state, region in
-            subscriber.send(.didDetermineState(state, region: Region(rawValue: region)))
+            subscriber.send(value: .didDetermineState(state, region: Region(rawValue: region)))
           }
         #endif
         #if os(iOS) || os(macOS) || targetEnvironment(macCatalyst)
           delegate.didEnterRegion = { region in
-            subscriber.send(.didEnterRegion(Region(rawValue: region)))
+            subscriber.send(value: .didEnterRegion(Region(rawValue: region)))
           }
         #endif
         #if os(iOS) || os(macOS) || targetEnvironment(macCatalyst)
           delegate.didExitRegion = { region in
-            subscriber.send(.didExitRegion(Region(rawValue: region)))
+            subscriber.send(value: .didExitRegion(Region(rawValue: region)))
           }
         #endif
-        #if os(iOS) || targetEnvironment(macCatalyst)
+        if #available(iOS 13, *) {
+          #if os(iOS) || targetEnvironment(macCatalyst)
           delegate.didFailRangingForConstraintWithError = { constraint, error in
-            subscriber.send(.didFailRanging(beaconConstraint: constraint, error: Error(error)))
+            subscriber.send(value: .didFailRanging(beaconConstraint: constraint, error: Error(error)))
           }
-        #endif
+          #endif
+        }
         delegate.didFailWithError = { error in
-          subscriber.send(.didFailWithError(Error(error)))
+          subscriber.send(value: .didFailWithError(Error(error)))
         }
         #if os(iOS) || os(macOS) || targetEnvironment(macCatalyst)
           delegate.didFinishDeferredUpdatesWithError = { error in
-            subscriber.send(.didFinishDeferredUpdatesWithError(error.map(Error.init)))
+            subscriber.send(value: .didFinishDeferredUpdatesWithError(error.map(Error.init)))
           }
         #endif
         #if os(iOS) || targetEnvironment(macCatalyst)
           delegate.didPauseLocationUpdates = {
-            subscriber.send(.didPauseLocationUpdates)
+            subscriber.send(value: .didPauseLocationUpdates)
           }
         #endif
         #if os(iOS) || targetEnvironment(macCatalyst)
           delegate.didResumeLocationUpdates = {
-            subscriber.send(.didResumeLocationUpdates)
+            subscriber.send(value: .didResumeLocationUpdates)
           }
         #endif
         #if os(iOS) || os(macOS) || targetEnvironment(macCatalyst)
           delegate.didStartMonitoringForRegion = { region in
-            subscriber.send(.didStartMonitoring(region: Region(rawValue: region)))
+            subscriber.send(value: .didStartMonitoring(region: Region(rawValue: region)))
           }
         #endif
         #if os(iOS) || os(watchOS) || targetEnvironment(macCatalyst)
           delegate.didUpdateHeading = { heading in
-            subscriber.send(.didUpdateHeading(newHeading: Heading(rawValue: heading)))
+            subscriber.send(value: .didUpdateHeading(newHeading: Heading(rawValue: heading)))
           }
         #endif
         #if os(macOS)
           delegate.didUpdateToLocationFromLocation = { newLocation, oldLocation in
-            subscriber.send(
+            subscriber.send(value:
               .didUpdateTo(
                 newLocation: Location(rawValue: newLocation),
                 oldLocation: Location(rawValue: oldLocation)
@@ -87,17 +89,17 @@ extension LocationManager {
           }
         #endif
         delegate.didUpdateLocations = {
-          subscriber.send(.didUpdateLocations($0.map(Location.init(rawValue:))))
+          subscriber.send(value: .didUpdateLocations($0.map(Location.init(rawValue:))))
         }
         #if os(iOS) || os(macOS) || targetEnvironment(macCatalyst)
           delegate.monitoringDidFailForRegionWithError = { region, error in
             subscriber.send(
-              .monitoringDidFail(region: region.map(Region.init(rawValue:)), error: Error(error)))
+              value: .monitoringDidFail(region: region.map(Region.init(rawValue:)), error: Error(error)))
           }
         #endif
         #if os(iOS) || targetEnvironment(macCatalyst)
           delegate.didVisit = { visit in
-            subscriber.send(.didVisit(Visit(visit: visit)))
+            subscriber.send(value: .didVisit(Visit(visit: visit)))
           }
         #endif
         manager.delegate = delegate
@@ -108,7 +110,7 @@ extension LocationManager {
           subscriber: subscriber
         )
 
-        return AnyCancellable {
+        lifetime += AnyDisposable {
           dependencies[id] = nil
         }
       }
@@ -116,7 +118,7 @@ extension LocationManager {
 
     manager.destroy = { id in
       .fireAndForget {
-        dependencies[id]?.subscriber.send(completion: .finished)
+        dependencies[id]?.subscriber.sendCompleted()
         dependencies[id] = nil
       }
     }
@@ -128,10 +130,13 @@ extension LocationManager {
     }
 
     #if os(iOS) || os(macOS) || os(watchOS) || targetEnvironment(macCatalyst)
+    if #available(OSX 10.15, *) {
       manager.requestAlwaysAuthorization = { id in
         .fireAndForget { dependencies[id]?.manager.requestAlwaysAuthorization() }
       }
+    }
     #endif
+
 
     #if os(iOS) || os(tvOS) || os(watchOS) || targetEnvironment(macCatalyst)
       manager.requestWhenInUseAuthorization = { id in
@@ -208,7 +213,7 @@ extension LocationManager {
 private struct Dependencies {
   let delegate: LocationManagerDelegate
   let manager: CLLocationManager
-  let subscriber: Effect<LocationManager.Action, Never>.Subscriber
+  let subscriber: Signal<LocationManager.Action, Never>.Observer
 }
 
 private var dependencies: [AnyHashable: Dependencies] = [:]
@@ -225,7 +230,8 @@ private class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
     var didExitRegion: (CLRegion) -> Void = { _ in fatalError() }
   #endif
   #if os(iOS) || targetEnvironment(macCatalyst)
-    var didFailRangingForConstraintWithError: (CLBeaconIdentityConstraint, Error) -> Void = {
+    @available(iOS 13, *)
+    lazy var didFailRangingForConstraintWithError: (CLBeaconIdentityConstraint, Error) -> Void = {
       _, _ in fatalError()
     }
   #endif
@@ -237,7 +243,8 @@ private class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
     var didPauseLocationUpdates: () -> Void = { fatalError() }
   #endif
   #if os(iOS) || targetEnvironment(macCatalyst)
-    var didRangeBeaconsSatisfyingConstraint: ([CLBeacon], CLBeaconIdentityConstraint) -> Void = {
+    @available(iOS 13, *)
+    lazy var didRangeBeaconsSatisfyingConstraint: ([CLBeacon], CLBeaconIdentityConstraint) -> Void = {
       _, _ in fatalError()
     }
   #endif
@@ -345,7 +352,8 @@ private class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
   #endif
 
   #if os(iOS) || targetEnvironment(macCatalyst)
-    func locationManager(
+  @available(iOS 13.0, *)
+  func locationManager(
       _ manager: CLLocationManager, didRange beacons: [CLBeacon],
       satisfying beaconConstraint: CLBeaconIdentityConstraint
     ) {
@@ -354,6 +362,7 @@ private class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
   #endif
 
   #if os(iOS) || targetEnvironment(macCatalyst)
+    @available(iOS 13.0, *)
     func locationManager(
       _ manager: CLLocationManager, didFailRangingFor beaconConstraint: CLBeaconIdentityConstraint,
       error: Error

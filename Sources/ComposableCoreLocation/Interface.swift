@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import CoreLocation
 
@@ -190,6 +190,7 @@ public struct LocationManager {
     @available(watchOS, unavailable)
     case didExitRegion(Region)
 
+    @available(iOS 13.0, *)
     @available(macOS, unavailable)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)

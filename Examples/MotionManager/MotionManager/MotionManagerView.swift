@@ -1,3 +1,4 @@
+import ReactiveSwift
 import ComposableArchitecture
 import CoreMotion
 import SwiftUI
@@ -136,18 +137,17 @@ struct AppView_Previews: PreviewProvider {
     var isStarted = false
     let mockMotionClient = MotionClient(
       create: { id in
-        Effect.timer(id: id, every: 0.01, on: DispatchQueue.main)
+        Effect.timer(id: id, every: .milliseconds(100), on: QueueScheduler.main)
           .filter { _ in isStarted }
           .map { time in
-            let t = Double(time.dispatchTime.uptimeNanoseconds) / 500_000_000.0
+            let t = Double(time.timeIntervalSinceReferenceDate) / 5.0
             return .motionUpdate(
               .init(
                 gravity: .init(x: sin(2 * t), y: -cos(-t), z: sin(3 * t)),
                 userAcceleration: .init(x: -cos(-3 * t), y: sin(2 * t), z: -cos(t))
               )
             )
-          }
-          .eraseToEffect()
+        }.promoteError()
       },
       startDeviceMotionUpdates: { _ in .fireAndForget { isStarted = true } },
       stopDeviceMotionUpdates: { _ in .fireAndForget { isStarted = false } }

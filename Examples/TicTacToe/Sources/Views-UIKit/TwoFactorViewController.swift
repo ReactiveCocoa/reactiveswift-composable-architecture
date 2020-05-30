@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import TicTacToeCommon
 import TwoFactorCore
@@ -20,8 +20,6 @@ public final class TwoFactorViewController: UIViewController {
 
   let store: Store<TwoFactorState, TwoFactorAction>
   let viewStore: ViewStore<ViewState, ViewAction>
-
-  private var cancellables: Set<AnyCancellable> = []
 
   public init(store: Store<TwoFactorState, TwoFactorAction>) {
     self.store = store
@@ -77,18 +75,15 @@ public final class TwoFactorViewController: UIViewController {
 
     self.viewStore.publisher.isActivityIndicatorHidden
       .assign(to: \.isHidden, on: activityIndicator)
-      .store(in: &self.cancellables)
 
     self.viewStore.publisher.code
       .assign(to: \.text, on: codeTextField)
-      .store(in: &self.cancellables)
 
     self.viewStore.publisher.isLoginButtonEnabled
       .assign(to: \.isEnabled, on: loginButton)
-      .store(in: &self.cancellables)
 
     self.viewStore.publisher.alertData
-      .sink { [weak self] alertData in
+      .startWithValues { [weak self] alertData in
         guard let self = self else { return }
         guard let alertData = alertData else { return }
 
@@ -102,7 +97,6 @@ public final class TwoFactorViewController: UIViewController {
             }))
         self.present(alertController, animated: true, completion: nil)
       }
-      .store(in: &self.cancellables)
   }
 
   @objc private func codeTextFieldChanged(sender: UITextField) {

@@ -1,10 +1,11 @@
+import ReactiveSwift
 import AVFoundation
 import ComposableArchitecture
 
 extension AudioRecorderClient {
   static let live = AudioRecorderClient(
     currentTime: { id in
-      Effect.result {
+      Effect { () -> Result<TimeInterval?, Never> in
         guard
           let recorder = dependencies[id]?.recorder,
           recorder.isRecording

@@ -313,6 +313,7 @@ extension URL: CustomDebugOutputConvertible {
 
   #if canImport(Speech)
     import Speech
+    @available(OSX 10.15, *)
     extension SFSpeechRecognizerAuthorizationStatus: CustomDebugOutputConvertible {
       public var debugOutput: String {
         switch self {

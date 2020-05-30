@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import XCTest
 
@@ -7,13 +7,13 @@ import XCTest
 class LongLivingEffectsTests: XCTestCase {
   func testReducer() {
     // A passthrough subject to simulate the screenshot notification
-    let screenshotTaken = PassthroughSubject<Void, Never>()
+    let screenshotTaken = Signal<Void, Never>.pipe()
 
     let store = TestStore(
       initialState: .init(),
       reducer: longLivingEffectsReducer,
       environment: .init(
-        userDidTakeScreenshot: Effect(screenshotTaken)
+        userDidTakeScreenshot: screenshotTaken.output.producer
       )
     )
 
@@ -21,7 +21,7 @@ class LongLivingEffectsTests: XCTestCase {
       .send(.onAppear),
 
       // Simulate a screenshot being taken
-      .do { screenshotTaken.send() },
+      .do { screenshotTaken.input.send(value: ()) },
       .receive(.userDidTakeScreenshotNotification) {
         $0.screenshotCount = 1
       },
@@ -30,7 +30,7 @@ class LongLivingEffectsTests: XCTestCase {
 
       // Simulate a screenshot being taken to show not effects
       // are executed.
-      .do { screenshotTaken.send() }
+      .do { screenshotTaken.input.send(value: ()) }
     )
   }
 }

@@ -1,19 +1,19 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import XCTest
 
 @testable import SpeechRecognition
 
 class SpeechRecognitionTests: XCTestCase {
-  let recognitionTaskSubject = PassthroughSubject<SpeechClient.Action, SpeechClient.Error>()
-  let scheduler = DispatchQueue.testScheduler
+  let recognitionTaskSubject = Signal<SpeechClient.Action, SpeechClient.Error>.pipe()
+  let scheduler = TestScheduler()
 
   func testDenyAuthorization() {
     let store = TestStore(
       initialState: .init(),
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: scheduler.eraseToAnyScheduler(),
+        mainQueue: scheduler,
         speechClient: .mock(
           requestAuthorization: { Effect(value: .denied) }
         )
@@ -39,7 +39,7 @@ class SpeechRecognitionTests: XCTestCase {
       initialState: .init(),
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: scheduler.eraseToAnyScheduler(),
+        mainQueue: scheduler,
         speechClient: .mock(
           requestAuthorization: { Effect(value: .restricted) }
         )
@@ -64,12 +64,12 @@ class SpeechRecognitionTests: XCTestCase {
       initialState: .init(),
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: scheduler.eraseToAnyScheduler(),
+        mainQueue: scheduler,
         speechClient: .mock(
           finishTask: { _ in
-            .fireAndForget { self.recognitionTaskSubject.send(completion: .finished) }
+            .fireAndForget { self.recognitionTaskSubject.input.sendCompleted() }
           },
-          recognitionTask: { _, _ in self.recognitionTaskSubject.eraseToEffect() },
+          recognitionTask: { _, _ in self.recognitionTaskSubject.output.producer },
           requestAuthorization: { Effect(value: .authorized) }
         )
       )
@@ -99,12 +99,12 @@ class SpeechRecognitionTests: XCTestCase {
         $0.speechRecognizerAuthorizationStatus = .authorized
       },
 
-      .do { self.recognitionTaskSubject.send(.taskResult(result)) },
+      .do { self.recognitionTaskSubject.input.send(value: .taskResult(result)) },
       .receive(.speech(.success(.taskResult(result)))) {
         $0.transcribedText = "Hello"
       },
 
-      .do { self.recognitionTaskSubject.send(.taskResult(finalResult)) },
+      .do { self.recognitionTaskSubject.input.send(value: .taskResult(finalResult)) },
       .receive(.speech(.success(.taskResult(finalResult)))) {
         $0.transcribedText = "Hello world"
       }
@@ -116,9 +116,9 @@ class SpeechRecognitionTests: XCTestCase {
       initialState: .init(),
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: scheduler.eraseToAnyScheduler(),
+        mainQueue: scheduler,
         speechClient: .mock(
-          recognitionTask: { _, _ in self.recognitionTaskSubject.eraseToEffect() },
+          recognitionTask: { _, _ in self.recognitionTaskSubject.output.producer },
           requestAuthorization: { Effect(value: .authorized) }
         )
       )
@@ -134,12 +134,12 @@ class SpeechRecognitionTests: XCTestCase {
         $0.speechRecognizerAuthorizationStatus = .authorized
       },
 
-      .do { self.recognitionTaskSubject.send(completion: .failure(.couldntConfigureAudioSession)) },
+      .do { self.recognitionTaskSubject.input.send(error: .couldntConfigureAudioSession) },
       .receive(.speech(.failure(.couldntConfigureAudioSession))) {
         $0.authorizationStateAlert = "Problem with audio device. Please try again."
       },
 
-      .do { self.recognitionTaskSubject.send(completion: .finished) }
+      .do { self.recognitionTaskSubject.input.sendCompleted() }
     )
   }
 
@@ -148,9 +148,9 @@ class SpeechRecognitionTests: XCTestCase {
       initialState: .init(),
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: scheduler.eraseToAnyScheduler(),
+        mainQueue: scheduler,
         speechClient: .mock(
-          recognitionTask: { _, _ in self.recognitionTaskSubject.eraseToEffect() },
+          recognitionTask: { _, _ in self.recognitionTaskSubject.output.producer },
           requestAuthorization: { Effect(value: .authorized) }
         )
       )
@@ -166,12 +166,12 @@ class SpeechRecognitionTests: XCTestCase {
         $0.speechRecognizerAuthorizationStatus = .authorized
       },
 
-      .do { self.recognitionTaskSubject.send(completion: .failure(.couldntStartAudioEngine)) },
+      .do { self.recognitionTaskSubject.input.send(error: .couldntStartAudioEngine) },
       .receive(.speech(.failure(.couldntStartAudioEngine))) {
         $0.authorizationStateAlert = "Problem with audio device. Please try again."
       },
 
-      .do { self.recognitionTaskSubject.send(completion: .finished) }
+      .do { self.recognitionTaskSubject.input.sendCompleted() }
     )
   }
 }

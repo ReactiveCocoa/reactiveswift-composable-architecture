@@ -41,7 +41,8 @@ let package = Package(
     .target(
       name: "ComposableCoreLocation",
       dependencies: [
-        "ComposableArchitecture"
+        "ComposableArchitecture",
+        "ReactiveSwift",
       ]
     ),
     .testTarget(

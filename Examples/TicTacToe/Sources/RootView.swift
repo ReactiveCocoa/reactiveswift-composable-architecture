@@ -1,3 +1,4 @@
+import ReactiveSwift
 import AppCore
 import AppSwiftUI
 import ComposableArchitecture
@@ -31,7 +32,7 @@ struct RootView: View {
     reducer: appReducer.debug(),
     environment: AppEnvironment(
       authenticationClient: .live,
-      mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+      mainQueue: QueueScheduler.main
     )
   )
 

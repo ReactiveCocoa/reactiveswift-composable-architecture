@@ -429,14 +429,14 @@ final class DebugTests: XCTestCase {
     //
     //    XCTAssertEqual(
     //      Just(42)
-    //        .receive(on: DispatchQueue.testScheduler.eraseToAnyScheduler())
+    //        .observe(on: TestScheduler())
     //        .eraseToEffect()
     //        .debugOutput,
     //      """
     //      Effect<Int>(
     //        value: 42
     //      )
-    //      .receive(on: DispatchQueue.testScheduler)
+    //      .observe(on: TestScheduler())
     //      """
     //    )
 

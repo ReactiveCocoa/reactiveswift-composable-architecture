@@ -1,3 +1,4 @@
+import ReactiveSwift
 import AuthenticationClient
 import ComposableArchitecture
 import Dispatch
@@ -18,11 +19,11 @@ public enum AppAction: Equatable {
 
 public struct AppEnvironment {
   public var authenticationClient: AuthenticationClient
-  public var mainQueue: AnySchedulerOf<DispatchQueue>
+  public var mainQueue: DateScheduler
 
   public init(
     authenticationClient: AuthenticationClient,
-    mainQueue: AnySchedulerOf<DispatchQueue>
+    mainQueue: DateScheduler
   ) {
     self.authenticationClient = authenticationClient
     self.mainQueue = mainQueue

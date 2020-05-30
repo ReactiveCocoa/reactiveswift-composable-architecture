@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import GameCore
 import UIKit
@@ -13,8 +13,6 @@ public final class GameViewController: UIViewController {
 
   let store: Store<GameState, GameAction>
   let viewStore: ViewStore<ViewState, GameAction>
-
-  private var cancellables: Set<AnyCancellable> = []
 
   init(store: Store<GameState, GameAction>) {
     self.store = store
@@ -120,15 +118,13 @@ public final class GameViewController: UIViewController {
 
     self.viewStore.publisher.title
       .assign(to: \.text, on: titleLabel)
-      .store(in: &self.cancellables)
 
     self.viewStore.publisher.isPlayAgainButtonHidden
       .assign(to: \.isHidden, on: playAgainButton)
-      .store(in: &self.cancellables)
 
-    self.viewStore.publisher.map(\.board, \.isGameEnabled)
-      .removeDuplicates(by: ==)
-      .sink { board, isGameEnabled in
+    self.viewStore.publisher.producer.map { ($0.board, $0.isGameEnabled) }
+      .skipRepeats(==)
+      .startWithValues { board, isGameEnabled in
         board.enumerated().forEach { rowIdx, row in
           row.enumerated().forEach { colIdx, label in
             let button = cells[rowIdx][colIdx]
@@ -137,7 +133,6 @@ public final class GameViewController: UIViewController {
           }
         }
       }
-      .store(in: &self.cancellables)
   }
 
   @objc private func gridCell11Tapped() { self.viewStore.send(.cellTapped(row: 0, column: 0)) }

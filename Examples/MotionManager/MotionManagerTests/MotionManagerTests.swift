@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import CoreMotion
 import XCTest
@@ -7,7 +7,7 @@ import XCTest
 
 class MotionManagerTests: XCTestCase {
   func testExample() {
-    let motionSubject = PassthroughSubject<MotionClient.Action, MotionClient.Error>()
+    let motionSubject = Signal<MotionClient.Action, MotionClient.Error>.pipe()
     var motionUpdatesStarted = false
 
     let store = TestStore(
@@ -15,10 +15,10 @@ class MotionManagerTests: XCTestCase {
       reducer: appReducer,
       environment: .init(
         motionClient: .mock(
-          create: { _ in motionSubject.eraseToEffect() },
+          create: { _ in motionSubject.output.producer },
           startDeviceMotionUpdates: { _ in .fireAndForget { motionUpdatesStarted = true } },
           stopDeviceMotionUpdates: { _ in
-            .fireAndForget { motionSubject.send(completion: .finished) }
+            .fireAndForget { motionSubject.input.sendCompleted() }
           }
         )
       )
@@ -35,7 +35,7 @@ class MotionManagerTests: XCTestCase {
         $0.isRecording = true
         XCTAssertTrue(motionUpdatesStarted)
       },
-      .do { motionSubject.send(.motionUpdate(deviceMotion)) },
+      .do { motionSubject.input.send(value: .motionUpdate(deviceMotion)) },
       .receive(.motionClient(.success(.motionUpdate(deviceMotion)))) {
         $0.z = [32]
       },
