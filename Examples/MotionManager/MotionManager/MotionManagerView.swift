@@ -1,6 +1,6 @@
-import ReactiveSwift
 import ComposableArchitecture
 import CoreMotion
+import ReactiveSwift
 import SwiftUI
 
 private let readMe = """
@@ -147,7 +147,7 @@ struct AppView_Previews: PreviewProvider {
                 userAcceleration: .init(x: -cos(-3 * t), y: sin(2 * t), z: -cos(t))
               )
             )
-        }.promoteError()
+          }.promoteError()
       },
       startDeviceMotionUpdates: { _ in .fireAndForget { isStarted = true } },
       stopDeviceMotionUpdates: { _ in .fireAndForget { isStarted = false } }

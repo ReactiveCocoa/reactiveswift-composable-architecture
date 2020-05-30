@@ -1,7 +1,7 @@
 import AuthenticationClient
-import ReactiveSwift
 import ComposableArchitecture
 import Foundation
+import ReactiveSwift
 
 extension AuthenticationClient {
   public static let live = AuthenticationClient(

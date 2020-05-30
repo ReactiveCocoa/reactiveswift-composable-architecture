@@ -1,7 +1,7 @@
-import ReactiveSwift
 import AuthenticationClient
 import ComposableArchitecture
 import LoginCore
+import ReactiveSwift
 import TicTacToeCommon
 import TwoFactorCore
 import XCTest

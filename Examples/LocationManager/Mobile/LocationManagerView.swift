@@ -1,7 +1,7 @@
-import ReactiveSwift
 import ComposableArchitecture
 import ComposableCoreLocation
 import MapKit
+import ReactiveSwift
 import SwiftUI
 
 private let readMe = """
@@ -111,7 +111,9 @@ struct ContentView: View {
         create: { _ in locationManagerSubject.output.producer },
         locationServicesEnabled: { true },
         requestLocation: { _ in
-          .fireAndForget { locationManagerSubject.input.send(value: .didUpdateLocations([mockLocation])) }
+          .fireAndForget {
+            locationManagerSubject.input.send(value: .didUpdateLocations([mockLocation]))
+          }
         })
 
       let appView = LocationManagerView(

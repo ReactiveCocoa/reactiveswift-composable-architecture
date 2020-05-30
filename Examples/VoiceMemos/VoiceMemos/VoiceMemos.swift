@@ -1,6 +1,6 @@
-import ReactiveSwift
 import AVFoundation
 import ComposableArchitecture
+import ReactiveSwift
 import SwiftUI
 
 struct VoiceMemo: Equatable {
@@ -61,9 +61,10 @@ let voiceMemoReducer = Reducer<VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment>
         Effect.timer(id: TimerId(), every: .milliseconds(500), on: environment.mainQueue)
           .map { date -> VoiceMemoAction in
             .timerUpdated(
-              TimeInterval(date.timeIntervalSinceReferenceDate - start.timeIntervalSinceReferenceDate)
+              TimeInterval(
+                date.timeIntervalSinceReferenceDate - start.timeIntervalSinceReferenceDate)
             )
-        }
+          }
       )
 
     case .playing:
@@ -155,8 +156,11 @@ let voiceMemosReducer = Reducer<VoiceMemosState, VoiceMemosAction, VoiceMemosEnv
         environment.audioRecorderClient.startRecording(RecorderId(), url)
           .catchToEffect()
           .map(VoiceMemosAction.audioRecorderClient),
-        Effect.timer(id: RecorderTimerId(), every: .seconds(1), tolerance: .seconds(0), on: environment.mainQueue)
-          .map { _ in .currentRecordingTimerUpdated }
+        Effect.timer(
+          id: RecorderTimerId(), every: .seconds(1), tolerance: .seconds(0),
+          on: environment.mainQueue
+        )
+        .map { _ in .currentRecordingTimerUpdated }
       )
     }
 

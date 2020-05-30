@@ -1,5 +1,5 @@
-import ReactiveSwift
 import ComposableArchitecture
+import ReactiveSwift
 import XCTest
 
 @testable import SwiftUICaseStudies
@@ -183,7 +183,7 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
         $0.alert = nil
         $0.mode = .downloaded
       },
-      
+
       .do { self.downloadSubject.input.sendCompleted() },
       .do { self.scheduler.run() }
     )

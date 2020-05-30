@@ -1,6 +1,6 @@
-import ReactiveSwift
 import ComposableArchitecture
 import CoreLocation
+import ReactiveSwift
 
 extension LocationManager {
 
@@ -45,9 +45,10 @@ extension LocationManager {
         #endif
         if #available(iOS 13, *) {
           #if os(iOS) || targetEnvironment(macCatalyst)
-          delegate.didFailRangingForConstraintWithError = { constraint, error in
-            subscriber.send(value: .didFailRanging(beaconConstraint: constraint, error: Error(error)))
-          }
+            delegate.didFailRangingForConstraintWithError = { constraint, error in
+              subscriber.send(
+                value: .didFailRanging(beaconConstraint: constraint, error: Error(error)))
+            }
           #endif
         }
         delegate.didFailWithError = { error in
@@ -80,11 +81,12 @@ extension LocationManager {
         #endif
         #if os(macOS)
           delegate.didUpdateToLocationFromLocation = { newLocation, oldLocation in
-            subscriber.send(value:
-              .didUpdateTo(
-                newLocation: Location(rawValue: newLocation),
-                oldLocation: Location(rawValue: oldLocation)
-              )
+            subscriber.send(
+              value:
+                .didUpdateTo(
+                  newLocation: Location(rawValue: newLocation),
+                  oldLocation: Location(rawValue: oldLocation)
+                )
             )
           }
         #endif
@@ -94,7 +96,8 @@ extension LocationManager {
         #if os(iOS) || os(macOS) || targetEnvironment(macCatalyst)
           delegate.monitoringDidFailForRegionWithError = { region, error in
             subscriber.send(
-              value: .monitoringDidFail(region: region.map(Region.init(rawValue:)), error: Error(error)))
+              value: .monitoringDidFail(
+                region: region.map(Region.init(rawValue:)), error: Error(error)))
           }
         #endif
         #if os(iOS) || targetEnvironment(macCatalyst)
@@ -130,13 +133,12 @@ extension LocationManager {
     }
 
     #if os(iOS) || os(macOS) || os(watchOS) || targetEnvironment(macCatalyst)
-    if #available(OSX 10.15, *) {
-      manager.requestAlwaysAuthorization = { id in
-        .fireAndForget { dependencies[id]?.manager.requestAlwaysAuthorization() }
+      if #available(OSX 10.15, *) {
+        manager.requestAlwaysAuthorization = { id in
+          .fireAndForget { dependencies[id]?.manager.requestAlwaysAuthorization() }
+        }
       }
-    }
     #endif
-
 
     #if os(iOS) || os(tvOS) || os(watchOS) || targetEnvironment(macCatalyst)
       manager.requestWhenInUseAuthorization = { id in
@@ -244,9 +246,10 @@ private class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
   #endif
   #if os(iOS) || targetEnvironment(macCatalyst)
     @available(iOS 13, *)
-    lazy var didRangeBeaconsSatisfyingConstraint: ([CLBeacon], CLBeaconIdentityConstraint) -> Void = {
-      _, _ in fatalError()
-    }
+    lazy var didRangeBeaconsSatisfyingConstraint: ([CLBeacon], CLBeaconIdentityConstraint) -> Void =
+      {
+        _, _ in fatalError()
+      }
   #endif
   #if os(iOS) || targetEnvironment(macCatalyst)
     var didResumeLocationUpdates: () -> Void = { fatalError() }
@@ -352,8 +355,8 @@ private class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
   #endif
 
   #if os(iOS) || targetEnvironment(macCatalyst)
-  @available(iOS 13.0, *)
-  func locationManager(
+    @available(iOS 13.0, *)
+    func locationManager(
       _ manager: CLLocationManager, didRange beacons: [CLBeacon],
       satisfying beaconConstraint: CLBeaconIdentityConstraint
     ) {

@@ -1,9 +1,9 @@
-import ReactiveSwift
 import AuthenticationClient
 import ComposableArchitecture
 import Dispatch
 import LoginCore
 import NewGameCore
+import ReactiveSwift
 
 public struct AppState: Equatable {
   public var login: LoginState? = LoginState()

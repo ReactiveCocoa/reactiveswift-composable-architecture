@@ -1,7 +1,7 @@
 import AuthenticationClient
-import ReactiveSwift
 import ComposableArchitecture
 import Dispatch
+import ReactiveSwift
 import TicTacToeCommon
 
 public struct TwoFactorState: Equatable {

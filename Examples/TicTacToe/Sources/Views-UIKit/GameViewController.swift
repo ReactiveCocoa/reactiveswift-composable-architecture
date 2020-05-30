@@ -1,6 +1,6 @@
-import ReactiveSwift
 import ComposableArchitecture
 import GameCore
+import ReactiveSwift
 import UIKit
 
 public final class GameViewController: UIViewController {

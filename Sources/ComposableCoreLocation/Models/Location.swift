@@ -9,7 +9,7 @@ public struct Location: Equatable {
   public var coordinate: CLLocationCoordinate2D
   public var course: CLLocationDirection
   public var courseAccuracy: Double
-  @available (macOS 10.15, *)
+  @available(macOS 10.15, *)
   public lazy var floor: CLFloor? = nil
   public var horizontalAccuracy: CLLocationAccuracy
   public var speed: CLLocationSpeed
@@ -17,7 +17,7 @@ public struct Location: Equatable {
   public var timestamp: Date
   public var verticalAccuracy: CLLocationAccuracy
 
-  @available (macOS 10.15, *)
+  @available(macOS 10.15, *)
   public init(
     altitude: CLLocationDistance = 0,
     coordinate: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: 0, longitude: 0),
@@ -59,7 +59,7 @@ public struct Location: Equatable {
       } else {
         self.courseAccuracy = 0
       }
-      if #available (iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+      if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
         self.speedAccuracy = rawValue.speedAccuracy
       } else {
         self.speedAccuracy = 0
@@ -68,13 +68,13 @@ public struct Location: Equatable {
       self.courseAccuracy = 0
       self.speedAccuracy = 0
     #endif
-    if #available (macOS 10.15, *) {
+    if #available(macOS 10.15, *) {
       self.floor = rawValue.floor
     }
   }
 
   public static func == (lhs: Self, rhs: Self) -> Bool {
-    if #available (macOS 10.15, *) {
+    if #available(macOS 10.15, *) {
       var _lhs = lhs
       var _rhs = rhs
 

@@ -1,7 +1,7 @@
-import ReactiveSwift
 import AppCore
 import AppSwiftUI
 import ComposableArchitecture
+import ReactiveSwift
 import SwiftUI
 
 private let readMe = """

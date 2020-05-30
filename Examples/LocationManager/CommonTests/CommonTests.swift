@@ -1,8 +1,8 @@
-import ReactiveSwift
 import ComposableArchitecture
 import ComposableCoreLocation
 import CoreLocation
 import MapKit
+import ReactiveSwift
 import XCTest
 
 #if os(iOS)
@@ -230,7 +230,7 @@ class LocationManagerTests: XCTestCase {
       environment: AppEnvironment(
         localSearch: .mock(
           search: { request in
-            Effect(value: localSearchResponse) 
+            Effect(value: localSearchResponse)
           }),
         locationManager: .mock()
       )
