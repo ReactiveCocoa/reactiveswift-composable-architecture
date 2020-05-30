@@ -1,6 +1,7 @@
 import AppCore
 import AppSwiftUI
 import ComposableArchitecture
+import ReactiveSwift
 import SwiftUI
 
 private let readMe = """
@@ -31,7 +32,7 @@ struct RootView: View {
     reducer: appReducer.debug(),
     environment: AppEnvironment(
       authenticationClient: .live,
-      mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+      mainQueue: QueueScheduler.main
     )
   )
 

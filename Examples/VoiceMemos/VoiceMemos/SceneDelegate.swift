@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import ReactiveSwift
 import SwiftUI
 import UIKit
 
@@ -20,7 +21,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             audioPlayerClient: .live,
             audioRecorderClient: .live,
             date: Date.init,
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
+            mainQueue: QueueScheduler.main,
             openSettings: .fireAndForget {
               UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
             },

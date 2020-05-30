@@ -52,7 +52,7 @@
   ///       case response([String])
   ///     }
   ///     struct SearchEnvironment {
-  ///       var mainQueue: AnySchedulerOf<DispatchQueue>
+  ///       var mainQueue: DateScheduler
   ///       var request: (String) -> Effect<[String], Never>
   ///     }
   ///     let searchReducer = Reducer<
@@ -76,7 +76,7 @@
   /// It can be fully tested by controlling the environment's scheduler and effect:
   ///
   ///     // Create a test dispatch scheduler to control the timing of effects
-  ///     let scheduler = DispatchQueue.testScheduler
+  ///     let scheduler = TestScheduler()
   ///
   ///     let store = TestStore(
   ///       initialState: SearchState(),

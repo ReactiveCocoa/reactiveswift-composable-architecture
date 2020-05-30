@@ -45,20 +45,22 @@ extension WeatherClient {
       var components = URLComponents(string: "https://www.metaweather.com/api/location/search")!
       components.queryItems = [URLQueryItem(name: "query", value: query)]
 
-      return URLSession.shared.dataTaskPublisher(for: components.url!)
+      return URLSession.shared.reactive.data(with: URLRequest(url: components.url!))
         .map { data, _ in data }
-        .decode(type: [Location].self, decoder: jsonDecoder)
+        .attemptMap { data in
+          try jsonDecoder.decode([Location].self, from: data)
+        }
         .mapError { _ in Failure() }
-        .eraseToEffect()
     },
     weather: { id in
       let url = URL(string: "https://www.metaweather.com/api/location/\(id)")!
 
-      return URLSession.shared.dataTaskPublisher(for: url)
+      return URLSession.shared.reactive.data(with: URLRequest(url: url))
         .map { data, _ in data }
-        .decode(type: LocationWeather.self, decoder: jsonDecoder)
+        .attemptMap { data in
+          try jsonDecoder.decode(LocationWeather.self, from: data)
+        }
         .mapError { _ in Failure() }
-        .eraseToEffect()
     })
 }
 

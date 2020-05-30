@@ -1,14 +1,14 @@
 import AuthenticationClient
-import Combine
 import ComposableArchitecture
 import LoginCore
+import ReactiveSwift
 import TicTacToeCommon
 import XCTest
 
 @testable import LoginSwiftUI
 
 class LoginSwiftUITests: XCTestCase {
-  let scheduler = DispatchQueue.testScheduler
+  let scheduler = TestScheduler()
 
   func testFlow_Success() {
     let store = TestStore(
@@ -20,7 +20,7 @@ class LoginSwiftUITests: XCTestCase {
             Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: false))
           }
         ),
-        mainQueue: .init(self.scheduler)
+        mainQueue: self.scheduler
       )
     )
     .scope(state: { $0.view }, action: LoginAction.view)
@@ -58,7 +58,7 @@ class LoginSwiftUITests: XCTestCase {
             Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: true))
           }
         ),
-        mainQueue: .init(self.scheduler)
+        mainQueue: self.scheduler
       )
     )
     .scope(state: { $0.view }, action: LoginAction.view)
@@ -98,7 +98,7 @@ class LoginSwiftUITests: XCTestCase {
         authenticationClient: .mock(
           login: { _ in Effect(error: .invalidUserPassword) }
         ),
-        mainQueue: .init(self.scheduler)
+        mainQueue: self.scheduler
       )
     )
     .scope(state: { $0.view }, action: LoginAction.view)

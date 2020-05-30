@@ -1,6 +1,7 @@
 import AuthenticationClient
 import ComposableArchitecture
 import Dispatch
+import ReactiveSwift
 import TicTacToeCommon
 import TwoFactorCore
 
@@ -27,11 +28,11 @@ public enum LoginAction: Equatable {
 
 public struct LoginEnvironment {
   public var authenticationClient: AuthenticationClient
-  public var mainQueue: AnySchedulerOf<DispatchQueue>
+  public var mainQueue: DateScheduler
 
   public init(
     authenticationClient: AuthenticationClient,
-    mainQueue: AnySchedulerOf<DispatchQueue>
+    mainQueue: DateScheduler
   ) {
     self.authenticationClient = authenticationClient
     self.mainQueue = mainQueue
@@ -71,7 +72,7 @@ public let loginReducer = Reducer<LoginState, LoginAction, LoginEnvironment> {
     state.isLoginRequestInFlight = true
     return environment.authenticationClient
       .login(LoginRequest(email: state.email, password: state.password))
-      .receive(on: environment.mainQueue)
+      .observe(on: environment.mainQueue)
       .catchToEffect()
       .map(LoginAction.loginResponse)
 

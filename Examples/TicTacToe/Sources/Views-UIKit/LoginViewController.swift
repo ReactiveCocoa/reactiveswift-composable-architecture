@@ -1,6 +1,6 @@
-import Combine
 import ComposableArchitecture
 import LoginCore
+import ReactiveSwift
 import TicTacToeCommon
 import TwoFactorCore
 import UIKit
@@ -26,8 +26,6 @@ class LoginViewController: UIViewController {
 
   let store: Store<LoginState, LoginAction>
   let viewStore: ViewStore<ViewState, ViewAction>
-
-  private var cancellables: Set<AnyCancellable> = []
 
   init(store: Store<LoginState, LoginAction>) {
     self.store = store
@@ -109,30 +107,24 @@ class LoginViewController: UIViewController {
 
     self.viewStore.publisher.isLoginButtonEnabled
       .assign(to: \.isEnabled, on: loginButton)
-      .store(in: &self.cancellables)
 
     self.viewStore.publisher.email
       .assign(to: \.text, on: emailTextField)
-      .store(in: &self.cancellables)
 
     self.viewStore.publisher.isEmailTextFieldEnabled
       .assign(to: \.isEnabled, on: emailTextField)
-      .store(in: &self.cancellables)
 
     self.viewStore.publisher.password
       .assign(to: \.text, on: passwordTextField)
-      .store(in: &self.cancellables)
 
     self.viewStore.publisher.isPasswordTextFieldEnabled
       .assign(to: \.isEnabled, on: passwordTextField)
-      .store(in: &self.cancellables)
 
     self.viewStore.publisher.isActivityIndicatorHidden
       .assign(to: \.isHidden, on: activityIndicator)
-      .store(in: &self.cancellables)
 
     self.viewStore.publisher.alertData
-      .sink { [weak self] alertData in
+      .startWithValues { [weak self] alertData in
         guard let self = self else { return }
         guard let alertData = alertData else { return }
 
@@ -146,7 +138,6 @@ class LoginViewController: UIViewController {
             }))
         self.present(alertController, animated: true, completion: nil)
       }
-      .store(in: &self.cancellables)
 
     self.store
       .scope(state: { $0.twoFactor }, action: LoginAction.twoFactor)
@@ -162,7 +153,6 @@ class LoginViewController: UIViewController {
           self.navigationController?.popToViewController(self, animated: true)
         }
       )
-      .store(in: &self.cancellables)
   }
 
   override func viewDidAppear(_ animated: Bool) {

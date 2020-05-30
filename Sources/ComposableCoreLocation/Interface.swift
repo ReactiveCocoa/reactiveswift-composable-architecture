@@ -1,6 +1,6 @@
-import Combine
 import ComposableArchitecture
 import CoreLocation
+import ReactiveSwift
 
 /// A wrapper around Core Location's `CLLocationManager` that exposes its functionality through
 /// effects and actions, making it easy to use with the Composable Architecture and easy to test.
@@ -190,6 +190,7 @@ public struct LocationManager {
     @available(watchOS, unavailable)
     case didExitRegion(Region)
 
+    @available(iOS 13.0, *)
     @available(macOS, unavailable)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)

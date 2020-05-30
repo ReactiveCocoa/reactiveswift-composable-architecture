@@ -1,6 +1,6 @@
 import AuthenticationClient
-import Combine
 import ComposableArchitecture
+import ReactiveSwift
 import TicTacToeCommon
 import TwoFactorCore
 import XCTest
@@ -8,7 +8,7 @@ import XCTest
 @testable import TwoFactorSwiftUI
 
 class TwoFactorSwiftUITests: XCTestCase {
-  let scheduler = DispatchQueue.testScheduler
+  let scheduler = TestScheduler()
 
   func testFlow_Success() {
     let store = TestStore(
@@ -20,7 +20,7 @@ class TwoFactorSwiftUITests: XCTestCase {
             Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: false))
           }
         ),
-        mainQueue: AnyScheduler(self.scheduler)
+        mainQueue: self.scheduler
       )
     )
     .scope(state: { $0.view }, action: TwoFactorAction.view)
@@ -70,7 +70,7 @@ class TwoFactorSwiftUITests: XCTestCase {
             Effect(error: .invalidTwoFactor)
           }
         ),
-        mainQueue: AnyScheduler(self.scheduler)
+        mainQueue: self.scheduler
       )
     )
     .scope(state: { $0.view }, action: TwoFactorAction.view)

@@ -1,5 +1,5 @@
-import Combine
 import ComposableArchitecture
+import ReactiveSwift
 import Speech
 import SwiftUI
 
@@ -24,7 +24,7 @@ enum AppAction: Equatable {
 }
 
 struct AppEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
   var speechClient: SpeechClient
 }
 
@@ -45,9 +45,8 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, action, e
     state.isRecording.toggle()
     if state.isRecording {
       return environment.speechClient.requestAuthorization()
-        .receive(on: environment.mainQueue)
+        .observe(on: environment.mainQueue)
         .map(AppAction.speechRecognizerAuthorizationStatusResponse)
-        .eraseToEffect()
     } else {
       return environment.speechClient.finishTask(SpeechRecognitionId())
         .fireAndForget()
@@ -163,7 +162,7 @@ struct SpeechRecognitionView_Previews: PreviewProvider {
         initialState: .init(transcribedText: "Test test 123"),
         reducer: appReducer,
         environment: AppEnvironment(
-          mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
+          mainQueue: QueueScheduler.main,
           speechClient: .live
         )
       )

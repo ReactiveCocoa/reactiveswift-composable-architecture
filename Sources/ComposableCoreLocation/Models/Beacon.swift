@@ -24,8 +24,16 @@ public struct Beacon: Equatable {
     self.minor = rawValue.minor
     self.proximity = rawValue.proximity
     self.rssi = rawValue.rssi
-    self.timestamp = rawValue.timestamp
-    self.uuid = rawValue.uuid
+    if #available(iOS 13, *) {
+      self.timestamp = rawValue.timestamp
+    } else {
+      self.timestamp = Date()
+    }
+    if #available(iOS 13, *) {
+      self.uuid = rawValue.uuid
+    } else {
+      self.uuid = rawValue.proximityUUID
+    }
   }
 
   init(

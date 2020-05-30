@@ -1,17 +1,18 @@
 import ComposableArchitecture
+import ReactiveSwift
 import XCTest
 
 @testable import SwiftUICaseStudies
 
 class EffectsBasicsTests: XCTestCase {
-  let scheduler = DispatchQueue.testScheduler
+  let scheduler = TestScheduler()
 
   func testCountDown() {
     let store = TestStore(
       initialState: EffectsBasicsState(),
       reducer: effectsBasicsReducer,
       environment: EffectsBasicsEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
+        mainQueue: self.scheduler,
         numberFact: { _ in fatalError("Unimplemented") }
       )
     )
@@ -23,7 +24,7 @@ class EffectsBasicsTests: XCTestCase {
       .send(.decrementButtonTapped) {
         $0.count = 0
       },
-      .do { self.scheduler.advance(by: 1) },
+      .do { self.scheduler.advance(by: .seconds(1)) },
       .receive(.incrementButtonTapped) {
         $0.count = 1
       }
@@ -35,7 +36,7 @@ class EffectsBasicsTests: XCTestCase {
       initialState: EffectsBasicsState(),
       reducer: effectsBasicsReducer,
       environment: EffectsBasicsEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
+        mainQueue: self.scheduler,
         numberFact: { n in Effect(value: "\(n) is a good number Brent") }
       )
     )

@@ -1,5 +1,5 @@
-import Combine
 import ComposableArchitecture
+import ReactiveSwift
 import Speech
 
 extension SpeechClient {
@@ -13,13 +13,13 @@ extension SpeechClient {
     finishTask: { id in
       .fireAndForget {
         dependencies[id]?.finish()
-        dependencies[id]?.subscriber.send(completion: .finished)
+        dependencies[id]?.subscriber.sendCompleted()
         dependencies[id] = nil
       }
     },
     recognitionTask: { id, request in
-      Effect.run { subscriber in
-        let cancellable = AnyCancellable {
+      Effect { subscriber, lifetime in
+        lifetime += AnyDisposable {
           dependencies[id]?.cancel()
           dependencies[id] = nil
         }
@@ -27,7 +27,7 @@ extension SpeechClient {
         let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))!
         let speechRecognizerDelegate = SpeechRecognizerDelegate(
           availabilityDidChange: { available in
-            subscriber.send(.availabilityDidChange(isAvailable: available))
+            subscriber.send(value: .availabilityDidChange(isAvailable: available))
           }
         )
         speechRecognizer.delegate = speechRecognizerDelegate
@@ -38,17 +38,17 @@ extension SpeechClient {
           try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
           try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
-          subscriber.send(completion: .failure(.couldntConfigureAudioSession))
-          return cancellable
+          subscriber.send(error: .couldntConfigureAudioSession)
+          return
         }
         let inputNode = audioEngine.inputNode
 
         let recognitionTask = speechRecognizer.recognitionTask(with: request) { result, error in
           switch (result, error) {
           case let (.some(result), _):
-            subscriber.send(.taskResult(SpeechRecognitionResult(result)))
+            subscriber.send(value: .taskResult(SpeechRecognitionResult(result)))
           case let (_, .some(error)):
-            subscriber.send(completion: .failure(.taskError))
+            subscriber.send(error: .taskError)
           case (.none, .none):
             fatalError("It should not be possible to have both a nil result and nil error.")
           }
@@ -75,11 +75,11 @@ extension SpeechClient {
         do {
           try audioEngine.start()
         } catch {
-          subscriber.send(completion: .failure(.couldntStartAudioEngine))
-          return cancellable
+          subscriber.send(error: .couldntStartAudioEngine)
+          return
         }
 
-        return cancellable
+        return
       }
       .cancellable(id: id)
     },
@@ -99,7 +99,7 @@ private struct SpeechDependencies {
   let recognitionTask: SFSpeechRecognitionTask
   let speechRecognizer: SFSpeechRecognizer
   let speechRecognizerDelegate: SpeechRecognizerDelegate
-  let subscriber: Effect<SpeechClient.Action, SpeechClient.Error>.Subscriber
+  let subscriber: Signal<SpeechClient.Action, SpeechClient.Error>.Observer
 
   func finish() {
     self.audioEngine.stop()

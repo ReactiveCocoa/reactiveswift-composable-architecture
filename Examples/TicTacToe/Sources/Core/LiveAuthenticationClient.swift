@@ -1,7 +1,7 @@
 import AuthenticationClient
-import Combine
 import ComposableArchitecture
 import Foundation
+import ReactiveSwift
 
 extension AuthenticationClient {
   public static let live = AuthenticationClient(
@@ -9,8 +9,7 @@ extension AuthenticationClient {
       (request.email.contains("@") && request.password == "password"
         ? Effect(value: .init(token: "deadbeef", twoFactorRequired: request.email.contains("2fa")))
         : Effect(error: .invalidUserPassword))
-        .delay(for: 1, scheduler: DispatchQueue.global())
-        .eraseToEffect()
+        .delay(1, on: QueueScheduler(qos: .default, name: "auth", targeting: .global()))
     },
     twoFactor: { request in
       (request.token != "deadbeef"
@@ -18,7 +17,6 @@ extension AuthenticationClient {
         : request.code != "1234"
           ? Effect(error: .invalidTwoFactor)
           : Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: false)))
-        .delay(for: 1, scheduler: DispatchQueue.global())
-        .eraseToEffect()
+        .delay(1, on: QueueScheduler(qos: .default, name: "auth", targeting: .global()))
     })
 }

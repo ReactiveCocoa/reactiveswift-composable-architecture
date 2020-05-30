@@ -1,7 +1,7 @@
-import Combine
 import ComposableArchitecture
 import ComposableCoreLocation
 import MapKit
+import ReactiveSwift
 import SwiftUI
 
 private let readMe = """
@@ -105,13 +105,15 @@ struct ContentView: View {
       let mockLocation = Location(
         coordinate: CLLocationCoordinate2D(latitude: 40.6501, longitude: -73.94958)
       )
-      let locationManagerSubject = PassthroughSubject<LocationManager.Action, Never>()
+      let locationManagerSubject = Signal<LocationManager.Action, Never>.pipe()
       let locationManager = LocationManager.mock(
         authorizationStatus: { .authorizedAlways },
-        create: { _ in locationManagerSubject.eraseToEffect() },
+        create: { _ in locationManagerSubject.output.producer },
         locationServicesEnabled: { true },
         requestLocation: { _ in
-          .fireAndForget { locationManagerSubject.send(.didUpdateLocations([mockLocation])) }
+          .fireAndForget {
+            locationManagerSubject.input.send(value: .didUpdateLocations([mockLocation]))
+          }
         })
 
       let appView = LocationManagerView(

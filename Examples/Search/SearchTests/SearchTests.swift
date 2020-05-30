@@ -1,11 +1,11 @@
-import Combine
 import ComposableArchitecture
+import ReactiveSwift
 import XCTest
 
 @testable import Search
 
 class SearchTests: XCTestCase {
-  let scheduler = DispatchQueue.testScheduler
+  let scheduler = TestScheduler()
 
   func testSearchAndClearQuery() {
     let store = TestStore(
@@ -13,7 +13,7 @@ class SearchTests: XCTestCase {
       reducer: searchReducer,
       environment: SearchEnvironment(
         weatherClient: .mock(),
-        mainQueue: self.scheduler.eraseToAnyScheduler()
+        mainQueue: self.scheduler
       )
     )
 
@@ -24,7 +24,7 @@ class SearchTests: XCTestCase {
       .send(.searchQueryChanged("S")) {
         $0.searchQuery = "S"
       },
-      .do { self.scheduler.advance(by: 0.3) },
+      .do { self.scheduler.advance(by: .milliseconds(300)) },
       .receive(.locationsResponse(.success(mockLocations))) {
         $0.locations = mockLocations
       },
@@ -41,7 +41,7 @@ class SearchTests: XCTestCase {
       reducer: searchReducer,
       environment: SearchEnvironment(
         weatherClient: .mock(),
-        mainQueue: self.scheduler.eraseToAnyScheduler()
+        mainQueue: self.scheduler
       )
     )
 
@@ -52,7 +52,7 @@ class SearchTests: XCTestCase {
       .send(.searchQueryChanged("S")) {
         $0.searchQuery = "S"
       },
-      .do { self.scheduler.advance(by: 0.3) },
+      .do { self.scheduler.advance(by: .milliseconds(300)) },
       .receive(.locationsResponse(.failure(.init())))
     )
   }
@@ -63,7 +63,7 @@ class SearchTests: XCTestCase {
       reducer: searchReducer,
       environment: SearchEnvironment(
         weatherClient: .mock(searchLocation: { _ in Effect(value: mockLocations) }),
-        mainQueue: self.scheduler.eraseToAnyScheduler()
+        mainQueue: self.scheduler
       )
     )
 
@@ -71,7 +71,7 @@ class SearchTests: XCTestCase {
       .send(.searchQueryChanged("S")) {
         $0.searchQuery = "S"
       },
-      .do { self.scheduler.advance(by: 0.2) },
+      .do { self.scheduler.advance(by: .milliseconds(200)) },
       .send(.searchQueryChanged("")) {
         $0.searchQuery = ""
       },
@@ -91,7 +91,7 @@ class SearchTests: XCTestCase {
       reducer: searchReducer,
       environment: SearchEnvironment(
         weatherClient: .mock(weather: { _ in Effect(value: specialLocationWeather) }),
-        mainQueue: self.scheduler.eraseToAnyScheduler()
+        mainQueue: self.scheduler
       )
     )
 
@@ -119,7 +119,7 @@ class SearchTests: XCTestCase {
       reducer: searchReducer,
       environment: SearchEnvironment(
         weatherClient: .mock(weather: { _ in Effect(value: specialLocationWeather) }),
-        mainQueue: self.scheduler.eraseToAnyScheduler()
+        mainQueue: self.scheduler
       )
     )
 
@@ -143,8 +143,8 @@ class SearchTests: XCTestCase {
       initialState: .init(locations: mockLocations),
       reducer: searchReducer,
       environment: SearchEnvironment(
-        weatherClient: .mock(weather: { _ in Fail(error: .init()).eraseToEffect() }),
-        mainQueue: self.scheduler.eraseToAnyScheduler()
+        weatherClient: .mock(weather: { _ in Effect(error: .init()) }),
+        mainQueue: self.scheduler
       )
     )
 

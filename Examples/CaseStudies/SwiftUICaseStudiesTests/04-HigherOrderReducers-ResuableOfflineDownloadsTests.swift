@@ -1,11 +1,11 @@
-import Combine
 import ComposableArchitecture
+import ReactiveSwift
 import XCTest
 
 @testable import SwiftUICaseStudies
 
 class ReusableComponentsDownloadComponentTests: XCTestCase {
-  let downloadSubject = PassthroughSubject<DownloadClient.Action, DownloadClient.Error>()
+  let downloadSubject = Signal<DownloadClient.Action, DownloadClient.Error>.pipe()
   let reducer = Reducer<
     DownloadComponentState<Int>, DownloadComponentAction, DownloadComponentEnvironment
   >
@@ -15,7 +15,7 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
     action: .self,
     environment: { $0 }
   )
-  let scheduler = DispatchQueue.testScheduler
+  let scheduler = TestScheduler()
 
   func testDownloadFlow() {
     let store = TestStore(
@@ -28,9 +28,9 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
       reducer: reducer,
       environment: DownloadComponentEnvironment(
         downloadClient: .mock(
-          download: { _, _ in self.downloadSubject.eraseToEffect() }
+          download: { _, _ in self.downloadSubject.output.producer }
         ),
-        mainQueue: self.scheduler.eraseToAnyScheduler()
+        mainQueue: self.scheduler
       )
     )
 
@@ -39,18 +39,20 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
         $0.mode = .startingToDownload
       },
 
-      .do { self.downloadSubject.send(.updateProgress(0.2)) },
+      .do { self.downloadSubject.input.send(value: .updateProgress(0.2)) },
       .do { self.scheduler.advance() },
       .receive(.downloadClient(.success(.updateProgress(0.2)))) {
         $0.mode = .downloading(progress: 0.2)
       },
 
-      .do { self.downloadSubject.send(.response(Data())) },
-      .do { self.downloadSubject.send(completion: .finished) },
-      .do { self.scheduler.advance(by: 1) },
+      .do { self.downloadSubject.input.send(value: .response(Data())) },
+      .do { self.scheduler.advance(by: .seconds(1)) },
       .receive(.downloadClient(.success(.response(Data())))) {
         $0.mode = .downloaded
-      }
+      },
+
+      .do { self.downloadSubject.input.sendCompleted() },
+      .do { self.scheduler.run() }
     )
   }
 
@@ -65,9 +67,9 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
       reducer: reducer,
       environment: DownloadComponentEnvironment(
         downloadClient: .mock(
-          download: { _, _ in self.downloadSubject.eraseToEffect() }
+          download: { _, _ in self.downloadSubject.output.producer }
         ),
-        mainQueue: self.scheduler.eraseToAnyScheduler()
+        mainQueue: self.scheduler
       )
     )
 
@@ -76,22 +78,22 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
         $0.mode = .startingToDownload
       },
 
-      .do { self.downloadSubject.send(.updateProgress(0.5)) },
+      .do { self.downloadSubject.input.send(value: .updateProgress(0.5)) },
       .do { self.scheduler.advance() },
       .receive(.downloadClient(.success(.updateProgress(0.5)))) {
         $0.mode = .downloading(progress: 0.5)
       },
 
-      .do { self.downloadSubject.send(.updateProgress(0.6)) },
-      .do { self.scheduler.advance(by: 0.5) },
+      .do { self.downloadSubject.input.send(value: .updateProgress(0.6)) },
+      .do { self.scheduler.advance(by: .milliseconds(500)) },
 
-      .do { self.downloadSubject.send(.updateProgress(0.7)) },
-      .do { self.scheduler.advance(by: 0.5) },
+      .do { self.downloadSubject.input.send(value: .updateProgress(0.7)) },
+      .do { self.scheduler.advance(by: .milliseconds(500)) },
       .receive(.downloadClient(.success(.updateProgress(0.7)))) {
         $0.mode = .downloading(progress: 0.7)
       },
 
-      .do { self.downloadSubject.send(completion: .finished) },
+      .do { self.downloadSubject.input.sendCompleted() },
       .do { self.scheduler.run() }
     )
   }
@@ -107,10 +109,10 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
       reducer: reducer,
       environment: DownloadComponentEnvironment(
         downloadClient: .mock(
-          cancel: { _ in .fireAndForget { self.downloadSubject.send(completion: .finished) } },
-          download: { _, _ in self.downloadSubject.eraseToEffect() }
+          cancel: { _ in .fireAndForget { self.downloadSubject.input.sendCompleted() } },
+          download: { _, _ in self.downloadSubject.output.producer }
         ),
-        mainQueue: self.scheduler.eraseToAnyScheduler()
+        mainQueue: self.scheduler
       )
     )
 
@@ -151,10 +153,10 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
       reducer: reducer,
       environment: DownloadComponentEnvironment(
         downloadClient: .mock(
-          cancel: { _ in .fireAndForget { self.downloadSubject.send(completion: .finished) } },
-          download: { _, _ in self.downloadSubject.eraseToEffect() }
+          cancel: { _ in .fireAndForget { self.downloadSubject.input.sendCompleted() } },
+          download: { _, _ in self.downloadSubject.output.producer }
         ),
-        mainQueue: self.scheduler.eraseToAnyScheduler()
+        mainQueue: self.scheduler
       )
     )
 
@@ -175,13 +177,15 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
         )
       },
 
-      .do { self.downloadSubject.send(.response(Data())) },
-      .do { self.downloadSubject.send(completion: .finished) },
-      .do { self.scheduler.advance(by: 1) },
+      .do { self.downloadSubject.input.send(value: .response(Data())) },
+      .do { self.scheduler.advance(by: .seconds(1)) },
       .receive(.downloadClient(.success(.response(Data())))) {
         $0.alert = nil
         $0.mode = .downloaded
-      }
+      },
+
+      .do { self.downloadSubject.input.sendCompleted() },
+      .do { self.scheduler.run() }
     )
   }
 
@@ -196,10 +200,10 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
       reducer: reducer,
       environment: DownloadComponentEnvironment(
         downloadClient: .mock(
-          cancel: { _ in .fireAndForget { self.downloadSubject.send(completion: .finished) } },
-          download: { _, _ in self.downloadSubject.eraseToEffect() }
+          cancel: { _ in .fireAndForget { self.downloadSubject.input.sendCompleted() } },
+          download: { _, _ in self.downloadSubject.output.producer }
         ),
-        mainQueue: self.scheduler.eraseToAnyScheduler()
+        mainQueue: self.scheduler
       )
     )
 

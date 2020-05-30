@@ -1,12 +1,13 @@
 import AuthenticationClient
 import ComposableArchitecture
 import LoginCore
+import ReactiveSwift
 import TicTacToeCommon
 import TwoFactorCore
 import XCTest
 
 class LoginCoreTests: XCTestCase {
-  let scheduler = DispatchQueue.testScheduler
+  let scheduler = TestScheduler()
 
   func testFlow_Success_TwoFactor_Integration() {
     let store = TestStore(
@@ -21,7 +22,7 @@ class LoginCoreTests: XCTestCase {
             Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: false))
           }
         ),
-        mainQueue: AnyScheduler(self.scheduler)
+        mainQueue: self.scheduler
       )
     )
 

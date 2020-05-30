@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import ReactiveSwift
 import SwiftUI
 
 struct Todo: Equatable, Identifiable {
@@ -79,7 +80,7 @@ enum AppAction: Equatable {
 }
 
 struct AppEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
   var uuid: () -> UUID
 }
 
@@ -109,8 +110,7 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
     case let .move(source, destination):
       state.todos.move(fromOffsets: source, toOffset: destination)
       return Effect(value: .sortCompletedTodos)
-        .delay(for: .milliseconds(100), scheduler: environment.mainQueue)
-        .eraseToEffect()
+        .delay(0.1, on: environment.mainQueue)
 
     case .sortCompletedTodos:
       state.todos.sortCompleted()
@@ -119,7 +119,7 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
     case .todo(id: _, action: .checkBoxToggled):
       struct TodoCompletionId: Hashable {}
       return Effect(value: .sortCompletedTodos)
-        .debounce(id: TodoCompletionId(), for: 1, scheduler: environment.mainQueue)
+        .debounce(id: TodoCompletionId(), interval: 1, scheduler: environment.mainQueue)
 
     case .todo:
       return .none
@@ -235,7 +235,7 @@ struct AppView_Previews: PreviewProvider {
         initialState: AppState(todos: .mock),
         reducer: appReducer,
         environment: AppEnvironment(
-          mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
+          mainQueue: QueueScheduler.main,
           uuid: UUID.init
         )
       )

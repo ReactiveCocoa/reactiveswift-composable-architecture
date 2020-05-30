@@ -1,17 +1,18 @@
 import ComposableArchitecture
+import ReactiveSwift
 import XCTest
 
 @testable import Todos
 
 class TodosTests: XCTestCase {
-  let scheduler = DispatchQueue.testScheduler
+  let scheduler = TestScheduler()
 
   func testAddTodo() {
     let store = TestStore(
       initialState: AppState(),
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
+        mainQueue: self.scheduler,
         uuid: UUID.incrementing
       )
     )
@@ -44,7 +45,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
+        mainQueue: self.scheduler,
         uuid: UUID.incrementing
       )
     )
@@ -77,7 +78,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
+        mainQueue: self.scheduler,
         uuid: UUID.incrementing
       )
     )
@@ -86,7 +87,7 @@ class TodosTests: XCTestCase {
       .send(.todo(id: state.todos[0].id, action: .checkBoxToggled)) {
         $0.todos[0].isComplete = true
       },
-      .do { self.scheduler.advance(by: 1) },
+      .do { self.scheduler.advance(by: .seconds(1)) },
       .receive(.sortCompletedTodos) {
         $0.todos = [
           $0.todos[1],
@@ -115,7 +116,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
+        mainQueue: self.scheduler,
         uuid: UUID.incrementing
       )
     )
@@ -124,11 +125,11 @@ class TodosTests: XCTestCase {
       .send(.todo(id: state.todos[0].id, action: .checkBoxToggled)) {
         $0.todos[0].isComplete = true
       },
-      .do { self.scheduler.advance(by: 0.5) },
+      .do { self.scheduler.advance(by: .milliseconds(500)) },
       .send(.todo(id: state.todos[0].id, action: .checkBoxToggled)) {
         $0.todos[0].isComplete = false
       },
-      .do { self.scheduler.advance(by: 1) },
+      .do { self.scheduler.advance(by: .seconds(1)) },
       .receive(.sortCompletedTodos)
     )
   }
@@ -152,7 +153,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
+        mainQueue: self.scheduler,
         uuid: UUID.incrementing
       )
     )
@@ -190,7 +191,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
+        mainQueue: self.scheduler,
         uuid: UUID.incrementing
       )
     )
@@ -229,7 +230,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
+        mainQueue: self.scheduler,
         uuid: UUID.incrementing
       )
     )
@@ -269,7 +270,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
+        mainQueue: self.scheduler,
         uuid: UUID.incrementing
       )
     )

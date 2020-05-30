@@ -1,11 +1,11 @@
-import Combine
 import ComposableArchitecture
+import ReactiveSwift
 import XCTest
 
 @testable import SwiftUICaseStudies
 
 class ReusableComponentsFavoritingTests: XCTestCase {
-  let scheduler = DispatchQueue.testScheduler
+  let scheduler = TestScheduler()
 
   func testFavoriteButton() {
     let store = TestStore(
@@ -31,7 +31,7 @@ class ReusableComponentsFavoritingTests: XCTestCase {
       reducer: episodesReducer,
       environment: EpisodesEnvironment(
         favorite: { _, isFavorite in Effect.future { $0(.success(isFavorite)) } },
-        mainQueue: self.scheduler.eraseToAnyScheduler()
+        mainQueue: self.scheduler
       )
     )
 

@@ -1,5 +1,6 @@
 import AuthenticationClient
 import ComposableArchitecture
+import ReactiveSwift
 import SwiftUI
 import TicTacToeCommon
 import TwoFactorCore
@@ -105,7 +106,7 @@ struct TwoFactorView_Previews: PreviewProvider {
                 Effect(value: .init(token: "deadbeef", twoFactorRequired: false))
               }
             ),
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+            mainQueue: QueueScheduler.main
           )
         )
       )

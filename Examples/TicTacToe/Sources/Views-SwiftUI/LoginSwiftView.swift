@@ -1,6 +1,7 @@
 import AuthenticationClient
 import ComposableArchitecture
 import LoginCore
+import ReactiveSwift
 import SwiftUI
 import TicTacToeCommon
 import TwoFactorCore
@@ -137,7 +138,7 @@ struct LoginView_Previews: PreviewProvider {
               login: { _ in Effect(value: .init(token: "deadbeef", twoFactorRequired: false)) },
               twoFactor: { _ in Effect(value: .init(token: "deadbeef", twoFactorRequired: false)) }
             ),
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+            mainQueue: QueueScheduler.main
           )
         )
       )

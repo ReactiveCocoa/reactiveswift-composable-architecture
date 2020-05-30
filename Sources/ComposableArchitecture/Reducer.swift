@@ -145,7 +145,7 @@ public struct Reducer<State, Action, Environment> {
   ///     // Global domain that holds an optional local domain:
   ///     struct AppState { var modal: ModalState? }
   ///     struct AppAction { case modal(ModalAction) }
-  ///     struct AppEnvironment { var mainQueue: AnySchedulerOf<DispatchQueue> }
+  ///     struct AppEnvironment { var mainQueue: DateScheduler }
   ///
   ///     // A reducer that works on the non-optional local domain:
   ///     let modalReducer = Reducer<ModalState, ModalAction, ModalEnvironment { ... }
@@ -175,7 +175,7 @@ public struct Reducer<State, Action, Environment> {
   ///     // Global domain that holds a collection of local domains:
   ///     struct AppState { var todos: [Todo] }
   ///     struct AppAction { case todo(index: Int, action: TodoAction) }
-  ///     struct AppEnvironment { var mainQueue: AnySchedulerOf<DispatchQueue> }
+  ///     struct AppEnvironment { var mainQueue: DateScheduler }
   ///
   ///     // A reducer that works on a local domain:
   ///     let todoReducer = Reducer<Todo, TodoAction, TodoEnvironment> { ... }
@@ -229,7 +229,7 @@ public struct Reducer<State, Action, Environment> {
   ///     // Global domain that holds a collection of local domains:
   ///     struct AppState { var todos: IdentifiedArrayOf<Todo> }
   ///     struct AppAction { case todo(id: Todo.ID, action: TodoAction) }
-  ///     struct AppEnvironment { var mainQueue: AnySchedulerOf<DispatchQueue> }
+  ///     struct AppEnvironment { var mainQueue: DateScheduler }
   ///
   ///     // A reducer that works on a local domain:
   ///     let todoReducer = Reducer<Todo, TodoAction, TodoEnvironment> { ... }

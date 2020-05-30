@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import ReactiveSwift
 import SwiftUI
 
 private let readMe = """
@@ -25,7 +26,7 @@ enum SearchAction: Equatable {
 
 struct SearchEnvironment {
   var weatherClient: WeatherClient
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 // MARK: - Search feature reducer
@@ -48,7 +49,7 @@ let searchReducer = Reducer<SearchState, SearchAction, SearchEnvironment> {
 
     return environment.weatherClient
       .weather(location.id)
-      .receive(on: environment.mainQueue)
+      .observe(on: environment.mainQueue)
       .catchToEffect()
       .map(SearchAction.locationWeatherResponse)
       .cancellable(id: SearchWeatherId(), cancelInFlight: true)
@@ -68,9 +69,9 @@ let searchReducer = Reducer<SearchState, SearchAction, SearchEnvironment> {
 
     return environment.weatherClient
       .searchLocation(query)
-      .receive(on: environment.mainQueue)
+      .observe(on: environment.mainQueue)
       .catchToEffect()
-      .debounce(id: SearchLocationId(), for: 0.3, scheduler: environment.mainQueue)
+      .debounce(id: SearchLocationId(), interval: 0.3, scheduler: environment.mainQueue)
       .map(SearchAction.locationsResponse)
 
   case let .locationWeatherResponse(.failure(locationWeather)):
@@ -232,7 +233,7 @@ struct SearchView_Previews: PreviewProvider {
                 id: id
               ))
           }),
-        mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+        mainQueue: QueueScheduler.main
       )
     )
 

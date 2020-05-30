@@ -1,7 +1,7 @@
 import AuthenticationClient
-import Combine
 import ComposableArchitecture
 import Dispatch
+import ReactiveSwift
 import TicTacToeCommon
 
 public struct TwoFactorState: Equatable {
@@ -25,11 +25,11 @@ public enum TwoFactorAction: Equatable {
 
 public struct TwoFactorEnvironment {
   public var authenticationClient: AuthenticationClient
-  public var mainQueue: AnySchedulerOf<DispatchQueue>
+  public var mainQueue: DateScheduler
 
   public init(
     authenticationClient: AuthenticationClient,
-    mainQueue: AnySchedulerOf<DispatchQueue>
+    mainQueue: DateScheduler
   ) {
     self.authenticationClient = authenticationClient
     self.mainQueue = mainQueue
@@ -53,7 +53,7 @@ public let twoFactorReducer = Reducer<TwoFactorState, TwoFactorAction, TwoFactor
     state.isTwoFactorRequestInFlight = true
     return environment.authenticationClient
       .twoFactor(TwoFactorRequest(code: state.code, token: state.token))
-      .receive(on: environment.mainQueue)
+      .observe(on: environment.mainQueue)
       .catchToEffect()
       .map(TwoFactorAction.twoFactorResponse)
 

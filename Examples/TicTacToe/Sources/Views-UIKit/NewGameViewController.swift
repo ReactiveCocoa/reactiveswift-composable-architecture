@@ -105,15 +105,12 @@ class NewGameViewController: UIViewController {
 
     self.viewStore.publisher.isLetsPlayButtonEnabled
       .assign(to: \.isEnabled, on: letsPlayButton)
-      .store(in: &self.cancellables)
 
     self.viewStore.publisher.oPlayerName
       .assign(to: \.text, on: playerOTextField)
-      .store(in: &self.cancellables)
 
     self.viewStore.publisher.xPlayerName
       .assign(to: \.text, on: playerXTextField)
-      .store(in: &self.cancellables)
 
     self.store
       .scope(state: { $0.game }, action: NewGameAction.game)
@@ -129,7 +126,6 @@ class NewGameViewController: UIViewController {
           self.navigationController?.popToViewController(self, animated: true)
         }
       )
-      .store(in: &self.cancellables)
   }
 
   override func viewDidAppear(_ animated: Bool) {
