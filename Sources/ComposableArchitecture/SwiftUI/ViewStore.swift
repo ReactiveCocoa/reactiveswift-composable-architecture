@@ -34,8 +34,7 @@ import SwiftUI
 ///       super.viewDidLoad()
 ///
 ///       self.viewStore.publisher.count
-///         .sink { [weak self] in self?.countLabel.text = $0 }
-///         .store(in: &self.cancellables)
+///         .startWithValues { [weak self] in self?.countLabel.text = $0 }
 ///     }
 ///
 ///     @objc func incrementButtonTapped() {
@@ -47,8 +46,6 @@ public final class ViewStore<State, Action>: ObservableObject {
   /// A publisher of state.
   public let publisher: StorePublisher<State>
   public let producer: SignalProducer<State, Never>
-
-  private var viewCancellable: Disposable?
 
   /// Initializes a view store from a store.
   ///
@@ -64,12 +61,11 @@ public final class ViewStore<State, Action>: ObservableObject {
     self.publisher = StorePublisher(producer)
     self.state = store.state
     self._send = store.send
-    self.viewCancellable = producer.startWithValues { [weak self] in self?.state = $0 }
-
-    if #available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *) {
-      self.producer.startWithValues { _ in
-        self.objectWillChange.send()
+    producer.startWithValues { [weak self] in
+      if #available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *) {
+        self?.objectWillChange.send()
       }
+      self?.state = $0
     }
   }
 

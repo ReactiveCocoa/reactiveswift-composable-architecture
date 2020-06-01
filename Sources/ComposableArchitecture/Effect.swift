@@ -11,7 +11,6 @@ import ReactiveSwift
 /// must receive values on the main thread.
 ///
 /// An effect is simply a typealias for a ReactiveSwift `SignalProducer`
-/// constructing some common types of effects.
 public typealias Effect<Value, Error: Swift.Error> = SignalProducer<Value, Error>
 
 extension Effect {

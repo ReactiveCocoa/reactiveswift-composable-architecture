@@ -66,7 +66,7 @@
   ///       case let .queryChanged(query):
   ///         state.query = query
   ///         return environment.request(self.query)
-  ///           .debounce(id: SearchId(), for: 0.5, scheduler: environment.mainQueue)
+  ///           .debounce(id: SearchId(), interval: 0.5, scheduler: environment.mainQueue)
   ///       case let .response(results):
   ///         state.results = results
   ///         return .none
@@ -95,15 +95,15 @@
   ///         $0.query = "c"
   ///       },
   ///       // Advance the scheduler by a period shorter than the debounce
-  ///       .do { scheduler.advance(by: 0.25) },
+  ///       .do { scheduler.advance(by: .millseconds(250)) },
   ///       // Change the query again
   ///       .send(.searchFieldChanged("co") {
   ///         $0.query = "co"
   ///       },
   ///       // Advance the scheduler by a period shorter than the debounce
-  ///       .do { scheduler.advance(by: 0.25) },
+  ///       .do { scheduler.advance(by: .millseconds(250)) },
   ///       // Advance the scheduler to the debounce
-  ///       .do { scheduler.advance(by: 0.25) },
+  ///       .do { scheduler.advance(by: .millseconds(250)) },
   ///       // Assert that the expected response is received
   ///       .receive(.response(["Composable Architecture"])) {
   ///         // Assert that state updates accordingly

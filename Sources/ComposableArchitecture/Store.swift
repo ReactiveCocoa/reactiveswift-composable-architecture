@@ -197,7 +197,7 @@ public final class Store<State, Action> {
   }
 }
 
-// A publisher of store state.
+/// A publisher of store state.
 @dynamicMemberLookup
 public struct StorePublisher<State>: SignalProducerConvertible {
   public let producer: Effect<State, Never>

@@ -1,27 +1,22 @@
 # A Reactive Swift fork of The Composable Architecture
 
+[![Swift 5.2](https://img.shields.io/badge/swift-5.2-ED523F.svg?style=flat)](https://swift.org/download/)
+[![CI](https://github.com/trading-point/reactiveswift-composable-architecture/workflows/CI/badge.svg)](https://github.com/trading-point/reactiveswift-composable-architecture/actions?query=workflow%3ACI)
+
 [Pointfreeco's](https://github.com/pointfreeco) [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) uses Apple's Combine framework as the basis of its `Effect` type. Unfortunately, Combine is only available on iOS 13 and macOS 10.15 and above. In order to be able to use it with earlier versions of the OSes, this fork has adapted The Composable Architecture to use [Reactive Swift](https://github.com/ReactiveCocoa/ReactiveSwift) as the basis for the `Effect` type.
 
-Current status:
+## Effect type implementations
+<details>
+<summary>Combine vs ReactiveSwift</summary>
 
-* [x] ComposableArchitecture library builds
-* [x] ComposableArchitectureTests all pass
-* [x] The UIKit Case Studies examples build and run correctly
-* [x] The SwiftUI Case Studies examples build and run correctly
-* [x] ComposableCoreLocation to builds
-* [x] ComposableCoreLocationTests all pass
-* [x] All examples projects build and have passing tests.
+In Pointfreeco's composable architecture the `Effect` type wraps a Combine `Producer`, and also conforms to the `Publisher` protocol. This is required due to the way that each operation on a `Publisher` (e.g. `map`) returns a new type of Publisher (`Publishers.Map` in the case of `map`), so in order to have a single `Effect` type these publisher types always need to be erased back to just the `Effect` type with `eraseToEffect()`.
 
-The following changes are still needed:
+Using ReactiveSwift, which doesn't use Combine's type model, `Effect<Output, Failure>` is simply a typealias for `SignalProducer<Value, Error>`. There is never a need to type erase. Also, due to ReactiveSwift's lifetime based disposable handling, you rarely need to keep a reference to a `Disposable`, unlike in Combine, where you must always keep a reference to any `Cancellable` otherwise it will terminate immediately.
 
-* [ ] Change the documentation (docs and code comments) to reflect the use or ReactiveSwift
+</details>
+
 
 # The Composable Architecture
-
-[![Swift 5.2](https://img.shields.io/badge/swift-5.2-ED523F.svg?style=flat)](https://swift.org/download/)
-[![Swift 5.1](https://img.shields.io/badge/swift-5.1-ED523F.svg?style=flat)](https://swift.org/download/)
-[![CI](https://github.com/trading-point/swift-composable-architecture/workflows/CI/badge.svg)](https://github.com/trading-point/swift-composable-architecture/actions?query=workflow%3ACI)
-[![@pointfreeco](https://img.shields.io/badge/contact-@pointfreeco-5AA9E7.svg?style=flat)](https://twitter.com/pointfreeco)
 
 The Composable Architecture is a library for building applications in a consistent and understandable way, with composition, testing, and ergonomics in mind. It can be used in SwiftUI, UIKit, and more, and on any Apple platform (iOS, macOS, tvOS, and watchOS).
 
@@ -78,8 +73,8 @@ This repo comes with _lots_ of examples to demonstrate how to solve common and c
   * Navigation
   * Higher-order reducers
   * Reusable components
-  
-The following examples have not yet been adapted for ReactiveSwift  
+
+The following examples have not yet been adapted for ReactiveSwift
 * [Location manager](./Examples/LocationManager)
 * [Motion manager](./Examples/MotionManager)
 * [Search](./Examples/Search)
@@ -232,11 +227,11 @@ It is also straightforward to have a UIKit controller driven off of this store. 
 
       // Omitted: Add subviews and set up constraints...
 
-      self.viewStore.producer
-        .map { "\($0.count)" }
+      self.viewStore.publisher
+        .map(String.init)
         .assign(to: \.text, on: countLabel)
 
-      self.viewStore.producer.numberFactAlert
+      self.viewStore.publisher.numberFactAlert
         .startWithValues { [weak self] numberFactAlert in
           let alertController = UIAlertController(
             title: numberFactAlert, message: nil, preferredStyle: .alert
@@ -421,7 +416,7 @@ If you are interested in contributing a wrapper library for a framework that we 
 
     You would probably still want something like a `UIScheduler` so that you don't needlessly perform thread hops.
   </details>
-  
+
 ## Requirements
 
 This fork of The Composable Architecture uses the ReactiveSwift framework, it currently requires minimum deployment targets of iOS 12, macOS 10.14, Mac Catalyst 14, tvOS 14, and watchOS 5, although it may be possible to support earlier versions too.
@@ -431,7 +426,7 @@ This fork of The Composable Architecture uses the ReactiveSwift framework, it cu
 You can add ComposableArchitecture to an Xcode project by adding it as a package dependency.
 
   1. From the **File** menu, select **Swift Packages › Add Package Dependency…**
-  2. Enter "https://github.com/trading-point/swift-composable-architecture" into the package repository URL text field
+  2. Enter "https://github.com/trading-point/reactiveswift-composable-architecture" into the package repository URL text field
   3. Depending on how your project is structured:
       - If you have a single application target that needs access to the library, then add **ComposableArchitecture** directly to your application.
       - If you want to use this library from multiple targets you must create a shared framework that depends on **ComposableArchitecture** and then depend on that framework in all of your targets. For an example of this, check out the [Tic-Tac-Toe](./Examples/TicTacToe) demo application, which splits lots of features into modules and consumes the static library in this fashion using the **TicTacToeCommon** framework.
@@ -463,7 +458,7 @@ There are also many architecture libraries in the Swift and iOS community. Each 
 * [Mobius.swift](https://github.com/spotify/mobius.swift)
 * <details>
   <summary>And more</summary>
-  
+
   * [PromisedArchitectureKit](https://github.com/RPallas92/PromisedArchitectureKit)
   </details>
 
