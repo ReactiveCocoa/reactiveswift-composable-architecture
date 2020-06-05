@@ -22,8 +22,6 @@ class NewGameViewController: UIViewController {
   let store: Store<NewGameState, NewGameAction>
   let viewStore: ViewStore<ViewState, ViewAction>
 
-  private var cancellables: Set<AnyCancellable> = []
-
   init(store: Store<NewGameState, NewGameAction>) {
     self.store = store
     self.viewStore = ViewStore(store.scope(state: { $0.view }, action: NewGameAction.view))

@@ -4,45 +4,7 @@ import XCTest
 @testable import ComposableArchitecture
 
 final class StoreTests: XCTestCase {
-  func testCancellableIsRemovedOnImmediatelyCompletingEffect() {
-    let reducer = Reducer<Void, Void, Void> { _, _, _ in .none }
-    let store = Store(initialState: (), reducer: reducer, environment: ())
-
-    XCTAssertEqual(store.effectCancellables.count, 0)
-
-    store.send(())
-
-    XCTAssertEqual(store.effectCancellables.count, 0)
-  }
-
-  func testCancellableIsRemovedWhenEffectCompletes() {
-    let scheduler = TestScheduler()
-    let effect = Effect<Void, Never>(value: ())
-      .delay(1, on: scheduler)
-
-    enum Action { case start, end }
-
-    let reducer = Reducer<Void, Action, Void> { _, action, _ in
-      switch action {
-      case .start:
-        return effect.map { .end }
-      case .end:
-        return .none
-      }
-    }
-    let store = Store(initialState: (), reducer: reducer, environment: ())
-
-    XCTAssertEqual(store.effectCancellables.count, 0)
-
-    store.send(.start)
-
-    XCTAssertEqual(store.effectCancellables.count, 1)
-
-    scheduler.advance(by: .seconds(2))
-
-    XCTAssertEqual(store.effectCancellables.count, 0)
-  }
-
+  
   func testScopedStoreReceivesUpdatesFromParent() {
     let counterReducer = Reducer<Int, Void, Void> { state, _, _ in
       state += 1

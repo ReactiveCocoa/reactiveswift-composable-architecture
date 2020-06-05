@@ -217,16 +217,14 @@ final class EffectCancellationTests: XCTestCase {
     }
     .cancellable(id: 1)
 
-    for _ in 1 ... .random(in: 1...1_000) {
+    for _ in 1 ... 500 {
       effect = effect.cancellable(id: 1)
     }
 
-    let composite = CompositeDisposable()
-    composite.add(effect.start())
+    let disposable = effect.start()
+    disposable.dispose()
 
-    composite.dispose()
-
-    XCTAssertEqual([:], cancellationCancellables)
+    XCTAssertTrue(cancellationCancellables.isEmpty)
     XCTAssertEqual([], isCancelling)
   }
 }
@@ -234,7 +232,7 @@ final class EffectCancellationTests: XCTestCase {
 func resetCancellables() {
   cancellablesLock.sync {
     for (id, _) in cancellationCancellables {
-      cancellationCancellables[id] = []
+      cancellationCancellables.removeValue(forKey: id)
     }
     cancellationCancellables = [:]
   }

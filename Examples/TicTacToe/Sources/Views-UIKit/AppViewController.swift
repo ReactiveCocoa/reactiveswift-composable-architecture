@@ -21,7 +21,6 @@ struct UIKitAppView: UIViewControllerRepresentable {
 
 class AppViewController: UINavigationController {
   let store: Store<AppState, AppAction>
-  private var cancellables: Set<AnyCancellable> = []
 
   init(store: Store<AppState, AppAction>) {
     self.store = store

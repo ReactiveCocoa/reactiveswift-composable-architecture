@@ -25,7 +25,6 @@ let cellIdentifier = "Cell"
 final class CountersTableViewController: UITableViewController {
   let store: Store<CounterListState, CounterListAction>
   let viewStore: ViewStore<CounterListState, CounterListAction>
-  var cancellables: Set<AnyCancellable> = []
 
   var dataSource: [CounterState] = [] {
     didSet { self.tableView.reloadData() }
