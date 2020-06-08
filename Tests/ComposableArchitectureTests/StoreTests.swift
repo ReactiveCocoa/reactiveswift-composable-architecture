@@ -4,7 +4,7 @@ import XCTest
 @testable import ComposableArchitecture
 
 final class StoreTests: XCTestCase {
-  
+
   func testScopedStoreReceivesUpdatesFromParent() {
     let counterReducer = Reducer<Int, Void, Void> { state, _, _ in
       state += 1

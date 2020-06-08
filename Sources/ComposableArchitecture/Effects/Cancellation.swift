@@ -48,14 +48,15 @@ extension Effect {
           cancellationCancellables[id] = nil
         }
 
-        let disposable = self
+        let disposable =
+          self
           .on {
             guard isCaching else { return }
             values.append($0)
           }
           .start(subject.input)
 
-          disposable.add(to: &cancellationCancellables[id, default: CompositeDisposable()])
+        disposable.add(to: &cancellationCancellables[id, default: CompositeDisposable()])
       }
 
       func cleanUp() {

@@ -217,7 +217,7 @@ final class EffectCancellationTests: XCTestCase {
     }
     .cancellable(id: 1)
 
-    for _ in 1 ... 500 {
+    for _ in 1...500 {
       effect = effect.cancellable(id: 1)
     }
 
