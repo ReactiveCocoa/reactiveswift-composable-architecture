@@ -4,13 +4,13 @@ import XCTest
 @testable import ReactiveSwift
 
 final class EffectCancellationTests: XCTestCase {
-  override func setUp() {
-    super.setUp()
-    resetCancellables()
+  struct CancelToken: Hashable {}
+
+  override func tearDown() {
+    super.tearDown()
   }
 
   func testCancellation() {
-    struct CancelToken: Hashable {}
     var values: [Int] = []
 
     let subject = Signal<Int, Never>.pipe()
@@ -34,7 +34,6 @@ final class EffectCancellationTests: XCTestCase {
   }
 
   func testCancelInFlight() {
-    struct CancelToken: Hashable {}
     var values: [Int] = []
 
     let subject = Signal<Int, Never>.pipe()
@@ -59,11 +58,10 @@ final class EffectCancellationTests: XCTestCase {
   }
 
   func testCancellationAfterDelay() {
-    struct CancelToken: Hashable {}
     var value: Int?
 
     Effect(value: 1)
-      .delay(0.5, on: QueueScheduler.main)
+      .delay(0.15, on: QueueScheduler.main)
       .cancellable(id: CancelToken())
       .startWithValues { value = $0 }
 
@@ -74,14 +72,13 @@ final class EffectCancellationTests: XCTestCase {
         .start()
     }
 
-    _ = XCTWaiter.wait(for: [self.expectation(description: "")], timeout: 0.1)
+    _ = XCTWaiter.wait(for: [self.expectation(description: "")], timeout: 0.3)
 
     XCTAssertEqual(value, nil)
   }
 
   func testCancellationAfterDelay_WithTestScheduler() {
     let scheduler = TestScheduler()
-    struct CancelToken: Hashable {}
     var value: Int?
 
     Effect(value: 1)
@@ -105,7 +102,7 @@ final class EffectCancellationTests: XCTestCase {
       .cancellable(id: 1)
       .startWithValues { _ in }
 
-    XCTAssertTrue(cancellationCancellables.isEmpty)
+    XCTAssertEqual([:], cancellationCancellables)
   }
 
   func testCancellablesCleanUp_OnCancel() {
@@ -118,11 +115,10 @@ final class EffectCancellationTests: XCTestCase {
     Effect<Int, Never>.cancel(id: 1)
       .startWithValues { _ in }
 
-    XCTAssertTrue(cancellationCancellables.isEmpty)
+    XCTAssertEqual([:], cancellationCancellables)
   }
 
   func testDoubleCancellation() {
-    struct CancelToken: Hashable {}
     var values: [Int] = []
 
     let subject = Signal<Int, Never>.pipe()
@@ -145,7 +141,6 @@ final class EffectCancellationTests: XCTestCase {
   }
 
   func testCompleteBeforeCancellation() {
-    struct CancelToken: Hashable {}
     var values: [Int] = []
 
     let subject = Signal<Int, Never>.pipe()
@@ -206,7 +201,7 @@ final class EffectCancellationTests: XCTestCase {
       .start()
     self.wait(for: [expectation], timeout: 999)
 
-    XCTAssertTrue(cancellationCancellables.isEmpty)
+    XCTAssertEqual([:], cancellationCancellables)
   }
 
   func testNestedCancels() {
@@ -224,16 +219,47 @@ final class EffectCancellationTests: XCTestCase {
     let disposable = effect.start()
     disposable.dispose()
 
-    XCTAssertTrue(cancellationCancellables.isEmpty)
-    XCTAssertEqual([], isCancelling)
+    XCTAssertEqual([:], cancellationCancellables)
   }
-}
 
-func resetCancellables() {
-  cancellablesLock.sync {
-    for (id, _) in cancellationCancellables {
-      cancellationCancellables.removeValue(forKey: id)
-    }
-    cancellationCancellables = [:]
+  func testSharedId() {
+    let scheduler = TestScheduler()
+
+    let effect1 = Effect(value: 1)
+      .delay(1, on: scheduler)
+      .cancellable(id: "id")
+
+    let effect2 = Effect(value: 2)
+      .delay(2, on: scheduler)
+      .cancellable(id: "id")
+
+    var expectedOutput: [Int] = []
+    effect1
+      .startWithValues { expectedOutput.append($0) }
+    effect2
+      .startWithValues { expectedOutput.append($0) }
+
+    XCTAssertEqual(expectedOutput, [])
+    scheduler.advance(by: .seconds(1))
+    XCTAssertEqual(expectedOutput, [1])
+    scheduler.advance(by: .seconds(1))
+    XCTAssertEqual(expectedOutput, [1, 2])
+  }
+
+  func testImmediateCancellation() {
+    let scheduler = TestScheduler()
+
+    var expectedOutput: [Int] = []
+    let disposable = Effect.deferred { Effect(value: 1) }
+      .delay(1, on: scheduler)
+      .cancellable(id: "id")
+      .startWithValues { expectedOutput.append($0) }
+
+    // Don't hold onto cancellable so that it is deallocated immediately.
+    disposable.dispose()
+
+    XCTAssertEqual(expectedOutput, [])
+    scheduler.advance(by: .seconds(1))
+    XCTAssertEqual(expectedOutput, [])
   }
 }

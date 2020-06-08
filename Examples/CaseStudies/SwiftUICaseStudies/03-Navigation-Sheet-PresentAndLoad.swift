@@ -24,35 +24,37 @@ struct EagerSheetEnvironment {
   var mainQueue: DateScheduler
 }
 
-let eagerSheetReducer = Reducer<
-  EagerSheetState, EagerSheetAction, EagerSheetEnvironment
->.combine(
-  Reducer { state, action, environment in
-    switch action {
-    case .setSheet(isPresented: true):
-      state.isSheetPresented = true
-      return Effect(value: .setSheetIsPresentedDelayCompleted)
-        .delay(1, on: environment.mainQueue)
-
-    case .setSheet(isPresented: false):
-      state.isSheetPresented = false
-      state.optionalCounter = nil
-      return .none
-
-    case .setSheetIsPresentedDelayCompleted:
-      state.optionalCounter = CounterState()
-      return .none
-
-    case .optionalCounter:
-      return .none
-    }
-  },
-  counterReducer.optional.pullback(
+let eagerSheetReducer = counterReducer
+  .optional
+  .pullback(
     state: \.optionalCounter,
     action: /EagerSheetAction.optionalCounter,
     environment: { _ in CounterEnvironment() }
   )
-)
+  .combined(
+    with: Reducer<
+      EagerSheetState, EagerSheetAction, EagerSheetEnvironment
+    > { state, action, environment in
+      switch action {
+      case .setSheet(isPresented: true):
+        state.isSheetPresented = true
+        return Effect(value: .setSheetIsPresentedDelayCompleted)
+          .delay(1, on: environment.mainQueue)
+
+      case .setSheet(isPresented: false):
+        state.isSheetPresented = false
+        state.optionalCounter = nil
+        return .none
+
+      case .setSheetIsPresentedDelayCompleted:
+        state.optionalCounter = CounterState()
+        return .none
+
+      case .optionalCounter:
+        return .none
+      }
+    }
+  )
 
 struct EagerSheetView: View {
   let store: Store<EagerSheetState, EagerSheetAction>

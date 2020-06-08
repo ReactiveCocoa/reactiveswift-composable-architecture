@@ -27,35 +27,37 @@ struct LazyNavigationEnvironment {
   var mainQueue: DateScheduler
 }
 
-let lazyNavigationReducer = Reducer<
-  LazyNavigationState, LazyNavigationAction, LazyNavigationEnvironment
->.combine(
-  Reducer { state, action, environment in
-    switch action {
-    case .setNavigation(isActive: true):
-      state.isActivityIndicatorVisible = true
-      return Effect(value: .setNavigationIsActiveDelayCompleted)
-        .delay(1, on: environment.mainQueue)
-
-    case .setNavigation(isActive: false):
-      state.optionalCounter = nil
-      return .none
-
-    case .setNavigationIsActiveDelayCompleted:
-      state.isActivityIndicatorVisible = false
-      state.optionalCounter = CounterState()
-      return .none
-
-    case .optionalCounter:
-      return .none
-    }
-  },
-  counterReducer.optional.pullback(
+let lazyNavigationReducer = counterReducer
+  .optional
+  .pullback(
     state: \.optionalCounter,
     action: /LazyNavigationAction.optionalCounter,
     environment: { _ in CounterEnvironment() }
   )
-)
+  .combined(
+    with: Reducer<
+      LazyNavigationState, LazyNavigationAction, LazyNavigationEnvironment
+    > { state, action, environment in
+      switch action {
+      case .setNavigation(isActive: true):
+        state.isActivityIndicatorVisible = true
+        return Effect(value: .setNavigationIsActiveDelayCompleted)
+          .delay(1, on: environment.mainQueue)
+
+      case .setNavigation(isActive: false):
+        state.optionalCounter = nil
+        return .none
+
+      case .setNavigationIsActiveDelayCompleted:
+        state.isActivityIndicatorVisible = false
+        state.optionalCounter = CounterState()
+        return .none
+
+      case .optionalCounter:
+        return .none
+      }
+    }
+  )
 
 struct LazyNavigationView: View {
   let store: Store<LazyNavigationState, LazyNavigationAction>

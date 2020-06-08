@@ -109,4 +109,30 @@ final class SchedulerTests: XCTestCase {
     testScheduler.advance(by: .seconds(2))
     XCTAssertEqual(values, [1, 42, 42, 1, 42])
   }
+
+  func testDebounceReceiveOn() {
+    let scheduler = TestScheduler()
+
+    let subject = Signal<Void, Never>.pipe()
+
+    var count = 0
+    subject.output
+      .debounce(1, on: scheduler)
+      .observe(on: scheduler)
+      .observeValues { count += 1 }
+
+    XCTAssertEqual(count, 0)
+
+    subject.input.send(value: ())
+    XCTAssertEqual(count, 0)
+
+    scheduler.advance(by: .seconds(1))
+    XCTAssertEqual(count, 1)
+
+    scheduler.advance(by: .seconds(1))
+    XCTAssertEqual(count, 1)
+
+    scheduler.run()
+    XCTAssertEqual(count, 1)
+  }
 }
