@@ -64,7 +64,8 @@ extension Effect where Error == Never {
     return self.on(
       starting: {
         os_signpost(
-          .begin, log: log, name: "Effect", signpostID: sid, "%sStarted from %s", prefix, actionOutput
+          .begin, log: log, name: "Effect", signpostID: sid, "%sStarted from %s", prefix,
+          actionOutput
         )
       },
       completed: {

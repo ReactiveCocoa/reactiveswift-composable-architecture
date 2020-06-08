@@ -59,9 +59,9 @@ let lazyListNavigationReducer =
           state.rows[index].isActivityIndicatorVisible = state.rows[index].id == id
         }
 
-      return Effect(value: .setNavigationSelectionDelayCompleted(id))
-        .delay(1, on: environment.mainQueue)
-        .cancellable(id: CancelId(), cancelInFlight: true)
+        return Effect(value: .setNavigationSelectionDelayCompleted(id))
+          .delay(1, on: environment.mainQueue)
+          .cancellable(id: CancelId(), cancelInFlight: true)
 
       case .setNavigation(selection: .none):
         if let selection = state.selection {
