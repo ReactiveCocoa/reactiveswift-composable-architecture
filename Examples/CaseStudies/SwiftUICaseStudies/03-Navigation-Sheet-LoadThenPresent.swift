@@ -27,35 +27,37 @@ struct LazySheetEnvironment {
   var mainQueue: DateScheduler
 }
 
-let lazySheetReducer = Reducer<
-  LazySheetState, LazySheetAction, LazySheetEnvironment
->.combine(
-  Reducer { state, action, environment in
-    switch action {
-    case .setSheet(isPresented: true):
-      state.isActivityIndicatorVisible = true
-      return Effect(value: .setSheetIsPresentedDelayCompleted)
-        .delay(1, on: environment.mainQueue)
-
-    case .setSheet(isPresented: false):
-      state.optionalCounter = nil
-      return .none
-
-    case .setSheetIsPresentedDelayCompleted:
-      state.isActivityIndicatorVisible = false
-      state.optionalCounter = CounterState()
-      return .none
-
-    case .optionalCounter:
-      return .none
-    }
-  },
-  counterReducer.optional.pullback(
+let lazySheetReducer = counterReducer
+  .optional
+  .pullback(
     state: \.optionalCounter,
     action: /LazySheetAction.optionalCounter,
     environment: { _ in CounterEnvironment() }
   )
-)
+  .combined(
+    with: Reducer<
+      LazySheetState, LazySheetAction, LazySheetEnvironment
+    > { state, action, environment in
+      switch action {
+      case .setSheet(isPresented: true):
+        state.isActivityIndicatorVisible = true
+        return Effect(value: .setSheetIsPresentedDelayCompleted)
+          .delay(1, on: environment.mainQueue)
+
+      case .setSheet(isPresented: false):
+        state.optionalCounter = nil
+        return .none
+
+      case .setSheetIsPresentedDelayCompleted:
+        state.isActivityIndicatorVisible = false
+        state.optionalCounter = CounterState()
+        return .none
+
+      case .optionalCounter:
+        return .none
+      }
+    }
+  )
 
 struct LazySheetView: View {
   let store: Store<LazySheetState, LazySheetAction>

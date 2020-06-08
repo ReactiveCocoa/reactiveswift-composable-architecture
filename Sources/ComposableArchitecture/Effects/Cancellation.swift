@@ -1,12 +1,13 @@
 import Foundation
 import ReactiveSwift
 
-extension Disposable {
-  /// Adds this Disposable to the specified CompositeDisposable
-  /// Parameters:
-  ///    - composite: The CompositeDisposable to which to add this Disposable.
-  internal func add(to composite: inout CompositeDisposable) {
-    composite.add(self)
+extension AnyDisposable: Hashable {
+  public static func == (lhs: AnyDisposable, rhs: AnyDisposable) -> Bool {
+    return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+  }
+
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(ObjectIdentifier(self))
   }
 }
 
@@ -36,52 +37,51 @@ extension Effect {
   ///     canceled before starting this new one.
   /// - Returns: A new effect that is capable of being canceled by an identifier.
   public func cancellable(id: AnyHashable, cancelInFlight: Bool = false) -> Effect {
-    return .deferred { () -> SignalProducer<Value, Error> in
+    let effect = Effect.deferred { () -> SignalProducer<Value, Error> in
+      cancellablesLock.lock()
+      defer { cancellablesLock.unlock() }
+
       let subject = Signal<Value, Error>.pipe()
 
       var values: [Value] = []
       var isCaching = true
 
-      cancellablesLock.sync {
-        if cancelInFlight {
-          cancellationCancellables[id]?.dispose()
-          cancellationCancellables[id] = nil
+      let disposable =
+        self
+        .on {
+          guard isCaching else { return }
+          values.append($0)
         }
+        .start(subject.input)
 
-        let disposable =
-          self
-          .on {
-            guard isCaching else { return }
-            values.append($0)
-          }
-          .start(subject.input)
-
-        disposable.add(to: &cancellationCancellables[id, default: CompositeDisposable()])
-      }
-
-      func cleanUp() {
+      var cancellationDisposable: AnyDisposable!
+      cancellationDisposable = AnyDisposable {
         cancellablesLock.sync {
-          guard !isCancelling.contains(id) else { return }
-          isCancelling.insert(id)
-          defer { isCancelling.remove(id) }
-
-          cancellationCancellables[id]?.dispose()
-          cancellationCancellables[id] = nil
+          subject.input.sendCompleted()
+          disposable.dispose()
+          cancellationCancellables[id]?.remove(cancellationDisposable)
+          if cancellationCancellables[id]?.isEmpty == .some(true) {
+            cancellationCancellables[id] = nil
+          }
         }
       }
 
-      let prefix = SignalProducer(values)
-      let output = subject.output.producer
+      cancellationCancellables[id, default: []].insert(
+        cancellationDisposable
+      )
+
+      return SignalProducer(values)
+        .concat(subject.output.producer)
         .on(
           started: { isCaching = false },
-          completed: cleanUp,
-          interrupted: cleanUp,
-          terminated: cleanUp,
-          disposed: cleanUp
+          completed: cancellationDisposable.dispose,
+          interrupted: cancellationDisposable.dispose,
+          terminated: cancellationDisposable.dispose,
+          disposed: cancellationDisposable.dispose
         )
-
-      return prefix.concat(output)
     }
+
+    return cancelInFlight ? .concatenate(.cancel(id: id), effect) : effect
   }
 
   /// An effect that will cancel any currently in-flight effect with the given identifier.
@@ -90,15 +90,13 @@ extension Effect {
   /// - Returns: A new effect that will cancel any currently in-flight effect with the given
   ///   identifier.
   public static func cancel(id: AnyHashable) -> Effect {
-    .fireAndForget {
+    return .fireAndForget {
       cancellablesLock.sync {
-        cancellationCancellables[id]?.dispose()
-        cancellationCancellables[id] = nil
+        cancellationCancellables[id]?.forEach { $0.dispose() }
       }
     }
   }
 }
 
-var cancellationCancellables: [AnyHashable: CompositeDisposable] = [:]
+var cancellationCancellables: [AnyHashable: Set<AnyDisposable>] = [:]
 let cancellablesLock = NSRecursiveLock()
-var isCancelling: Set<AnyHashable> = []

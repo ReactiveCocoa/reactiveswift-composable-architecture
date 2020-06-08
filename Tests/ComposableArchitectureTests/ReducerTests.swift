@@ -123,7 +123,7 @@ final class ReducerTests: XCTestCase {
       .send(.noop)
     )
 
-    _ = XCTWaiter.wait(for: [self.expectation(description: "wait")], timeout: 0.5)
+    _ = XCTWaiter.wait(for: [self.expectation(description: "wait")], timeout: 1.0)
 
     XCTAssertEqual(
       logs,

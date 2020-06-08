@@ -82,7 +82,7 @@ extension Effect where Error == Never {
   }
 }
 
-private func debugCaseOutput(_ value: Any) -> String {
+func debugCaseOutput(_ value: Any) -> String {
   let mirror = Mirror(reflecting: value)
   switch mirror.displayStyle {
   case .enum:

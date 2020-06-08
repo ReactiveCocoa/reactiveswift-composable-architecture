@@ -26,35 +26,37 @@ struct EagerNavigationEnvironment {
   var mainQueue: DateScheduler
 }
 
-let eagerNavigationReducer = Reducer<
-  EagerNavigationState, EagerNavigationAction, EagerNavigationEnvironment
->.combine(
-  Reducer { state, action, environment in
-    switch action {
-    case .setNavigation(isActive: true):
-      state.isNavigationActive = true
-      return Effect(value: .setNavigationIsActiveDelayCompleted)
-        .delay(1, on: environment.mainQueue)
-
-    case .setNavigation(isActive: false):
-      state.isNavigationActive = false
-      state.optionalCounter = nil
-      return .none
-
-    case .setNavigationIsActiveDelayCompleted:
-      state.optionalCounter = CounterState()
-      return .none
-
-    case .optionalCounter:
-      return .none
-    }
-  },
-  counterReducer.optional.pullback(
+let eagerNavigationReducer = counterReducer
+  .optional
+  .pullback(
     state: \.optionalCounter,
     action: /EagerNavigationAction.optionalCounter,
     environment: { _ in CounterEnvironment() }
   )
-)
+  .combined(
+    with: Reducer<
+      EagerNavigationState, EagerNavigationAction, EagerNavigationEnvironment
+    > { state, action, environment in
+      switch action {
+      case .setNavigation(isActive: true):
+        state.isNavigationActive = true
+        return Effect(value: .setNavigationIsActiveDelayCompleted)
+          .delay(1, on: environment.mainQueue)
+
+      case .setNavigation(isActive: false):
+        state.isNavigationActive = false
+        state.optionalCounter = nil
+        return .none
+
+      case .setNavigationIsActiveDelayCompleted:
+        state.optionalCounter = CounterState()
+        return .none
+
+      case .optionalCounter:
+        return .none
+      }
+    }
+  )
 
 struct EagerNavigationView: View {
   let store: Store<EagerNavigationState, EagerNavigationAction>
