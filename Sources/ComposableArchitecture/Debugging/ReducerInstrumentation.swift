@@ -70,7 +70,7 @@ extension Effect where Error == Never {
       completed: {
         os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sFinished", prefix)
       },
-      interrupted: {
+      disposed: {
         os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sCancelled", prefix)
       },
       value: { value in
