@@ -7,7 +7,6 @@ final class IfLetStoreController<State, Action>: UIViewController {
   let ifDestination: (Store<State, Action>) -> UIViewController
   let elseDestination: () -> UIViewController
 
-  private var cancellables: Set<AnyCancellable> = []
   private var viewController = UIViewController() {
     willSet {
       self.viewController.willMove(toParent: nil)

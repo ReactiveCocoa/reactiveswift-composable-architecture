@@ -17,7 +17,7 @@ extension Effect {
   /// An effect that does nothing and completes immediately. Useful for situations where you must
   /// return an effect, but you don't need to do anything.
   public static var none: Effect {
-    return .empty
+    .empty
   }
 
   /// Creates an effect that executes some work in the real world that doesn't need to feed data
@@ -65,7 +65,7 @@ extension Effect {
   public static func deferred(_ createProducer: @escaping () -> SignalProducer<Value, Error>)
     -> SignalProducer<Value, Error>
   {
-    return Effect<Void, Error>(value: ())
+    Effect<Void, Error>(value: ())
       .flatMap(.merge, createProducer)
   }
 
@@ -97,16 +97,14 @@ extension Effect {
   public static func future(
     _ attemptToFulfill: @escaping (@escaping (Result<Value, Error>) -> Void) -> Void
   ) -> Effect {
-    return deferred { () -> SignalProducer<Value, Error> in
-      return SignalProducer { observer, _ in
-        attemptToFulfill { result in
-          switch result {
-          case let .success(value):
-            observer.send(value: value)
-            observer.sendCompleted()
-          case let .failure(error):
-            observer.send(error: error)
-          }
+    SignalProducer { observer, _ in
+      attemptToFulfill { result in
+        switch result {
+        case let .success(value):
+          observer.send(value: value)
+          observer.sendCompleted()
+        case let .failure(error):
+          observer.send(error: error)
         }
       }
     }

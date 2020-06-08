@@ -1,31 +1,12 @@
 import Foundation
 import ReactiveSwift
 
-extension AnyDisposable: Hashable {
-  public static func == (lhs: AnyDisposable, rhs: AnyDisposable) -> Bool {
-    return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
-  }
-
-  public func hash(into hasher: inout Hasher) {
-    hasher.combine(ObjectIdentifier(self))
-  }
-}
-
-extension AnyDisposable {
-  /// Stores this AnyDisposable in the specified collection.
+extension Disposable {
+  /// Adds this Disposable to the specified CompositeDisposable
   /// Parameters:
-  ///    - collection: The collection to store this AnyCancellable.
-  public func store<Disposables: RangeReplaceableCollection>(
-    in collection: inout Disposables
-  ) where Disposables.Element == AnyDisposable {
-    collection.append(self)
-  }
-
-  /// Stores this AnyCancellable in the specified set.
-  /// Parameters:
-  ///    - set: The set to store this AnyCancellable.
-  public func store(in set: inout Set<AnyDisposable>) {
-    set.insert(self)
+  ///    - composite: The CompositeDisposable to which to add this Disposable.
+  internal func add(to composite: inout CompositeDisposable) {
+    composite.add(self)
   }
 }
 
@@ -58,37 +39,32 @@ extension Effect {
     return .deferred { () -> SignalProducer<Value, Error> in
       let subject = Signal<Value, Error>.pipe()
 
-      var disposable: Disposable?
       var values: [Value] = []
       var isCaching = true
 
       cancellablesLock.sync {
         if cancelInFlight {
-          cancellationCancellables[id]?.forEach { cancellable in cancellable.dispose() }
+          cancellationCancellables[id]?.dispose()
           cancellationCancellables[id] = nil
         }
 
-        disposable =
-          self
+        let disposable = self
           .on {
             guard isCaching else { return }
             values.append($0)
           }
           .start(subject.input)
 
-        AnyDisposable {
-          disposable?.dispose()
-          subject.input.sendCompleted()
-        }
-        .store(in: &cancellationCancellables[id, default: []])
+          disposable.add(to: &cancellationCancellables[id, default: CompositeDisposable()])
       }
 
       func cleanUp() {
-        disposable?.dispose()
         cancellablesLock.sync {
           guard !isCancelling.contains(id) else { return }
           isCancelling.insert(id)
           defer { isCancelling.remove(id) }
+
+          cancellationCancellables[id]?.dispose()
           cancellationCancellables[id] = nil
         }
       }
@@ -115,13 +91,13 @@ extension Effect {
   public static func cancel(id: AnyHashable) -> Effect {
     .fireAndForget {
       cancellablesLock.sync {
-        cancellationCancellables[id]?.forEach { cancellable in cancellable.dispose() }
+        cancellationCancellables[id]?.dispose()
         cancellationCancellables[id] = nil
       }
     }
   }
 }
 
-var cancellationCancellables: [AnyHashable: Set<AnyDisposable>] = [:]
+var cancellationCancellables: [AnyHashable: CompositeDisposable] = [:]
 let cancellablesLock = NSRecursiveLock()
 var isCancelling: Set<AnyHashable> = []

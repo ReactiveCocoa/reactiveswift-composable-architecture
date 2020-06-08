@@ -27,7 +27,6 @@ let counterReducer = Reducer<CounterState, CounterAction, CounterEnvironment> { 
 
 final class CounterViewController: UIViewController {
   let viewStore: ViewStore<CounterState, CounterAction>
-  var cancellables: Set<AnyCancellable> = []
 
   init(store: Store<CounterState, CounterAction>) {
     self.viewStore = ViewStore(store)

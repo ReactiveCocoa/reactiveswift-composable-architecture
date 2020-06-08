@@ -8,9 +8,7 @@ import ReactiveSwift
 /// the `scope` method to derive more focused stores that can be passed to subviews.
 public final class Store<State, Action> {
   @MutableProperty private(set) var state: State
-  var effectCancellables: [UUID: Disposable] = [:]
   private var isSending = false
-  private var parentCancellable: Disposable?
   private let reducer: (inout State, Action) -> Effect<Action, Never>
   private var synchronousActionsToSend: [Action] = []
 
@@ -67,7 +65,7 @@ public final class Store<State, Action> {
         return .none
       }
     )
-    localStore.parentCancellable = self.$state.producer
+    self.$state.producer
       .startWithValues { [weak localStore] newValue in localStore?.state = toLocalState(newValue) }
     return localStore
   }
@@ -111,7 +109,7 @@ public final class Store<State, Action> {
             return .none
           })
 
-        localStore.parentCancellable = self.$state.producer
+        self.$state.producer
           .startWithValues { [weak localStore] state in
             guard let localStore = localStore else { return }
             localStore.state = extractLocalState(state) ?? localStore.state
@@ -147,29 +145,15 @@ public final class Store<State, Action> {
     let effect = self.reducer(&self.state, action)
     self.isSending = false
 
-    var didComplete = false
-    let uuid = UUID()
-
     var isProcessingEffects = true
-    let effectCancellable = effect.start { [weak self] event in
-      switch event {
-      case .completed, .interrupted:
-        didComplete = true
-        self?.effectCancellables[uuid] = nil
-
-      case let .value(action):
-        if isProcessingEffects {
-          self?.synchronousActionsToSend.append(action)
-        } else {
-          self?.send(action)
-        }
+    effect.startWithValues { [weak self] action in
+      if isProcessingEffects {
+        self?.synchronousActionsToSend.append(action)
+      } else {
+        self?.send(action)
       }
     }
     isProcessingEffects = false
-
-    if !didComplete {
-      self.effectCancellables[uuid] = effectCancellable
-    }
 
     while !self.synchronousActionsToSend.isEmpty {
       let action = self.synchronousActionsToSend.removeFirst()

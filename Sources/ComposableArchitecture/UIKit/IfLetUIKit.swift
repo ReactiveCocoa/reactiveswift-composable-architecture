@@ -12,7 +12,6 @@ extension Store {
   ///
   ///     class MasterViewController: UIViewController {
   ///       let store: Store<MasterState, MasterAction>
-  ///       var cancellables: Set<AnyCancellable> = []
   ///       ...
   ///       func viewDidLoad() {
   ///         ...
@@ -30,7 +29,6 @@ extension Store {
   ///               self.navigationController?.popToViewController(self, animated: true)
   ///             }
   ///           )
-  ///           .store(in: &self.cancellables)
   ///       }
   ///     }
   ///
