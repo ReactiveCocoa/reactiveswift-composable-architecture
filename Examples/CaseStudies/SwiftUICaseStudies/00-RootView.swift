@@ -146,7 +146,7 @@ struct RootView: View {
                 initialState: .init(),
                 reducer: webSocketReducer,
                 environment: WebSocketEnvironment(
-                  mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
+                  mainQueue: QueueScheduler.main,
                   webSocket: .live
                 )
               )

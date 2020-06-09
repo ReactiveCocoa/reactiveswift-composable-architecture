@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import SwiftUI
 
@@ -35,7 +35,7 @@ enum WebSocketAction: Equatable {
 }
 
 struct WebSocketEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
   var webSocket: WebSocketClient
 }
 
@@ -45,16 +45,15 @@ let webSocketReducer = Reducer<WebSocketState, WebSocketAction, WebSocketEnviron
 
   var receiveSocketMessageEffect: Effect<WebSocketAction, Never> {
     return environment.webSocket.receive(WebSocketId())
-      .receive(on: environment.mainQueue)
+      .observe(on: environment.mainQueue)
       .catchToEffect()
       .map(WebSocketAction.receivedSocketMessage)
       .cancellable(id: WebSocketId())
   }
   var sendPingEffect: Effect<WebSocketAction, Never> {
     return environment.webSocket.sendPing(WebSocketId())
-      .delay(for: 10, scheduler: environment.mainQueue)
+      .delay(10, on: environment.mainQueue)
       .map(WebSocketAction.pingResponse)
-      .eraseToEffect()
       .cancellable(id: WebSocketId())
   }
 
@@ -72,9 +71,8 @@ let webSocketReducer = Reducer<WebSocketState, WebSocketAction, WebSocketEnviron
     case .disconnected:
       state.connectivityState = .connecting
       return environment.webSocket.open(WebSocketId(), URL(string: "wss://echo.websocket.org")!, [])
-        .receive(on: environment.mainQueue)
+        .observe(on: environment.mainQueue)
         .map(WebSocketAction.webSocket)
-        .eraseToEffect()
         .cancellable(id: WebSocketId())
     }
 
@@ -104,7 +102,6 @@ let webSocketReducer = Reducer<WebSocketState, WebSocketAction, WebSocketEnviron
     state.messageToSend = ""
 
     return environment.webSocket.send(WebSocketId(), .string(messageToSend))
-      .eraseToEffect()
       .map(WebSocketAction.sendResponse)
 
   case let .sendResponse(error):
@@ -241,32 +238,32 @@ extension WebSocketClient {
     cancel: { id, closeCode, reason in
       .fireAndForget {
         dependencies[id]?.task.cancel(with: closeCode, reason: reason)
-        dependencies[id]?.subscriber.send(completion: .finished)
+        dependencies[id]?.subscriber.sendCompleted()
         dependencies[id] = nil
       }
     },
     open: { id, url, protocols in
-      Effect.run { subscriber in
+      Effect { subscriber, lifetime in
         let delegate = WebSocketDelegate(
           didBecomeInvalidWithError: {
-            subscriber.send(.didBecomeInvalidWithError($0 as NSError?))
+            subscriber.send(value: .didBecomeInvalidWithError($0 as NSError?))
           },
           didClose: {
-            subscriber.send(.didClose(code: $0, reason: $1))
+            subscriber.send(value: .didClose(code: $0, reason: $1))
           },
           didCompleteWithError: {
-            subscriber.send(.didCompleteWithError($0 as NSError?))
+            subscriber.send(value: .didCompleteWithError($0 as NSError?))
           },
           didOpenWithProtocol: {
-            subscriber.send(.didOpenWithProtocol($0))
+            subscriber.send(value: .didOpenWithProtocol($0))
           })
         let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
         let task = session.webSocketTask(with: url, protocols: protocols)
         task.resume()
         dependencies[id] = Dependencies(delegate: delegate, subscriber: subscriber, task: task)
-        return AnyCancellable {
+        lifetime += AnyDisposable {
           task.cancel(with: .normalClosure, reason: nil)
-          dependencies[id]?.subscriber.send(completion: .finished)
+          dependencies[id]?.subscriber.sendCompleted()
           dependencies[id] = nil
         }
       }
@@ -304,7 +301,7 @@ extension WebSocketClient {
 private var dependencies: [AnyHashable: Dependencies] = [:]
 private struct Dependencies {
   let delegate: URLSessionWebSocketDelegate
-  let subscriber: Effect<WebSocketClient.Action, Never>.Subscriber
+  let subscriber: Signal<WebSocketClient.Action, Never>.Observer
   let task: URLSessionWebSocketTask
 }
 
@@ -362,7 +359,7 @@ struct WebSocketView_Previews: PreviewProvider {
           initialState: .init(receivedMessages: ["Echo"]),
           reducer: webSocketReducer,
           environment: WebSocketEnvironment(
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
+            mainQueue: QueueScheduler.main,
             webSocket: .live
           )
         )
