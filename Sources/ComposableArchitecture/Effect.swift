@@ -53,7 +53,7 @@ extension Effect {
 
     return
       effects
-      .suffix(effects.count - 1)
+      .dropFirst()
       .reduce(into: first) { effects, effect in
         effects = effects.concat(effect)
       }
