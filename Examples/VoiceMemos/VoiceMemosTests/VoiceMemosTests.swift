@@ -304,7 +304,7 @@ class VoiceMemosTests: XCTestCase {
         audioPlayerClient: .mock(
           play: { id, url in .future { _ in } }
         ),
-        mainQueue: self.scheduler.eraseToAnyScheduler()
+        mainQueue: self.scheduler
       )
     )
 

@@ -51,8 +51,8 @@ let voiceMemoReducer = Reducer<VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment>
 
   case .delete:
     return .merge(
-      .cancel(id: PlayerId()),
-      .cancel(id: TimerId())
+      Effect.cancel(id: PlayerId()),
+      Effect.cancel(id: TimerId())
     )
 
   case .playButtonTapped:
