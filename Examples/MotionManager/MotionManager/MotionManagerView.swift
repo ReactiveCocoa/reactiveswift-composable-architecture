@@ -184,8 +184,7 @@ struct AppView_Previews: PreviewProvider {
       deviceMotion: { _ in nil },
       startDeviceMotionUpdates: { _, _, _ in
         isStarted = true
-        return Timer.publish(every: 0.01, on: .main, in: .default)
-          .autoconnect()
+        return Effect.timer(interval: .milliseconds(100), on: QueueScheduler.main)
           .filter { _ in isStarted }
           .map { $0.timeIntervalSince1970 * 2 }
           .map { t in
@@ -199,8 +198,7 @@ struct AppView_Previews: PreviewProvider {
               userAcceleration: .init(x: -cos(-3 * t), y: sin(2 * t), z: -cos(t))
             )
           }
-          .setFailureType(to: Error.self)
-          .eraseToEffect()
+          .promoteError()
       },
       stopDeviceMotionUpdates: { _ in
         .fireAndForget { isStarted = false }

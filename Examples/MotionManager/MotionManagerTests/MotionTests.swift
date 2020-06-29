@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import ComposableCoreMotion
 import CoreMotion
@@ -8,7 +8,7 @@ import XCTest
 
 class MotionTests: XCTestCase {
   func testMotionUpdate() {
-    let motionSubject = PassthroughSubject<DeviceMotion, Error>()
+    let motionSubject = Signal<DeviceMotion, Error>.pipe()
 
     var motionManagerIsLive = false
 
@@ -20,9 +20,9 @@ class MotionTests: XCTestCase {
           create: { _ in .fireAndForget { motionManagerIsLive = true } },
           destroy: { _ in .fireAndForget { motionManagerIsLive = false } },
           deviceMotion: { _ in nil },
-          startDeviceMotionUpdates: { _, _, _ in motionSubject.eraseToEffect() },
+          startDeviceMotionUpdates: { _, _, _ in motionSubject.output.producer },
           stopDeviceMotionUpdates: { _ in
-            .fireAndForget { motionSubject.send(completion: .finished) }
+            .fireAndForget { motionSubject.input.sendCompleted() }
           }
         )
       )
@@ -44,7 +44,7 @@ class MotionTests: XCTestCase {
         XCTAssertEqual(motionManagerIsLive, true)
       },
 
-      .do { motionSubject.send(deviceMotion) },
+      .do { motionSubject.input.send(value: deviceMotion) },
       .receive(.motionUpdate(.success(deviceMotion))) {
         $0.z = [32]
       },
@@ -57,7 +57,7 @@ class MotionTests: XCTestCase {
   }
 
   func testFacingDirection() {
-    let motionSubject = PassthroughSubject<DeviceMotion, Error>()
+    let motionSubject = Signal<DeviceMotion, Error>.pipe()
     var motionManagerIsLive = false
 
     let initialDeviceMotion = DeviceMotion(
@@ -80,9 +80,9 @@ class MotionTests: XCTestCase {
           create: { _ in .fireAndForget { motionManagerIsLive = true } },
           destroy: { _ in .fireAndForget { motionManagerIsLive = false } },
           deviceMotion: { _ in initialDeviceMotion },
-          startDeviceMotionUpdates: { _, _, _ in motionSubject.eraseToEffect() },
+          startDeviceMotionUpdates: { _, _, _ in motionSubject.output.producer },
           stopDeviceMotionUpdates: { _ in
-            .fireAndForget { motionSubject.send(completion: .finished) }
+            .fireAndForget { motionSubject.input.sendCompleted() }
           }
         )
       )
@@ -94,14 +94,14 @@ class MotionTests: XCTestCase {
         XCTAssertEqual(motionManagerIsLive, true)
       },
 
-      .do { motionSubject.send(initialDeviceMotion) },
+      .do { motionSubject.input.send(value: initialDeviceMotion) },
       .receive(.motionUpdate(.success(initialDeviceMotion))) {
         $0.facingDirection = .forward
         $0.initialAttitude = initialDeviceMotion.attitude
         $0.z = [0]
       },
 
-      .do { motionSubject.send(updatedDeviceMotion) },
+      .do { motionSubject.input.send(value: updatedDeviceMotion) },
       .receive(.motionUpdate(.success(updatedDeviceMotion))) {
         $0.z = [0, 0]
         $0.facingDirection = .backward

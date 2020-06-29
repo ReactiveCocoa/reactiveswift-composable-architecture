@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import ReactiveSwift
 import Foundation
 import SwiftUI
 
@@ -35,7 +36,7 @@ enum VoiceMemoAction: Equatable {
 
 struct VoiceMemoEnvironment {
   var audioPlayerClient: AudioPlayerClient
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 let voiceMemoReducer = Reducer<VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment> {
@@ -50,15 +51,15 @@ let voiceMemoReducer = Reducer<VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment>
 
   case .delete:
     return .merge(
-      .cancel(id: PlayerId()),
-      .cancel(id: TimerId())
+      Effect.cancel(id: PlayerId()),
+      Effect.cancel(id: TimerId())
     )
 
   case .playButtonTapped:
     switch memo.mode {
     case .notPlaying:
       memo.mode = .playing(progress: 0)
-      let start = environment.mainQueue.now
+      let start = environment.mainQueue.currentDate
       return .merge(
         environment.audioPlayerClient
           .play(PlayerId(), memo.url)
@@ -66,11 +67,10 @@ let voiceMemoReducer = Reducer<VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment>
           .map(VoiceMemoAction.audioPlayerClient)
           .cancellable(id: PlayerId()),
 
-        Effect.timer(id: TimerId(), every: 0.5, on: environment.mainQueue)
-          .map {
+        Effect.timer(id: TimerId(), every: .milliseconds(500), on: environment.mainQueue)
+          .map { date -> VoiceMemoAction in
             .timerUpdated(
-              TimeInterval($0.dispatchTime.uptimeNanoseconds - start.dispatchTime.uptimeNanoseconds)
-                / TimeInterval(NSEC_PER_SEC)
+                date.timeIntervalSinceReferenceDate - start.timeIntervalSinceReferenceDate
             )
           }
       )

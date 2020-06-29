@@ -1,6 +1,6 @@
-import Combine
 import ComposableArchitecture
 import CoreMotion
+import ReactiveSwift
 
 @available(iOS 4.0, *)
 @available(macCatalyst 13.0, *)
@@ -96,93 +96,94 @@ extension MotionManager {
       }
     },
     startAccelerometerUpdates: { id, queue in
-      return Effect.run { subscriber in
+      return Effect { subscriber, lifetime in
         guard let manager = managers[id]
         else {
           couldNotFindMotionManager(id: id)
-          return AnyCancellable {}
+          return
         }
         guard accelerometerUpdatesSubscribers[id] == nil
-        else { return AnyCancellable {} }
+        else { return }
 
         accelerometerUpdatesSubscribers[id] = subscriber
         manager.startAccelerometerUpdates(to: queue) { data, error in
           if let data = data {
-            subscriber.send(.init(data))
+            subscriber.send(value: .init(data))
           } else if let error = error {
-            subscriber.send(completion: .failure(error))
+            subscriber.send(error: error)
           }
         }
-        return AnyCancellable {
+
+        lifetime += AnyDisposable {
           manager.stopAccelerometerUpdates()
         }
       }
     },
     startDeviceMotionUpdates: { id, frame, queue in
-      return Effect.run { subscriber in
+      return Effect { subscriber, Lifetime in
         guard let manager = managers[id]
         else {
           couldNotFindMotionManager(id: id)
-          return AnyCancellable {}
+          return
         }
         guard deviceMotionUpdatesSubscribers[id] == nil
-        else { return AnyCancellable {} }
+        else { return }
 
         deviceMotionUpdatesSubscribers[id] = subscriber
         manager.startDeviceMotionUpdates(using: frame, to: queue) { data, error in
           if let data = data {
-            subscriber.send(.init(data))
+            subscriber.send(value: .init(data))
           } else if let error = error {
-            subscriber.send(completion: .failure(error))
+            subscriber.send(error: error)
           }
         }
-        return AnyCancellable {
+        Lifetime += AnyDisposable {
           manager.stopDeviceMotionUpdates()
         }
       }
     },
     startGyroUpdates: { id, queue in
-      return Effect.run { subscriber in
+      return Effect { subscriber, lifetime in
         guard let manager = managers[id]
         else {
           couldNotFindMotionManager(id: id)
-          return AnyCancellable {}
+          return
         }
         guard deviceGyroUpdatesSubscribers[id] == nil
-        else { return AnyCancellable {} }
+        else { return }
 
         deviceGyroUpdatesSubscribers[id] = subscriber
         manager.startGyroUpdates(to: queue) { data, error in
           if let data = data {
-            subscriber.send(.init(data))
+            subscriber.send(value: .init(data))
           } else if let error = error {
-            subscriber.send(completion: .failure(error))
+            subscriber.send(error: error)
           }
         }
-        return AnyCancellable {
+        lifetime += AnyDisposable {
           manager.stopGyroUpdates()
         }
       }
     },
     startMagnetometerUpdates: { id, queue in
-      return Effect.run { subscriber in
+      return Effect { subscriber, lifetime in
         guard let manager = managers[id]
         else {
           couldNotFindMotionManager(id: id)
-          return AnyCancellable {}
+          return
         }
         guard deviceMagnetometerUpdatesSubscribers[id] == nil
-        else { return AnyCancellable {} }
+        else { return }
 
         deviceMagnetometerUpdatesSubscribers[id] = subscriber
         manager.startMagnetometerUpdates(to: queue) { data, error in
           if let data = data {
-            subscriber.send(.init(data))
+            subscriber.send(value: .init(data))
           } else if let error = error {
-            subscriber.send(completion: .failure(error))
+            subscriber.send(error: error)
           }
         }
-        return AnyCancellable {
+        lifetime += AnyDisposable {
           manager.stopMagnetometerUpdates()
         }
       }
@@ -195,7 +196,7 @@ extension MotionManager {
           return
         }
         manager.stopAccelerometerUpdates()
-        accelerometerUpdatesSubscribers[id]?.send(completion: .finished)
+        accelerometerUpdatesSubscribers[id]?.sendCompleted()
         accelerometerUpdatesSubscribers[id] = nil
       }
     },
@@ -207,7 +208,7 @@ extension MotionManager {
           return
         }
         manager.stopDeviceMotionUpdates()
-        deviceMotionUpdatesSubscribers[id]?.send(completion: .finished)
+        deviceMotionUpdatesSubscribers[id]?.sendCompleted()
         deviceMotionUpdatesSubscribers[id] = nil
       }
     },
@@ -219,7 +220,7 @@ extension MotionManager {
           return
         }
         manager.stopGyroUpdates()
-        deviceGyroUpdatesSubscribers[id]?.send(completion: .finished)
+        deviceGyroUpdatesSubscribers[id]?.sendCompleted()
         deviceGyroUpdatesSubscribers[id] = nil
       }
     },
@@ -231,19 +232,19 @@ extension MotionManager {
           return
         }
         manager.stopMagnetometerUpdates()
-        deviceMagnetometerUpdatesSubscribers[id]?.send(completion: .finished)
+        deviceMagnetometerUpdatesSubscribers[id]?.sendCompleted()
         deviceMagnetometerUpdatesSubscribers[id] = nil
       }
     })
 }
 
 private var accelerometerUpdatesSubscribers:
-  [AnyHashable: Effect<AccelerometerData, Error>.Subscriber] = [:]
-private var deviceMotionUpdatesSubscribers: [AnyHashable: Effect<DeviceMotion, Error>.Subscriber] =
+  [AnyHashable: Signal<AccelerometerData, Error>.Observer] = [:]
+private var deviceMotionUpdatesSubscribers: [AnyHashable: Signal<DeviceMotion, Error>.Observer] =
   [:]
-private var deviceGyroUpdatesSubscribers: [AnyHashable: Effect<GyroData, Error>.Subscriber] = [:]
+private var deviceGyroUpdatesSubscribers: [AnyHashable: Signal<GyroData, Error>.Observer] = [:]
 private var deviceMagnetometerUpdatesSubscribers:
-  [AnyHashable: Effect<MagnetometerData, Error>.Subscriber] = [:]
+  [AnyHashable: Signal<MagnetometerData, Error>.Observer] = [:]
 
 @available(iOS 4.0, *)
 @available(macCatalyst 13.0, *)
