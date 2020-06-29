@@ -195,7 +195,7 @@ final class ReducerTests: XCTestCase {
         +   count: 1
           )
 
-        """#,
+        """#
       ]
     )
   }
