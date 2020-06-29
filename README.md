@@ -3,7 +3,7 @@
 [![Swift 5.2](https://img.shields.io/badge/swift-5.2-ED523F.svg?style=flat)](https://swift.org/download/)
 [![CI](https://github.com/trading-point/reactiveswift-composable-architecture/workflows/CI/badge.svg)](https://github.com/trading-point/reactiveswift-composable-architecture/actions?query=workflow%3ACI)
 
-[Pointfreeco's](https://github.com/pointfreeco) [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) uses Apple's Combine framework as the basis of its `Effect` type. Unfortunately, Combine is only available on iOS 13 and macOS 10.15 and above. In order to be able to use it with earlier versions of the OSes, this fork has adapted The Composable Architecture to use [Reactive Swift](https://github.com/ReactiveCocoa/ReactiveSwift) as the basis for the `Effect` type.
+[Point-Free's](https://github.com/pointfreeco) [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) uses Apple's Combine framework as the basis of its `Effect` type. Unfortunately, Combine is only available on iOS 13 and macOS 10.15 and above. In order to be able to use it with earlier versions of the OSes, this fork has adapted The Composable Architecture to use [Reactive Swift](https://github.com/ReactiveCocoa/ReactiveSwift) as the basis for the `Effect` type.
 
 ## Effect type implementations
 <details>
