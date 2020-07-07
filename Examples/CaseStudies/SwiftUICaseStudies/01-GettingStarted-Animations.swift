@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import ReactiveSwift
 import SwiftUI
 
 private let readMe = """
@@ -30,7 +31,7 @@ enum AnimationsAction: Equatable {
 }
 
 struct AnimationsEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 let animationsReducer = Reducer<AnimationsState, AnimationsAction, AnimationsEnvironment> {
@@ -49,8 +50,7 @@ let animationsReducer = Reducer<AnimationsState, AnimationsAction, AnimationsEnv
           index == 0
             ? Effect(value: .setColor(color))
             : Effect(value: .setColor(color))
-              .delay(for: 1, scheduler: environment.mainQueue)
-              .eraseToEffect()
+              .delay(1, on: environment.mainQueue)
       }
     )
 
@@ -121,7 +121,7 @@ struct AnimationsView_Previews: PreviewProvider {
             initialState: AnimationsState(circleCenter: CGPoint(x: 50, y: 50)),
             reducer: animationsReducer,
             environment: AnimationsEnvironment(
-              mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+                mainQueue: QueueScheduler.main
             )
           )
         )
@@ -133,7 +133,7 @@ struct AnimationsView_Previews: PreviewProvider {
             initialState: AnimationsState(circleCenter: CGPoint(x: 50, y: 50)),
             reducer: animationsReducer,
             environment: AnimationsEnvironment(
-              mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+              mainQueue: QueueScheduler.main
             )
           )
         )

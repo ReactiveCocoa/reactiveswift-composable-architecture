@@ -1,18 +1,18 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import XCTest
 
 @testable import SwiftUICaseStudies
 
 class AnimationTests: XCTestCase {
-  let scheduler = DispatchQueue.testScheduler
+  let scheduler = TestScheduler()
 
   func testRainbow() {
     let store = TestStore(
       initialState: AnimationsState(),
       reducer: animationsReducer,
       environment: AnimationsEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler()
+        mainQueue: self.scheduler
       )
     )
 

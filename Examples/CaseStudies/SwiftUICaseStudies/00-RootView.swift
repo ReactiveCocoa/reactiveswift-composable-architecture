@@ -70,7 +70,7 @@ struct RootView: View {
                 initialState: AnimationsState(circleCenter: CGPoint(x: 50, y: 50)),
                 reducer: animationsReducer,
                 environment: AnimationsEnvironment(
-                  mainQueue: DispatchQueue.main.eraseToAnyScheduler()
+                    mainQueue: QueueScheduler.main
                 )
               )
             )
