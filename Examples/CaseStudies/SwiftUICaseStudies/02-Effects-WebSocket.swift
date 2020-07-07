@@ -1,5 +1,5 @@
-import ReactiveSwift
 import ComposableArchitecture
+import ReactiveSwift
 import SwiftUI
 
 private let readMe = """
@@ -148,9 +148,11 @@ struct WebSocketView: View {
           )
 
           Button(
-            viewStore.connectivityState == .connected ? "Disconnect"
-              : viewStore.connectivityState == .disconnected ? "Connect"
-              : "Connecting..."
+            viewStore.connectivityState == .connected
+              ? "Disconnect"
+              : viewStore.connectivityState == .disconnected
+                ? "Connect"
+                : "Connecting..."
           ) {
             viewStore.send(.connectButtonTapped)
           }

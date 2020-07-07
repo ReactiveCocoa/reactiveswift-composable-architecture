@@ -51,7 +51,7 @@ let animationsReducer = Reducer<AnimationsState, AnimationsAction, AnimationsEnv
             ? Effect(value: .setColor(color))
             : Effect(value: .setColor(color))
               .delay(1, on: environment.mainQueue)
-      }
+        }
     )
 
   case let .setColor(color):
@@ -105,7 +105,7 @@ struct AnimationsView: View {
           )
           .padding()
           Button("Rainbow") { viewStore.send(.rainbowButtonTapped) }
-          .padding([.leading, .trailing, .bottom])
+            .padding([.leading, .trailing, .bottom])
         }
       }
     }
@@ -121,7 +121,7 @@ struct AnimationsView_Previews: PreviewProvider {
             initialState: AnimationsState(circleCenter: CGPoint(x: 50, y: 50)),
             reducer: animationsReducer,
             environment: AnimationsEnvironment(
-                mainQueue: QueueScheduler.main
+              mainQueue: QueueScheduler.main
             )
           )
         )

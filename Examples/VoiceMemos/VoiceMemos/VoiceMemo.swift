@@ -1,6 +1,6 @@
 import ComposableArchitecture
-import ReactiveSwift
 import Foundation
+import ReactiveSwift
 import SwiftUI
 
 struct VoiceMemo: Equatable {
@@ -70,7 +70,7 @@ let voiceMemoReducer = Reducer<VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment>
         Effect.timer(id: TimerId(), every: .milliseconds(500), on: environment.mainQueue)
           .map { date -> VoiceMemoAction in
             .timerUpdated(
-                date.timeIntervalSinceReferenceDate - start.timeIntervalSinceReferenceDate
+              date.timeIntervalSinceReferenceDate - start.timeIntervalSinceReferenceDate
             )
           }
       )

@@ -1,7 +1,7 @@
-import ReactiveSwift
 import ComposableArchitecture
 import ComposableCoreMotion
 import CoreMotion
+import ReactiveSwift
 import XCTest
 
 @testable import MotionManagerDemo

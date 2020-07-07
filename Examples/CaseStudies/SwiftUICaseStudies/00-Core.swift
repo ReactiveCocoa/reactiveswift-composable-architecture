@@ -1,5 +1,5 @@
-import ReactiveSwift
 import ComposableArchitecture
+import ReactiveSwift
 import UIKit
 
 struct RootState {
@@ -253,26 +253,30 @@ let rootReducer = Reducer<RootState, RootAction, RootEnvironment>.combine(
 // Typically this live implementation of the dependency would live in its own module so that the
 // main feature doesn't need to compile it.
 func liveNumberFact(for n: Int) -> Effect<String, NumbersApiError> {
-  URLSession.shared.reactive.data(with: URLRequest(url: URL(string: "http://numbersapi.com/\(n)/trivia")!))
-    .map { data, _ in String(decoding: data, as: UTF8.self) }
-    .flatMapError { _ in
-      Effect(value: "\(n) is a good number Brent")
-        .delay(1, on: QueueScheduler.main)
-    }
-    .promoteError(NumbersApiError.self)
+  URLSession.shared.reactive.data(
+    with: URLRequest(url: URL(string: "http://numbersapi.com/\(n)/trivia")!)
+  )
+  .map { data, _ in String(decoding: data, as: UTF8.self) }
+  .flatMapError { _ in
+    Effect(value: "\(n) is a good number Brent")
+      .delay(1, on: QueueScheduler.main)
+  }
+  .promoteError(NumbersApiError.self)
 }
 
 // This is the "live" trivia dependency that reaches into the outside world to fetch trivia.
 // Typically this live implementation of the dependency would live in its own module so that the
 // main feature doesn't need to compile it.
 func liveTrivia(for n: Int) -> Effect<String, TriviaApiError> {
-  URLSession.shared.reactive.data(with: URLRequest(url: URL(string: "http://numbersapi.com/\(n)/trivia")!))
-    .map { data, _ in String.init(decoding: data, as: UTF8.self) }
-    .flatMapError { _ in
-      Effect(value: "\(n) is a good number Brent")
-        .delay(1, on: QueueScheduler.main)
-    }
-    .promoteError(TriviaApiError.self)
+  URLSession.shared.reactive.data(
+    with: URLRequest(url: URL(string: "http://numbersapi.com/\(n)/trivia")!)
+  )
+  .map { data, _ in String.init(decoding: data, as: UTF8.self) }
+  .flatMapError { _ in
+    Effect(value: "\(n) is a good number Brent")
+      .delay(1, on: QueueScheduler.main)
+  }
+  .promoteError(TriviaApiError.self)
 }
 
 private func liveFetchNumber() -> Effect<Int, Never> {
@@ -283,4 +287,3 @@ private func liveFetchNumber() -> Effect<Int, Never> {
 private let liveUserDidTakeScreenshot = NotificationCenter.default
   .reactive.notifications(forName: UIApplication.userDidTakeScreenshotNotification)
   .map { _ in () }
-
