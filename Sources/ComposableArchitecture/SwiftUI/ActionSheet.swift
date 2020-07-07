@@ -101,7 +101,7 @@ import SwiftUI
 ///
 @available(iOS 13, *)
 @available(macCatalyst 13, *)
-@available(macOS, unavailable)
+@available(macOS 10.15, *)
 @available(tvOS 13, *)
 @available(watchOS 6, *)
 public struct ActionSheetState<Action> {
@@ -124,21 +124,21 @@ public struct ActionSheetState<Action> {
 
 @available(iOS 13, *)
 @available(macCatalyst 13, *)
-@available(macOS, unavailable)
+@available(macOS 10.15, *)
 @available(tvOS 13, *)
 @available(watchOS 6, *)
 extension ActionSheetState: Equatable where Action: Equatable {}
 
 @available(iOS 13, *)
 @available(macCatalyst 13, *)
-@available(macOS, unavailable)
+@available(macOS 10.15, *)
 @available(tvOS 13, *)
 @available(watchOS 6, *)
 extension ActionSheetState: Hashable where Action: Hashable {}
 
 @available(iOS 13, *)
 @available(macCatalyst 13, *)
-@available(macOS, unavailable)
+@available(macOS 10.15, *)
 @available(tvOS 13, *)
 @available(watchOS 6, *)
 extension ActionSheetState: Identifiable where Action: Hashable {
@@ -147,7 +147,7 @@ extension ActionSheetState: Identifiable where Action: Hashable {
 
 @available(iOS 13, *)
 @available(macCatalyst 13, *)
-@available(macOS, unavailable)
+@available(macOS 10.15, *)
 @available(tvOS 13, *)
 @available(watchOS 6, *)
 extension View {
@@ -183,10 +183,11 @@ extension View {
 
 @available(iOS 13, *)
 @available(macCatalyst 13, *)
-@available(macOS, unavailable)
+@available(macOS 10.15, *)
 @available(tvOS 13, *)
 @available(watchOS 6, *)
 extension ActionSheetState {
+  @available(macOS, unavailable)
   fileprivate func toSwiftUI(send: @escaping (Action) -> Void) -> SwiftUI.ActionSheet {
     SwiftUI.ActionSheet(
       title: Text(self.title),
