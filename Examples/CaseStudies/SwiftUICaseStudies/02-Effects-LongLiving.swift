@@ -31,13 +31,6 @@ struct LongLivingEffectsEnvironment {
   // instead of `NotificationCenter.default.publisher` directly in the reducer so that we can test
   // it.
   var userDidTakeScreenshot: Effect<Void, Never>
-
-  static let live = LongLivingEffectsEnvironment(
-    userDidTakeScreenshot: NotificationCenter.default.reactive
-      .notifications(forName: UIApplication.userDidTakeScreenshotNotification)
-      .producer
-      .map { _ in () }
-  )
 }
 
 // MARK: - Business logic
