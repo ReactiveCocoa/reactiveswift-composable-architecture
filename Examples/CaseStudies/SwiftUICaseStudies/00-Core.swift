@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import UIKit
 
@@ -63,7 +63,7 @@ struct RootEnvironment {
   var downloadClient: DownloadClient
   var favorite: (UUID, Bool) -> Effect<Bool, Error>
   var fetchNumber: () -> Effect<Int, Never>
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
   var numberFact: (Int) -> Effect<String, NumbersApiError>
   var trivia: (Int) -> Effect<String, TriviaApiError>
   var userDidTakeScreenshot: Effect<Void, Never>
@@ -75,10 +75,10 @@ struct RootEnvironment {
     downloadClient: .live,
     favorite: favorite(id:isFavorite:),
     fetchNumber: liveFetchNumber,
-    mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
+    mainQueue: QueueScheduler.main,
     numberFact: liveNumberFact(for:),
     trivia: liveTrivia(for:),
-    userDidTakeScreenshot: liveUserDidTakeScreenshot,
+    userDidTakeScreenshot: liveUserDidTakeScreenshot.producer,
     uuid: UUID.init,
     webSocket: .live
   )
@@ -253,41 +253,34 @@ let rootReducer = Reducer<RootState, RootAction, RootEnvironment>.combine(
 // Typically this live implementation of the dependency would live in its own module so that the
 // main feature doesn't need to compile it.
 func liveNumberFact(for n: Int) -> Effect<String, NumbersApiError> {
-  return URLSession.shared.dataTaskPublisher(for: URL(string: "http://numbersapi.com/\(n)/trivia")!)
+  URLSession.shared.reactive.data(with: URLRequest(url: URL(string: "http://numbersapi.com/\(n)/trivia")!))
     .map { data, _ in String(decoding: data, as: UTF8.self) }
-    .catch { _ in
-      // Sometimes numbersapi.com can be flakey, so if it ever fails we will just
-      // default to a mock response.
-      Just("\(n) is a good number Brent")
-        .delay(for: 1, scheduler: DispatchQueue.main)
+    .flatMapError { _ in
+      Effect(value: "\(n) is a good number Brent")
+        .delay(1, on: QueueScheduler.main)
     }
-    .mapError { _ in NumbersApiError() }
-    .eraseToEffect()
+    .promoteError(NumbersApiError.self)
 }
 
 // This is the "live" trivia dependency that reaches into the outside world to fetch trivia.
 // Typically this live implementation of the dependency would live in its own module so that the
 // main feature doesn't need to compile it.
 func liveTrivia(for n: Int) -> Effect<String, TriviaApiError> {
-  URLSession.shared.dataTaskPublisher(for: URL(string: "http://numbersapi.com/\(n)/trivia")!)
+  URLSession.shared.reactive.data(with: URLRequest(url: URL(string: "http://numbersapi.com/\(n)/trivia")!))
     .map { data, _ in String.init(decoding: data, as: UTF8.self) }
-    .catch { _ in
-      // Sometimes numbersapi.com can be flakey, so if it ever fails we will just
-      // default to a mock response.
-      Just("\(n) is a good number Brent")
-        .delay(for: 1, scheduler: DispatchQueue.main)
+    .flatMapError { _ in
+      Effect(value: "\(n) is a good number Brent")
+        .delay(1, on: QueueScheduler.main)
     }
-    .mapError { _ in TriviaApiError() }
-    .eraseToEffect()
+    .promoteError(TriviaApiError.self)
 }
 
 private func liveFetchNumber() -> Effect<Int, Never> {
-  Deferred { Just(Int.random(in: 1...1_000)) }
-    .delay(for: 1, scheduler: DispatchQueue.main)
-    .eraseToEffect()
+  Effect.deferred { Effect(value: Int.random(in: 1...1_000)) }
+    .delay(1, on: QueueScheduler.main)
 }
 
 private let liveUserDidTakeScreenshot = NotificationCenter.default
-  .publisher(for: UIApplication.userDidTakeScreenshotNotification)
+  .reactive.notifications(forName: UIApplication.userDidTakeScreenshotNotification)
   .map { _ in () }
-  .eraseToEffect()
+
