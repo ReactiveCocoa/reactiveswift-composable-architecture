@@ -62,15 +62,18 @@ public final class ViewStore<State, Action>: ObservableObject {
     self.state = store.state
     self._send = store.send
     producer.startWithValues { [weak self] in
-      if #available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *) {
-        self?.objectWillChange.send()
-      }
       self?.state = $0
     }
   }
 
   /// The current state.
-  @MutableProperty public internal(set) var state: State
+  public private(set) var state: State {
+    willSet {
+      if #available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *) {
+        self.objectWillChange.send()
+      }
+    }
+  }
 
   @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
   public lazy var objectWillChange: ObservableObjectPublisher = ObjectWillChangePublisher()
