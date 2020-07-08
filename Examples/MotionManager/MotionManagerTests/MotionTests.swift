@@ -1,7 +1,7 @@
-import ReactiveSwift
 import ComposableArchitecture
 import ComposableCoreMotion
 import CoreMotion
+import ReactiveSwift
 import XCTest
 
 @testable import MotionManagerDemo
@@ -106,7 +106,7 @@ class MotionTests: XCTestCase {
         $0.z = [0, 0]
         $0.facingDirection = .backward
       },
-      
+
       .send(.recordingButtonTapped) {
         $0.facingDirection = nil
         $0.initialAttitude = nil

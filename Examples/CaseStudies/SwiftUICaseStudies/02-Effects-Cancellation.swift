@@ -34,11 +34,6 @@ struct TriviaApiError: Error, Equatable {}
 struct EffectsCancellationEnvironment {
   var mainQueue: DateScheduler
   var trivia: (Int) -> Effect<String, TriviaApiError>
-
-  static let live = EffectsCancellationEnvironment(
-    mainQueue: QueueScheduler.main,
-    trivia: liveTrivia(for:)
-  )
 }
 
 // MARK: - Business logic
@@ -139,25 +134,5 @@ struct EffectsCancellation_Previews: PreviewProvider {
         )
       )
     }
-  }
-}
-
-// This is the "live" trivia dependency that reaches into the outside world to fetch trivia.
-// Typically this live implementation of the dependency would live in its own module so that the
-// main feature doesn't need to compile it.
-private func liveTrivia(for n: Int) -> Effect<String, TriviaApiError> {
-  return Effect<String, TriviaApiError> { observer, lifetime in
-    let task = URLSession.shared.dataTask(with: URL(string: "http://numbersapi.com/\(n)/trivia")!) {
-      data, response, error in
-      if let data = data {
-        observer.send(value: String.init(decoding: data, as: UTF8.self))
-      } else {
-        observer.send(value: "\(n) is a good number Brent")
-      }
-      observer.sendCompleted()
-    }
-
-    lifetime += AnyDisposable(task.cancel)
-    task.resume()
   }
 }
