@@ -38,7 +38,7 @@ class TodosTests: XCTestCase {
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
-        ),
+        )
       ]
     )
     let store = TestStore(
@@ -161,7 +161,7 @@ class TodosTests: XCTestCase {
     store.assert(
       .send(.clearCompletedButtonTapped) {
         $0.todos = [
-          $0.todos[0],
+          $0.todos[0]
         ]
       }
     )

@@ -112,7 +112,7 @@ extension NestedState {
             children: [],
             id: UUID(),
             description: ""
-          ),
+          )
         ],
         id: UUID(),
         description: "Bar"

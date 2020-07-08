@@ -158,7 +158,7 @@ class VoiceMemosTests: XCTestCase {
             mode: .notPlaying,
             title: "",
             url: URL(string: "https://www.pointfree.co/functions")!
-          ),
+          )
         ]
       ),
       reducer: voiceMemosReducer,
@@ -205,7 +205,7 @@ class VoiceMemosTests: XCTestCase {
             mode: .notPlaying,
             title: "",
             url: URL(string: "https://www.pointfree.co/functions")!
-          ),
+          )
         ]
       ),
       reducer: voiceMemosReducer,
@@ -240,7 +240,7 @@ class VoiceMemosTests: XCTestCase {
             mode: .playing(progress: 0.3),
             title: "",
             url: URL(string: "https://www.pointfree.co/functions")!
-          ),
+          )
         ]
       ),
       reducer: voiceMemosReducer,
@@ -270,7 +270,7 @@ class VoiceMemosTests: XCTestCase {
             mode: .playing(progress: 0.3),
             title: "",
             url: URL(string: "https://www.pointfree.co/functions")!
-          ),
+          )
         ]
       ),
       reducer: voiceMemosReducer,
@@ -296,7 +296,7 @@ class VoiceMemosTests: XCTestCase {
             mode: .notPlaying,
             title: "",
             url: URL(string: "https://www.pointfree.co/functions")!
-          ),
+          )
         ]
       ),
       reducer: voiceMemosReducer,
