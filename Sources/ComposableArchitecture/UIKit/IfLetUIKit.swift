@@ -1,4 +1,3 @@
-import Combine
 import ReactiveSwift
 
 extension Store {
@@ -43,16 +42,28 @@ extension Store {
     then unwrap: @escaping (Store<Wrapped, Action>) -> Void,
     else: @escaping () -> Void
   ) -> Disposable where State == Wrapped? {
-    self
+    let elseDisposable = self
+      .scope(
+        state: { state -> Effect<Wrapped?, Never> in
+          state
+            .skipRepeats { ($0 != nil) == ($1 != nil) }
+        }
+      )
+      .startWithValues { store in
+        if store.$state.value == nil { `else`() }
+      }
+
+    let unwrapDisposable = self
       .scope(
         state: { state -> Effect<Wrapped, Never> in
           state
             .skipRepeats { ($0 != nil) == ($1 != nil) }
-            .on(value: { if $0 == nil { `else`() } })
             .compactMap { $0 }
         }
       )
       .startWithValues(unwrap)
+
+    return CompositeDisposable([elseDisposable, unwrapDisposable])
   }
 
   /// An overload of `ifLet(then:else:)` for the times that you do not want to handle the `else`
