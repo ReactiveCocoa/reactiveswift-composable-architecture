@@ -42,7 +42,8 @@ extension Store {
     then unwrap: @escaping (Store<Wrapped, Action>) -> Void,
     else: @escaping () -> Void
   ) -> Disposable where State == Wrapped? {
-    let elseDisposable = self
+    let elseDisposable =
+      self
       .scope(
         state: { state -> Effect<Wrapped?, Never> in
           state
@@ -53,7 +54,8 @@ extension Store {
         if store.$state.value == nil { `else`() }
       }
 
-    let unwrapDisposable = self
+    let unwrapDisposable =
+      self
       .scope(
         state: { state -> Effect<Wrapped, Never> in
           state

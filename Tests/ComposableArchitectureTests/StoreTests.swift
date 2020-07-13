@@ -240,10 +240,10 @@ final class StoreTests: XCTestCase {
         then: { store in
           stores.append(store)
           outputs.append(store.$state.value)
-      },
+        },
         else: {
           outputs.append(nil)
-      })
+        })
 
     XCTAssertEqual(outputs, [nil])
 
