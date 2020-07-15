@@ -14,7 +14,7 @@ final class MemoryManagementTests: XCTestCase {
     let viewStore = ViewStore(store)
 
     var count = 0
-    viewStore.producer.startWithValues { count = $0 }
+    viewStore.producer.producer.startWithValues { count = $0 }
 
     XCTAssertEqual(count, 0)
     viewStore.send(())
@@ -29,7 +29,7 @@ final class MemoryManagementTests: XCTestCase {
     let viewStore = ViewStore(Store(initialState: 0, reducer: counterReducer, environment: ()))
 
     var count = 0
-    viewStore.producer.startWithValues { count = $0 }
+    viewStore.producer.producer.startWithValues { count = $0 }
 
     XCTAssertEqual(count, 0)
     viewStore.send(())

@@ -28,8 +28,8 @@ enum LongLivingEffectsAction {
 
 struct LongLivingEffectsEnvironment {
   // An effect that emits Void whenever the user takes a screenshot of the device. We use this
-  // instead of `NotificationCenter.default.publisher` directly in the reducer so that we can test
-  // it.
+  // instead of `NotificationCenter.default.reactive.notifications(forName:)` directly
+  // in the reducer so that we can test it
   var userDidTakeScreenshot: Effect<Void, Never>
 }
 

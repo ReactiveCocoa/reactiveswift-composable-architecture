@@ -105,25 +105,25 @@ class LoginViewController: UIViewController {
       divider.heightAnchor.constraint(equalToConstant: 1),
     ])
 
-    self.viewStore.publisher.isLoginButtonEnabled
+    self.viewStore.producer.isLoginButtonEnabled
       .assign(to: \.isEnabled, on: loginButton)
 
-    self.viewStore.publisher.email
+    self.viewStore.producer.email
       .assign(to: \.text, on: emailTextField)
 
-    self.viewStore.publisher.isEmailTextFieldEnabled
+    self.viewStore.producer.isEmailTextFieldEnabled
       .assign(to: \.isEnabled, on: emailTextField)
 
-    self.viewStore.publisher.password
+    self.viewStore.producer.password
       .assign(to: \.text, on: passwordTextField)
 
-    self.viewStore.publisher.isPasswordTextFieldEnabled
+    self.viewStore.producer.isPasswordTextFieldEnabled
       .assign(to: \.isEnabled, on: passwordTextField)
 
-    self.viewStore.publisher.isActivityIndicatorHidden
+    self.viewStore.producer.isActivityIndicatorHidden
       .assign(to: \.isHidden, on: activityIndicator)
 
-    self.viewStore.publisher.alert
+    self.viewStore.producer.alert
       .startWithValues { [weak self] alert in
         guard let self = self else { return }
         guard let alert = alert else { return }

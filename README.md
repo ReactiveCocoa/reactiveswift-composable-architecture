@@ -225,11 +225,11 @@ It is also straightforward to have a UIKit controller driven off of this store. 
 
       // Omitted: Add subviews and set up constraints...
 
-      self.viewStore.publisher
+      self.viewStore.producer
         .map(String.init)
         .assign(to: \.text, on: countLabel)
 
-      self.viewStore.publisher.numberFactAlert
+      self.viewStore.producer.numberFactAlert
         .startWithValues { [weak self] numberFactAlert in
           let alertController = UIAlertController(
             title: numberFactAlert, message: nil, preferredStyle: .alert
@@ -381,7 +381,7 @@ If you are interested in contributing a wrapper library for a framework that we 
 
     In some ways TCA is a little more opinionated than the other libraries. For example, Redux is not prescriptive with how one executes side effects, but TCA requires all side effects to be modeled in the `Effect` type and returned from the reducer.
 
-    In other ways TCA is a little more lax than the other libraries. For example, Elm controls what kinds of effects can be created via the `Cmd` type, but TCA allows an escape hatch to any kind of effect since `Effect` conforms to the Combine `Publisher` protocol.
+    In other ways TCA is a little more lax than the other libraries. For example, Elm controls what kinds of effects can be created via the `Cmd` type, but TCA allows an escape hatch to any kind of effect since `Effect` is just a ReactiveSwift `SignalProducer`.
 
     And then there are certain things that TCA prioritizes highly that are not points of focus for Redux, Elm, or most other libraries. For example, composition is very important aspect of TCA, which is the process of breaking down large features into smaller units that can be glued together. This is accomplished with the `pullback` and `combine` operators on reducers, and it aids in handling complex features as well as modularization for a better-isolated code base and improved compile times.
   </details>

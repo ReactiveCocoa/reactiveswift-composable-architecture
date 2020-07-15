@@ -33,7 +33,7 @@ import SwiftUI
 ///     func viewDidLoad() {
 ///       super.viewDidLoad()
 ///
-///       self.viewStore.publisher.count
+///       self.viewStore.producer.count
 ///         .startWithValues { [weak self] in self?.countLabel.text = $0 }
 ///     }
 ///
@@ -43,9 +43,8 @@ import SwiftUI
 ///
 @dynamicMemberLookup
 public final class ViewStore<State, Action>: ObservableObject {
-  /// A publisher of state.
-  public let publisher: StorePublisher<State>
-  public let producer: SignalProducer<State, Never>
+  /// A producer of state.
+  public let producer: StoreProducer<State>
 
   /// Initializes a view store from a store.
   ///
@@ -57,8 +56,8 @@ public final class ViewStore<State, Action>: ObservableObject {
     _ store: Store<State, Action>,
     removeDuplicates isDuplicate: @escaping (State, State) -> Bool
   ) {
-    self.producer = store.$state.producer.skipRepeats(isDuplicate)
-    self.publisher = StorePublisher(producer)
+    let producer = store.$state.producer.skipRepeats(isDuplicate)
+    self.producer = StoreProducer(producer)
     self.state = store.state
     self._send = store.send
     producer.startWithValues { [weak self] in
