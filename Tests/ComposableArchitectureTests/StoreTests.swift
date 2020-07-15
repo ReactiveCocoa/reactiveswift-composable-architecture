@@ -284,7 +284,7 @@ final class StoreTests: XCTestCase {
       let vs = ViewStore(childStore)
 
       vs
-        .publisher.producer
+        .producer.producer
         .startWithValues { _ in }
 
       vs.send(false)

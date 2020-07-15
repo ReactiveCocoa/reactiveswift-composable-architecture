@@ -110,7 +110,7 @@ extension Effect {
     }
   }
 
-  /// Turns any publisher into an `Effect` that cannot fail by wrapping its output and failure in a
+  /// Turns any producer into an `Effect` that cannot fail by wrapping its output and failure in a
   /// result.
   ///
   /// This can be useful when you are working with a failing API but want to deliver its data to an

@@ -101,13 +101,13 @@ class NewGameViewController: UIViewController {
       rootStackView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
     ])
 
-    self.viewStore.publisher.isLetsPlayButtonEnabled
+    self.viewStore.producer.isLetsPlayButtonEnabled
       .assign(to: \.isEnabled, on: letsPlayButton)
 
-    self.viewStore.publisher.oPlayerName
+    self.viewStore.producer.oPlayerName
       .assign(to: \.text, on: playerOTextField)
 
-    self.viewStore.publisher.xPlayerName
+    self.viewStore.producer.xPlayerName
       .assign(to: \.text, on: playerXTextField)
 
     self.store

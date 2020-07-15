@@ -11,7 +11,7 @@ extension Effect {
   ///     the time system of the scheduler.
   ///   - scheduler: The scheduler you want to deliver the throttled output to.
   ///   - latest: A boolean value that indicates whether to publish the most recent element. If
-  ///     `false`, the publisher emits the first element received during the interval.
+  ///     `false`, the producer emits the first element received during the interval.
   /// - Returns: An effect that emits either the most-recent or first element received during the
   ///   specified interval.
   func throttle(

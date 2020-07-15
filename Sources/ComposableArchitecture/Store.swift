@@ -80,13 +80,13 @@ public final class Store<State, Action> {
     self.scope(state: toLocalState, action: { $0 })
   }
 
-  /// Scopes the store to a publisher of stores of more local state and local actions.
+  /// Scopes the store to a producer of stores of more local state and local actions.
   ///
   /// - Parameters:
-  ///   - toLocalState: A function that transforms a publisher of `State` into a publisher of
+  ///   - toLocalState: A function that transforms a producer of `State` into a producer of
   ///     `LocalState`.
   ///   - fromLocalAction: A function that transforms `LocalAction` into `Action`.
-  /// - Returns: A publisher of stores with its domain (state and action) transformed.
+  /// - Returns: A producer of stores with its domain (state and action) transformed.
   public func scope<LocalState, LocalAction>(
     state toLocalState: @escaping (Effect<State, Never>) -> Effect<LocalState, Never>,
     action fromLocalAction: @escaping (LocalAction) -> Action
@@ -118,11 +118,11 @@ public final class Store<State, Action> {
       }
   }
 
-  /// Scopes the store to a publisher of stores of more local state and local actions.
+  /// Scopes the store to a producer of stores of more local state and local actions.
   ///
-  /// - Parameter toLocalState: A function that transforms a publisher of `State` into a publisher
+  /// - Parameter toLocalState: A function that transforms a producer of `State` into a producer
   ///   of `LocalState`.
-  /// - Returns: A publisher of stores with its domain (state and action)
+  /// - Returns: A producer of stores with its domain (state and action)
   ///   transformed.
   public func scope<LocalState>(
     state toLocalState: @escaping (Effect<State, Never>) -> Effect<LocalState, Never>
@@ -193,16 +193,16 @@ public final class Store<State, Action> {
   }
 }
 
-/// A publisher of store state.
+/// A producer of store state.
 @dynamicMemberLookup
-public struct StorePublisher<State>: SignalProducerConvertible {
+public struct StoreProducer<State>: SignalProducerConvertible {
   public let producer: Effect<State, Never>
 
   init(_ upstream: Effect<State, Never>) {
     self.producer = upstream
   }
 
-  /// Returns the resulting publisher of a given key path.
+  /// Returns the resulting producer of a given key path.
   public subscript<LocalState>(
     dynamicMember keyPath: KeyPath<State, LocalState>
   ) -> Effect<LocalState, Never>

@@ -14,7 +14,7 @@ import CasePaths
 /// - Note: The thread on which effects output is important. An effect's output is immediately sent
 ///   back into the store, and `Store` is not thread safe. This means all effects must receive
 ///   values on the same thread, **and** if the `Store` is being used to drive UI then all output
-///   must be on the main thread. You can use the `Publisher` method `receive(on:)` for make the
+///   must be on the main thread. You can use the `SignalProducer` method `observe(on:)` for make the
 ///   effect output its values on the thread of your choice.
 public struct Reducer<State, Action, Environment> {
   private let reducer: (inout State, Action, Environment) -> Effect<Action, Never>

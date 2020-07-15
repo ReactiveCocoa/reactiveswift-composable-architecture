@@ -66,7 +66,7 @@ final class CounterViewController: UIViewController {
       rootStackView.centerYAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerYAnchor),
     ])
 
-    self.viewStore.publisher.count
+    self.viewStore.producer.count
       .map(String.init)
       .assign(to: \.text, on: countLabel)
   }
