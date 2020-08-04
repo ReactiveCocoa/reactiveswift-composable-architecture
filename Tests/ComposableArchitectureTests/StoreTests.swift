@@ -239,7 +239,7 @@ final class StoreTests: XCTestCase {
       .ifLet(
         then: { store in
           stores.append(store)
-          outputs.append(store.$state.value)
+          outputs.append(store.state)
         },
         else: {
           outputs.append(nil)
