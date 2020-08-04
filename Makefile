@@ -2,17 +2,9 @@ PLATFORM_IOS = iOS Simulator,name=iPhone 11 Pro Max
 PLATFORM_MACOS = macOS
 PLATFORM_TVOS = tvOS Simulator,name=Apple TV 4K (at 1080p)
 
-default: test-all
+default: test
 
-test-all: test-swift test-workspace
-
-test-swift:
-	swift test \
-		--enable-pubgrub-resolver \
-		--enable-test-discovery \
-		--parallel
-
-test-workspace:
+test:
 	instruments -s devices
 	xcodebuild test \
 		-scheme ComposableArchitecture \
@@ -70,4 +62,4 @@ format:
 	swift format --in-place --recursive \
 		./Examples ./Package.swift ./Sources ./Tests
 
-.PHONY: format test-all test-swift test-workspace
+.PHONY: format test
