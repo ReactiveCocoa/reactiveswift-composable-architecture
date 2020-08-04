@@ -26,8 +26,9 @@ struct NavigateAndLoadEnvironment {
   var mainQueue: DateScheduler
 }
 
-let navigateAndLoadReducer = counterReducer
-  .optional
+let navigateAndLoadReducer =
+  counterReducer
+  .optional()
   .pullback(
     state: \.optionalCounter,
     action: /NavigateAndLoadAction.optionalCounter,

@@ -31,7 +31,7 @@ public struct AppEnvironment {
 }
 
 public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
-  loginReducer.optional.pullback(
+  loginReducer.optional().pullback(
     state: \.login,
     action: /AppAction.login,
     environment: {
@@ -41,7 +41,7 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
       )
     }
   ),
-  newGameReducer.optional.pullback(
+  newGameReducer.optional().pullback(
     state: \.newGame,
     action: /AppAction.newGame,
     environment: { _ in NewGameEnvironment() }

@@ -27,8 +27,9 @@ struct LoadThenNavigateEnvironment {
   var mainQueue: DateScheduler
 }
 
-let loadThenNavigateReducer = counterReducer
-  .optional
+let loadThenNavigateReducer =
+  counterReducer
+  .optional()
   .pullback(
     state: \.optionalCounter,
     action: /LoadThenNavigateAction.optionalCounter,

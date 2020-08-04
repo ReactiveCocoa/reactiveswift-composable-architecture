@@ -2,23 +2,72 @@ import Foundation
 import ReactiveSwift
 
 extension Effect where Value == Date, Error == Never {
-  /// Returns an effect that repeatedly emits the current time of the given
-  /// scheduler on the given interval.
+  /// Returns an effect that repeatedly emits the current time of the given scheduler on the given
+  /// interval.
   ///
-  /// This effect serves as a testable alternative to `Timer.publish`, which
-  /// performs its work on a run loop, _not_ a scheduler.
+  /// This is basically a wrapper around the ReactiveSwift `SignalProducer.timer` function
+  /// and which adds the the ability to be cancelled via the `id`.
   ///
-  ///     struct TimerId: Hashable {}
+  /// To start and stop a timer in your feature you can create the timer effect from an action
+  /// and then use the `.cancel(id:)` effect to stop the timer:
   ///
-  ///     switch action {
-  ///     case .startTimer:
-  ///       return Effect.timer(id: TimerId(), every: 1, on: environment.scheduler)
-  ///         .map { .timerUpdated($0) }
-  ///     case let .timerUpdated(date):
-  ///       state.date = date
-  ///       return .none
-  ///     case .stopTimer:
-  ///       return .cancel(id: TimerId())
+  ///     struct AppState {
+  ///       var count = 0
+  ///     }
+  ///
+  ///     enum AppAction {
+  ///       case startButtonTapped, stopButtonTapped, timerTicked
+  ///     }
+  ///
+  ///     struct AppEnvironment {
+  ///       var mainQueue: AnySchedulerOf<DispatchQueue>
+  ///     }
+  ///
+  ///     let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, action, env in
+  ///       struct TimerId: Hashable {}
+  ///
+  ///       switch action {
+  ///       case .startButtonTapped:
+  ///         return Effect.timer(id: TimerId(), every: 1, on: env.mainQueue)
+  ///           .map { _ in .timerTicked }
+  ///
+  ///       case .stopButtonTapped:
+  ///         return .cancel(id: TimerId())
+  ///
+  ///       case let .timerTicked:
+  ///         state.count += 1
+  ///         return .none
+  ///     }
+  ///
+  /// Then to test the timer in this feature you can use a test scheduler to advance time:
+  ///
+  ///   func testTimer() {
+  ///     let scheduler = TestScheduler()
+  ///
+  ///     let store = TestStore(
+  ///       initialState: .init(),
+  ///       reducer: appReducer,
+  ///       envirnoment: .init(
+  ///         mainQueue: scheduler
+  ///       )
+  ///     )
+  ///
+  ///     store.assert(
+  ///       .send(.startButtonTapped),
+  ///
+  ///       .do { scheduler.advance(by: .seconds(1)) },
+  ///       .receive(.timerTicked) { $0.count = 1 },
+  ///
+  ///       .do { scheduler.advance(by: .seconds(5)) },
+  ///       .receive(.timerTicked) { $0.count = 2 },
+  ///       .receive(.timerTicked) { $0.count = 3 },
+  ///       .receive(.timerTicked) { $0.count = 4 },
+  ///       .receive(.timerTicked) { $0.count = 5 },
+  ///       .receive(.timerTicked) { $0.count = 6 },
+  ///
+  ///       .send(.stopButtonTapped)
+  ///     )
+  ///   }
   ///
   /// - Parameters:
   ///   - interval: The time interval on which to publish events. For example, a value of `0.5`

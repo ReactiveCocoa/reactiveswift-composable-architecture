@@ -17,6 +17,24 @@ private let readMe = """
   toggle at the bottom of the screen.
   """
 
+extension Effect where Error == Never {
+  public static func keyFrames(
+    values: [(output: Value, duration: TimeInterval)],
+    scheduler: DateScheduler
+  ) -> Effect {
+    .concatenate(
+      values
+      .enumerated()
+      .map { index, animationState in
+        index == 0
+        ? Effect(value: animationState.output)
+          : Effect(value: animationState.output)
+        .delay(values[index - 1].duration, on: scheduler)
+      }
+    )
+  }
+}
+
 struct AnimationsState: Equatable {
   var circleCenter = CGPoint.zero
   var circleColor = Color.white
@@ -43,15 +61,10 @@ let animationsReducer = Reducer<AnimationsState, AnimationsAction, AnimationsEnv
     return .none
 
   case .rainbowButtonTapped:
-    return .concatenate(
-      [Color.red, .blue, .green, .orange, .pink, .purple, .yellow, .white]
-        .enumerated()
-        .map { index, color in
-          index == 0
-            ? Effect(value: .setColor(color))
-            : Effect(value: .setColor(color))
-              .delay(1, on: environment.mainQueue)
-        }
+    return .keyFrames(
+        values: [Color.red, .blue, .green, .orange, .pink, .purple, .yellow, .white]
+            .map { (output: .setColor($0), duration: 1) },
+        scheduler: environment.mainQueue
     )
 
   case let .setColor(color):

@@ -1,3 +1,4 @@
+#if canImport(CoreMotion)
 import ComposableArchitecture
 import CoreMotion
 import ReactiveSwift
@@ -260,3 +261,4 @@ private func couldNotFindMotionManager(id: Any) {
     time you invoke this endpoint.
     """)
 }
+#endif

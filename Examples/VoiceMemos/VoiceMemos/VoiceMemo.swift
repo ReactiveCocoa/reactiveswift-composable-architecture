@@ -51,6 +51,9 @@ let voiceMemoReducer = Reducer<VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment>
 
   case .delete:
     return .merge(
+      environment.audioPlayerClient
+        .stop(PlayerId())
+        .fireAndForget(),
       Effect.cancel(id: PlayerId()),
       Effect.cancel(id: TimerId())
     )
