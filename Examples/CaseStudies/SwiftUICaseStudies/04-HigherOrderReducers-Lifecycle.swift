@@ -56,8 +56,8 @@ struct LifecycleDemoEnvironment {
   var mainQueue: DateScheduler
 }
 
-let lifecycleDemoReducer: Reducer<LifecycleDemoState, LifecycleDemoAction, LifecycleDemoEnvironment>
-  = .combine(
+let lifecycleDemoReducer:
+  Reducer<LifecycleDemoState, LifecycleDemoAction, LifecycleDemoEnvironment> = .combine(
     timerReducer.pullback(
       state: \.count,
       action: /LifecycleDemoAction.timer,
@@ -73,7 +73,7 @@ let lifecycleDemoReducer: Reducer<LifecycleDemoState, LifecycleDemoAction, Lifec
         return .none
       }
     }
-)
+  )
 
 struct LifecycleDemoView: View {
   let store: Store<LifecycleDemoState, LifecycleDemoAction>
@@ -107,7 +107,8 @@ struct TimerEnvironment {
   var mainQueue: DateScheduler
 }
 
-private let timerReducer = Reducer<Int, TimerAction, TimerEnvironment> { state, action, TimerEnvironment in
+private let timerReducer = Reducer<Int, TimerAction, TimerEnvironment> {
+  state, action, TimerEnvironment in
   switch action {
   case .decrementButtonTapped:
     state -= 1
@@ -126,10 +127,10 @@ private let timerReducer = Reducer<Int, TimerAction, TimerEnvironment> { state, 
   onAppear: {
     Effect.timer(id: TimerId(), every: .seconds(1), tolerance: .seconds(0), on: $0.mainQueue)
       .map { _ in TimerAction.tick }
-},
+  },
   onDisappear: { _ in
     .cancel(id: TimerId())
-})
+  })
 
 private struct TimerView: View {
   let store: Store<Int, LifecycleAction<TimerAction>>
@@ -141,7 +142,7 @@ private struct TimerView: View {
           .onAppear { viewStore.send(.onAppear) }
           .onDisappear { viewStore.send(.onDisappear) }
 
-        Button("Decrement") { viewStore.send(.action(.decrementButtonTapped))}
+        Button("Decrement") { viewStore.send(.action(.decrementButtonTapped)) }
 
         Button("Increment") { viewStore.send(.action(.incrementButtonTapped)) }
       }

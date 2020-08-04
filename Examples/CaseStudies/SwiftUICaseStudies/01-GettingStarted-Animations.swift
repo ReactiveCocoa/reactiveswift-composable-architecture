@@ -24,13 +24,13 @@ extension Effect where Error == Never {
   ) -> Effect {
     .concatenate(
       values
-      .enumerated()
-      .map { index, animationState in
-        index == 0
-        ? Effect(value: animationState.output)
-          : Effect(value: animationState.output)
-        .delay(values[index - 1].duration, on: scheduler)
-      }
+        .enumerated()
+        .map { index, animationState in
+          index == 0
+            ? Effect(value: animationState.output)
+            : Effect(value: animationState.output)
+              .delay(values[index - 1].duration, on: scheduler)
+        }
     )
   }
 }
@@ -62,9 +62,9 @@ let animationsReducer = Reducer<AnimationsState, AnimationsAction, AnimationsEnv
 
   case .rainbowButtonTapped:
     return .keyFrames(
-        values: [Color.red, .blue, .green, .orange, .pink, .purple, .yellow, .white]
-            .map { (output: .setColor($0), duration: 1) },
-        scheduler: environment.mainQueue
+      values: [Color.red, .blue, .green, .orange, .pink, .purple, .yellow, .white]
+        .map { (output: .setColor($0), duration: 1) },
+      scheduler: environment.mainQueue
     )
 
   case let .setColor(color):

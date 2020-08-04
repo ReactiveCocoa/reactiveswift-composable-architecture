@@ -6,4 +6,3 @@ extension Reducer {
     self.optional()
   }
 }
-
