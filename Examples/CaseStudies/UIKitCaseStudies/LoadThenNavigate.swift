@@ -18,8 +18,9 @@ struct LazyNavigationEnvironment {
   var mainQueue: DateScheduler
 }
 
-let lazyNavigationReducer = counterReducer
-  .optional
+let lazyNavigationReducer =
+  counterReducer
+  .optional()
   .pullback(
     state: \.optionalCounter,
     action: /LazyNavigationAction.optionalCounter,

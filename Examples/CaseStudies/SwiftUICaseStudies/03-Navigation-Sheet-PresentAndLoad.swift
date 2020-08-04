@@ -24,8 +24,9 @@ struct PresentAndLoadEnvironment {
   var mainQueue: DateScheduler
 }
 
-let presentAndLoadReducer = counterReducer
-  .optional
+let presentAndLoadReducer =
+  counterReducer
+  .optional()
   .pullback(
     state: \.optionalCounter,
     action: /PresentAndLoadAction.optionalCounter,

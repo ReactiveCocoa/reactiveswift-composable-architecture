@@ -18,8 +18,9 @@ struct EagerNavigationEnvironment {
   var mainQueue: DateScheduler
 }
 
-let eagerNavigationReducer = counterReducer
-  .optional
+let eagerNavigationReducer =
+  counterReducer
+  .optional()
   .pullback(
     state: \.optionalCounter,
     action: /EagerNavigationAction.optionalCounter,
