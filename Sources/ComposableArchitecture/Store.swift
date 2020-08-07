@@ -209,4 +209,6 @@ public struct StoreProducer<State>: SignalProducerConvertible {
   where LocalState: Equatable {
     self.producer.map(keyPath).skipRepeats()
   }
+    
+  public var state: Effect<State, Never> { producer }
 }
