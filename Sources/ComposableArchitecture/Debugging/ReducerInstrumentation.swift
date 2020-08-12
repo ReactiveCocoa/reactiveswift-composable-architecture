@@ -1,4 +1,3 @@
-import ReactiveSwift
 import os.signpost
 
 extension Reducer {

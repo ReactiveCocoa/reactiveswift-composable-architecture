@@ -73,16 +73,16 @@ public final class TwoFactorViewController: UIViewController {
       rootStackView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
     ])
 
-    self.viewStore.producer.isActivityIndicatorHidden
+    self.viewStore.produced.isActivityIndicatorHidden
       .assign(to: \.isHidden, on: activityIndicator)
 
-    self.viewStore.producer.code
+    self.viewStore.produced.code
       .assign(to: \.text, on: codeTextField)
 
-    self.viewStore.producer.isLoginButtonEnabled
+    self.viewStore.produced.isLoginButtonEnabled
       .assign(to: \.isEnabled, on: loginButton)
 
-    self.viewStore.producer.alert
+    self.viewStore.produced.alert
       .startWithValues { [weak self] alert in
         guard let self = self else { return }
         guard let alert = alert else { return }

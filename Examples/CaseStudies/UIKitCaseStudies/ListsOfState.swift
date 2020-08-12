@@ -47,7 +47,7 @@ final class CountersTableViewController: UITableViewController {
 
     self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellIdentifier)
 
-    self.viewStore.producer.counters
+    self.viewStore.produced.counters
       .startWithValues({ [weak self] in self?.dataSource = $0 })
   }
 

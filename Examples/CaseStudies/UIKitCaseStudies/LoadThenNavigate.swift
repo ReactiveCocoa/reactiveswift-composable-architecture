@@ -88,7 +88,7 @@ class LazyNavigationViewController: UIViewController {
       rootStackView.centerYAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerYAnchor),
     ])
 
-    self.viewStore.producer.isActivityIndicatorHidden
+    self.viewStore.produced.isActivityIndicatorHidden
       .assign(to: \.isHidden, on: activityIndicator)
 
     self.store
