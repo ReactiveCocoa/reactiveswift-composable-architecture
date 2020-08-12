@@ -199,7 +199,7 @@ final class ReducerTests: XCTestCase {
       ]
     )
   }
-    
+
   @available(iOS 12.0, *)
   func testDefaultSignpost() {
     let reducer = Reducer<Int, Void, Void>.empty.signpost(log: .default)
@@ -212,7 +212,7 @@ final class ReducerTests: XCTestCase {
       }
     self.wait(for: [expectation], timeout: 0.1)
   }
-    
+
   @available(iOS 12.0, *)
   func testDisabledSignpost() {
     let reducer = Reducer<Int, Void, Void>.empty.signpost(log: .disabled)
