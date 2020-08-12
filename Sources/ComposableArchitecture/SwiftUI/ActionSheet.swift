@@ -172,6 +172,11 @@ extension ActionSheetState: Hashable where Action: Hashable {
 @available(watchOS 6, *)
 extension ActionSheetState: Identifiable {}
 
+@available(iOS 13, *)
+@available(macCatalyst 13, *)
+@available(macOS 10.15, *)
+@available(tvOS 13, *)
+@available(watchOS 6, *)
 extension View {
   /// Displays an action sheet when the store's state becomes non-`nil`, and dismisses it when it
   /// becomes `nil`.

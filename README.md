@@ -433,7 +433,7 @@ You can add ComposableArchitecture to an Xcode project by adding it as a package
 
 ## Documentation
 
-The latest documentation for the Composable Architecture APIs is available [here](https://pointfreeco.github.io/swift-composable-architecture/).
+The latest documentation for the Composable Architecture APIs is available [here](https://trading-point.github.io/reactiveswift-composable-architecture/).
 
 ## Help
 
