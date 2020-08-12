@@ -44,7 +44,12 @@ import SwiftUI
 @dynamicMemberLookup
 public final class ViewStore<State, Action>: ObservableObject {
   /// A producer of state.
-  public let producer: StoreProducer<State>
+  public let produced: Produced<State>
+    
+  @available(*, deprecated, message: """
+  Consider using `.produced` instead, this variable is added for backward compatibility and will be removed in the next major release.
+  """)
+  var producer: Produced<State> { produced }
 
   /// Initializes a view store from a store.
   ///
@@ -57,7 +62,7 @@ public final class ViewStore<State, Action>: ObservableObject {
     removeDuplicates isDuplicate: @escaping (State, State) -> Bool
   ) {
     let producer = store.$state.producer.skipRepeats(isDuplicate)
-    self.producer = StoreProducer(producer)
+    self.produced = Produced(by: producer)
     self.state = store.state
     self._send = store.send
     producer.startWithValues { [weak self] in

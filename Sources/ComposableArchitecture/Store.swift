@@ -195,20 +195,22 @@ public final class Store<State, Action> {
 
 /// A producer of store state.
 @dynamicMemberLookup
-public struct StoreProducer<State>: SignalProducerConvertible {
-  public let producer: Effect<State, Never>
+public struct Produced<Value>: SignalProducerConvertible {
+  public let producer: Effect<Value, Never>
 
-  init(_ upstream: Effect<State, Never>) {
+  init(by upstream: Effect<Value, Never>) {
     self.producer = upstream
   }
 
   /// Returns the resulting producer of a given key path.
-  public subscript<LocalState>(
-    dynamicMember keyPath: KeyPath<State, LocalState>
-  ) -> Effect<LocalState, Never>
-  where LocalState: Equatable {
+  public subscript<LocalValue>(
+    dynamicMember keyPath: KeyPath<Value, LocalValue>
+  ) -> Effect<LocalValue, Never> where LocalValue: Equatable {
     self.producer.map(keyPath).skipRepeats()
   }
-    
-  public var state: Effect<State, Never> { producer }
 }
+
+@available(*, deprecated, message:"""
+Consider using `Produced<State>` instead, this typealias is added for backward compatibility and will be removed in the next major release.
+""")
+public typealias StoreProducer<State> = Produced<State>
