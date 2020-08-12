@@ -80,7 +80,7 @@ class EagerNavigationViewController: UIViewController {
       button.centerYAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerYAnchor),
     ])
 
-    self.viewStore.producer.isNavigationActive.startWithValues { [weak self] isNavigationActive in
+    self.viewStore.produced.isNavigationActive.startWithValues { [weak self] isNavigationActive in
       guard let self = self else { return }
       if isNavigationActive {
         self.navigationController?.pushViewController(

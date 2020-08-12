@@ -33,7 +33,7 @@ import SwiftUI
 ///     func viewDidLoad() {
 ///       super.viewDidLoad()
 ///
-///       self.viewStore.producer.count
+///       self.viewStore.produced.count
 ///         .startWithValues { [weak self] in self?.countLabel.text = $0 }
 ///     }
 ///
@@ -49,7 +49,7 @@ public final class ViewStore<State, Action>: ObservableObject {
   @available(*, deprecated, message: """
   Consider using `.produced` instead, this variable is added for backward compatibility and will be removed in the next major release.
   """)
-  var producer: Produced<State> { produced }
+  public var producer: StoreProducer<State> { produced }
 
   /// Initializes a view store from a store.
   ///

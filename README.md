@@ -226,11 +226,11 @@ It is also straightforward to have a UIKit controller driven off of this store. 
 
       // Omitted: Add subviews and set up constraints...
 
-      self.viewStore.producer
+      self.viewStore.produced
         .map(String.init)
         .assign(to: \.text, on: countLabel)
 
-      self.viewStore.producer.numberFactAlert
+      self.viewStore.produced.numberFactAlert
         .startWithValues { [weak self] numberFactAlert in
           let alertController = UIAlertController(
             title: numberFactAlert, message: nil, preferredStyle: .alert
