@@ -210,7 +210,11 @@ public struct Produced<Value>: SignalProducerConvertible {
   }
 }
 
-@available(*, deprecated, message:"""
+@available(
+  *, deprecated,
+  message:
+    """
 Consider using `Produced<State>` instead, this typealias is added for backward compatibility and will be removed in the next major release.
-""")
+"""
+)
 public typealias StoreProducer<State> = Produced<State>
