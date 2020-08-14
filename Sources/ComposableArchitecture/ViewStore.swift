@@ -49,7 +49,7 @@ public final class ViewStore<State, Action>: ObservableObject {
   @available(
     *, deprecated,
     message:
-    """
+      """
     Consider using `.produced` instead, this property exists for backwards compatibility and will be removed in the next major release.
     """
   )
@@ -58,7 +58,7 @@ public final class ViewStore<State, Action>: ObservableObject {
   @available(
     *, deprecated,
     message:
-    """
+      """
     Consider using `.produced` instead, this property exists for backwards compatibility and will be removed in the next major release.
     """
   )
