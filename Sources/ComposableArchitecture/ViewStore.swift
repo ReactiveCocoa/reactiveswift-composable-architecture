@@ -49,11 +49,20 @@ public final class ViewStore<State, Action>: ObservableObject {
   @available(
     *, deprecated,
     message:
-      """
-  Consider using `.produced` instead, this variable is added for backward compatibility and will be removed in the next major release.
-  """
+    """
+    Consider using `.produced` instead, this property exists for backwards compatibility and will be removed in the next major release.
+    """
   )
   public var producer: StoreProducer<State> { produced }
+
+  @available(
+    *, deprecated,
+    message:
+    """
+    Consider using `.produced` instead, this property exists for backwards compatibility and will be removed in the next major release.
+    """
+  )
+  public var publisher: StoreProducer<State> { produced }
 
   /// Initializes a view store from a store.
   ///
