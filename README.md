@@ -431,6 +431,18 @@ You can add ComposableArchitecture to an Xcode project by adding it as a package
       - If you have a single application target that needs access to the library, then add **ComposableArchitecture** directly to your application.
       - If you want to use this library from multiple targets you must create a shared framework that depends on **ComposableArchitecture** and then depend on that framework in all of your targets. For an example of this, check out the [Tic-Tac-Toe](./Examples/TicTacToe) demo application, which splits lots of features into modules and consumes the static library in this fashion using the **TicTacToeCommon** framework.
 
+### Using with older OS versions that don't support Combine and SwiftUI
+
+This fork is compatible with ealier versions of iOS and macOS that don't support Combine or SwiftUI (eg iOS 11.x, 12.x and macOS 10.14.x). However, it still supports SwiftUI and maintains all the SwiftUI specific code from the original library. This also includes some references to Combine (mainly for `ObservableObject` support).
+
+If you want to use this library in a target built for an OS that doesn't support SwiftUI or Combine, you will need to add the following linker options to force SwiftUI and Combine to be weakly linked, in order to avoid having a runtime crash when dyld attemps to resolve the linkage and cannot find the frameworks:
+
+```
+OTHER_LDFLAGS = -weak_framework Combine -weak_framework SwiftUI
+```
+
+In Xcode, add these options to the `Other Linker Flags` section of `Build Settings`.
+
 ## Documentation
 
 The latest documentation for the Composable Architecture APIs is available [here](https://trading-point.github.io/reactiveswift-composable-architecture/).
