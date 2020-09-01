@@ -93,7 +93,7 @@ public final class ViewStore<State, Action>: ObservableObject {
   }
 
   @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-  public lazy var objectWillChange: ObservableObjectPublisher = ObjectWillChangePublisher()
+  public lazy var objectWillChange = ObservableObjectPublisher()
 
   let _send: (Action) -> Void
 
