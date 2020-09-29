@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import ReactiveSwift
 import SwiftUI
 
 private let readMe = """
@@ -69,7 +70,7 @@ let nestedReducer = Reducer<
 
     state.description = name
     return Effect(value: .exclaim)
-      .debounce(id: ExclaimId(), for: 1, scheduler: DispatchQueue.main)
+      .debounce(id: ExclaimId(), interval: 1, scheduler: QueueScheduler.main)
   }
 }
 

@@ -75,7 +75,7 @@ class LoginCoreTests: XCTestCase {
             Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: false))
           }
         ),
-        mainQueue: AnyScheduler(self.scheduler)
+        mainQueue: self.scheduler
       )
     )
 
