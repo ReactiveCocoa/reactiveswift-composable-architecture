@@ -32,7 +32,7 @@ let package = Package(
     .target(
       name: "ComposableArchitecture",
       dependencies: [
-        "CasePaths",
+        .product(name: "CasePaths", package: "swift-case-paths"),
         "ReactiveSwift",
       ]
     ),
