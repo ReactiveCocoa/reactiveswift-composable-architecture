@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import XCTest
 
@@ -10,17 +10,15 @@ class TestStoreTests: XCTestCase {
       case a, b1, b2, b3, c1, c2, c3, d
     }
 
-    let testScheduler = DispatchQueue.testScheduler
+    let testScheduler = TestScheduler()
 
-    let reducer = Reducer<State, Action, AnySchedulerOf<DispatchQueue>> { _, action, scheduler in
+    let reducer = Reducer<State, Action, DateScheduler> { _, action, scheduler in
       switch action {
       case .a:
         return .merge(
           Effect.concatenate(.init(value: .b1), .init(value: .c1))
-            .delay(for: 1, scheduler: scheduler)
-            .eraseToEffect(),
-          Empty(completeImmediately: false)
-            .eraseToEffect()
+            .delay(1, on: scheduler),
+          Effect.none
             .cancellable(id: 1)
         )
       case .b1:
@@ -42,13 +40,13 @@ class TestStoreTests: XCTestCase {
     let store = TestStore(
       initialState: State(),
       reducer: reducer,
-      environment: testScheduler.eraseToAnyScheduler()
+      environment: testScheduler
     )
 
     store.assert(
       .send(.a),
 
-      .do { testScheduler.advance(by: 1) },
+      .do { testScheduler.advance(by: .seconds(1)) },
 
       .receive(.b1),
       .receive(.b2),

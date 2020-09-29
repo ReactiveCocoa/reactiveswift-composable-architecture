@@ -1,5 +1,6 @@
 import SwiftUI
 
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension LocalizedStringKey: CustomDebugOutputConvertible {
   // NB: `LocalizedStringKey` conforms to `Equatable` but returns false for equivalent format strings.
   public func formatted(locale: Locale? = nil) -> String {

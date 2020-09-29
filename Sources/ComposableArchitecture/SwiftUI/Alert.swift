@@ -90,6 +90,7 @@ import SwiftUI
 ///       }
 ///     )
 ///
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 public struct AlertState<Action> {
   public let id = UUID()
   public var message: LocalizedStringKey?
@@ -158,11 +159,7 @@ public struct AlertState<Action> {
   }
 }
 
-@available(iOS 13, *)
-@available(macCatalyst 13, *)
-@available(macOS 10.15, *)
-@available(tvOS 13, *)
-@available(watchOS 6, *)
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension View {
   /// Displays an alert when then store's state becomes non-`nil`, and dismisses it when it becomes
   /// `nil`.
@@ -185,6 +182,7 @@ extension View {
   }
 }
 
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState: CustomDebugOutputConvertible {
   public var debugOutput: String {
     let fields = (
@@ -197,6 +195,7 @@ extension AlertState: CustomDebugOutputConvertible {
   }
 }
 
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState: Equatable where Action: Equatable {
   public static func == (lhs: Self, rhs: Self) -> Bool {
     lhs.title.formatted() == rhs.title.formatted()
@@ -205,6 +204,8 @@ extension AlertState: Equatable where Action: Equatable {
       && lhs.secondaryButton == rhs.secondaryButton
   }
 }
+
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState: Hashable where Action: Hashable {
   public func hash(into hasher: inout Hasher) {
     hasher.combine(self.title.formatted())
@@ -213,8 +214,11 @@ extension AlertState: Hashable where Action: Hashable {
     hasher.combine(self.secondaryButton)
   }
 }
+
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState: Identifiable {}
 
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState.Button.`Type`: Equatable {
   public static func == (lhs: Self, rhs: Self) -> Bool {
     switch (lhs, rhs) {
@@ -227,12 +231,15 @@ extension AlertState.Button.`Type`: Equatable {
     }
   }
 }
+
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState.Button: Equatable where Action: Equatable {
   public static func == (lhs: Self, rhs: Self) -> Bool {
     return lhs.action == rhs.action && lhs.type == rhs.type
   }
 }
 
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState.Button.`Type`: Hashable {
   public func hash(into hasher: inout Hasher) {
     switch self {
@@ -243,6 +250,8 @@ extension AlertState.Button.`Type`: Hashable {
     }
   }
 }
+
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState.Button: Hashable where Action: Hashable {
   public func hash(into hasher: inout Hasher) {
     hasher.combine(self.action)
@@ -250,12 +259,8 @@ extension AlertState.Button: Hashable where Action: Hashable {
   }
 }
 
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState.Button {
-  @available(iOS 13, *)
-  @available(macCatalyst 13, *)
-  @available(macOS 10.15, *)
-  @available(tvOS 13, *)
-  @available(watchOS 6, *)
   func toSwiftUI(send: @escaping (Action) -> Void) -> SwiftUI.Alert.Button {
     let action = { if let action = self.action { send(action) } }
     switch self.type {
@@ -271,12 +276,8 @@ extension AlertState.Button {
   }
 }
 
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState {
-  @available(iOS 13, *)
-  @available(macCatalyst 13, *)
-  @available(macOS 10.15, *)
-  @available(tvOS 13, *)
-  @available(watchOS 6, *)
   fileprivate func toSwiftUI(send: @escaping (Action) -> Void) -> SwiftUI.Alert {
     let title = Text(self.title)
     let message = self.message.map { Text($0) }

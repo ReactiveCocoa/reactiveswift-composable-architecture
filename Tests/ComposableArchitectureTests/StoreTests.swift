@@ -298,7 +298,7 @@ final class StoreTests: XCTestCase {
   }
 
   func testActionQueuing() {
-    let subject = PassthroughSubject<Void, Never>()
+    let subject = Signal<Void, Never>.pipe()
 
     enum Action: Equatable {
       case incrementTapped
@@ -311,11 +311,11 @@ final class StoreTests: XCTestCase {
       reducer: Reducer<Int, Action, Void> { state, action, _ in
         switch action {
         case .incrementTapped:
-          subject.send()
+          subject.input.send(value: ())
           return .none
 
         case .`init`:
-          return subject.map { .doIncrement }.eraseToEffect()
+          return subject.output.producer.map { .doIncrement }
 
         case .doIncrement:
           state += 1
@@ -335,7 +335,7 @@ final class StoreTests: XCTestCase {
       .receive(.doIncrement) {
         $0 = 2
       },
-      .do { subject.send(completion: .finished) }
+      .do { subject.input.sendCompleted() }
     )
   }
 }

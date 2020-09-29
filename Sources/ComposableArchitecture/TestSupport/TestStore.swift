@@ -240,20 +240,19 @@
           let key = debugCaseOutput(action)
           let id = UUID()
           return
-            effects
-            .handleEvents(
-              receiveSubscription: { _ in longLivingEffects[key, default: []].insert(id) },
-              receiveCompletion: { _ in longLivingEffects[key]?.remove(id) },
-              receiveCancel: { longLivingEffects[key]?.remove(id) }
+            effects.on(
+              starting: { longLivingEffects[key, default: []].insert(id) },
+              completed: { longLivingEffects[key]?.remove(id) },
+//              terminated: { longLivingEffects[key]?.remove(id) },
+              disposed: { longLivingEffects[key]?.remove(id) }
             )
             .map(TestAction.receive)
-            .eraseToEffect()
 
         },
         environment: ()
       )
-      defer { self.state = store.state.value }
 
+      defer { self.state = store.$state.value }
       let viewStore = ViewStore(
         store.scope(state: self.toLocalState, action: TestAction.send)
       )
@@ -284,7 +283,6 @@
               line: step.line
             )
           }
-        }
         }
 
         switch step.type {
