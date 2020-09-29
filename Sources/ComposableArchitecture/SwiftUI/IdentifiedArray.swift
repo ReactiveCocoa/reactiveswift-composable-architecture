@@ -191,6 +191,19 @@ where ID: Hashable {
       try areInIncreasingOrder(self.dictionary[$0]!, self.dictionary[$1]!)
     }
   }
+  
+  public mutating func shuffle<T>(using generator: inout T) where T : RandomNumberGenerator {
+    ids.shuffle(using: &generator)
+  }
+  
+  public mutating func shuffle() {
+    var rng = SystemRandomNumberGenerator()
+    self.shuffle(using: &rng)
+  }
+
+  public mutating func reverse() {
+    ids.reverse()
+  }
 }
 
 @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)

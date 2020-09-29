@@ -166,7 +166,7 @@ class VoiceMemosTests: XCTestCase {
         audioPlayerClient: .mock(
           play: { _, _ in
             Effect(value: .didFinishPlaying(successfully: true))
-              .delay(1, on: self.scheduler)
+              .delay(1.1, on: self.scheduler)
           }
         ),
         mainQueue: self.scheduler
@@ -177,19 +177,21 @@ class VoiceMemosTests: XCTestCase {
       .send(.voiceMemo(index: 0, action: .playButtonTapped)) {
         $0.voiceMemos[0].mode = VoiceMemo.Mode.playing(progress: 0)
       },
-      .do { self.scheduler.advance(by: .seconds(1)) },
+      .do { self.scheduler.advance(by: .milliseconds(500)) },
       .receive(VoiceMemosAction.voiceMemo(index: 0, action: VoiceMemoAction.timerUpdated(0.5))) {
         $0.voiceMemos[0].mode = .playing(progress: 0.5)
       },
+      .do { self.scheduler.advance(by: .milliseconds(500)) },
+      .receive(VoiceMemosAction.voiceMemo(index: 0, action: VoiceMemoAction.timerUpdated(1))) {
+        $0.voiceMemos[0].mode = .playing(progress: 1)
+      },
+      .do { self.scheduler.advance(by: .milliseconds(100)) },
       .receive(
         .voiceMemo(
           index: 0,
           action: .audioPlayerClient(.success(.didFinishPlaying(successfully: true)))
         )
       ) {
-        $0.voiceMemos[0].mode = .notPlaying
-      },
-      .receive(VoiceMemosAction.voiceMemo(index: 0, action: VoiceMemoAction.timerUpdated(1))) {
         $0.voiceMemos[0].mode = .notPlaying
       }
     )

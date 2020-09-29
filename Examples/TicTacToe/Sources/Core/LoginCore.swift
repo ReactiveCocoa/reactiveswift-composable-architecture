@@ -73,7 +73,7 @@ public let loginReducer =
         return .none
 
       case let .loginResponse(.failure(error)):
-        state.alert = .init(title: error.localizedDescription)
+        state.alert = .init(title: .init(error.localizedDescription))
         state.isLoginRequestInFlight = false
         return .none
 
@@ -95,7 +95,7 @@ public let loginReducer =
 
       case .twoFactorDismissed:
         state.twoFactor = nil
-        return .none
+        return .cancel(id: TwoFactorTearDownToken())
       }
     }
   )

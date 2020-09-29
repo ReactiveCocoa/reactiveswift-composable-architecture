@@ -296,4 +296,46 @@ final class StoreTests: XCTestCase {
       XCTAssertEqual(vs.state, 3)
     }
   }
+
+  func testActionQueuing() {
+    let subject = Signal<Void, Never>.pipe()
+
+    enum Action: Equatable {
+      case incrementTapped
+      case `init`
+      case doIncrement
+    }
+
+    let store = TestStore(
+      initialState: 0,
+      reducer: Reducer<Int, Action, Void> { state, action, _ in
+        switch action {
+        case .incrementTapped:
+          subject.input.send(value: ())
+          return .none
+
+        case .`init`:
+          return subject.output.producer.map { .doIncrement }
+
+        case .doIncrement:
+          state += 1
+          return .none
+        }
+      },
+      environment: ()
+    )
+
+    store.assert(
+      .send(.`init`),
+      .send(.incrementTapped),
+      .receive(.doIncrement) {
+        $0 = 1
+      },
+      .send(.incrementTapped),
+      .receive(.doIncrement) {
+        $0 = 2
+      },
+      .do { subject.input.sendCompleted() }
+    )
+  }
 }
