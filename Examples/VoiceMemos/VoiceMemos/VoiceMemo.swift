@@ -64,18 +64,18 @@ let voiceMemoReducer = Reducer<VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment>
       memo.mode = .playing(progress: 0)
       let start = environment.mainQueue.currentDate
       return .merge(
-        environment.audioPlayerClient
-          .play(PlayerId(), memo.url)
-          .catchToEffect()
-          .map(VoiceMemoAction.audioPlayerClient)
-          .cancellable(id: PlayerId()),
-
         Effect.timer(id: TimerId(), every: .milliseconds(500), on: environment.mainQueue)
           .map { date -> VoiceMemoAction in
             .timerUpdated(
               date.timeIntervalSinceReferenceDate - start.timeIntervalSinceReferenceDate
             )
-          }
+          },
+        
+        environment.audioPlayerClient
+          .play(PlayerId(), memo.url)
+          .catchToEffect()
+          .map(VoiceMemoAction.audioPlayerClient)
+          .cancellable(id: PlayerId())
       )
 
     case .playing:
