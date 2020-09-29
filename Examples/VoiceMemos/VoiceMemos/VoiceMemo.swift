@@ -70,7 +70,7 @@ let voiceMemoReducer = Reducer<VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment>
               date.timeIntervalSinceReferenceDate - start.timeIntervalSinceReferenceDate
             )
           },
-        
+
         environment.audioPlayerClient
           .play(PlayerId(), memo.url)
           .catchToEffect()
