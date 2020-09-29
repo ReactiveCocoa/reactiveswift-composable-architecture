@@ -45,12 +45,6 @@ extension Location: Hashable {
       if #available(iOS 13.4, macCatalyst 13.4, macOS 10.15.4, tvOS 13.4, watchOS 6.2, *) {
         courseAccuracyIsEqual = lhs.courseAccuracy == rhs.courseAccuracy
         speedAccuracyIsEqual = lhs.speedAccuracy == rhs.speedAccuracy
-      } else {
-        courseAccuracyIsEqual = true
-        speedAccuracyIsEqual = true
-      }
-      if #available(OSX 10.15, *) {
-        speedAccuracyIsEqual = lhs.speedAccuracy == rhs.speedAccuracy
         floorEqual = lhs.floor == rhs.floor
       } else {
         courseAccuracyIsEqual = true
@@ -80,7 +74,6 @@ extension Location: Hashable {
     hasher.combine(self.coordinate.latitude)
     hasher.combine(self.coordinate.longitude)
     hasher.combine(self.course)
-    hasher.combine(self.floor)
     hasher.combine(self.horizontalAccuracy)
     hasher.combine(self.speed)
     hasher.combine(self.timestamp)
@@ -88,6 +81,7 @@ extension Location: Hashable {
 
     #if compiler(>=5.2)
     if #available(iOS 13.4, macCatalyst 13.4, macOS 10.15.4, tvOS 13.4, watchOS 6.2, *) {
+      hasher.combine(self.floor)
       hasher.combine(self.speedAccuracy)
       hasher.combine(self.courseAccuracy)
     }
