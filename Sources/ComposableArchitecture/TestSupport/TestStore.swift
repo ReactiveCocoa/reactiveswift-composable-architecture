@@ -221,9 +221,11 @@
     ) {
       var receivedActions: [Action] = []
 
-      var cancellables: [Disposable] = []
+      var cancellables: [String: [Disposable]] = [:]
 
       func runReducer(action: Action) {
+        let actionKey = debugCaseOutput(action)
+
         let effect = self.reducer.run(&self.state, action, self.environment)
         var isComplete = false
         var cancellable: Disposable?
@@ -233,13 +235,14 @@
           case .completed, .interrupted:
             isComplete = true
             guard let cancellable = cancellable else { return }
-            cancellables.removeAll(where: { $0 === cancellable })
+            cancellables[actionKey]?.removeAll(where: { $0 === cancellable })
           case let .value(value):
             receivedActions.append(value)
           }
         }
         if !isComplete, let cancellable = cancellable {
-          cancellables.append(cancellable)
+          cancellables[actionKey] = cancellables[actionKey] ?? []
+          cancellables[actionKey]?.append(cancellable)
         }
       }
 
@@ -334,12 +337,23 @@
           line: line
         )
       }
-      if !cancellables.isEmpty {
+
+      let unfinishedActions = cancellables.filter { !$0.value.isEmpty }.map { $0.key }
+      if unfinishedActions.count > 0 {
+        let initiatingActions = unfinishedActions.map { "• \($0)" }.joined(separator: "\n")
+        let pluralSuffix = unfinishedActions.count == 1 ? "" : "s"
+
         _XCTFail(
           """
           Some effects are still running. All effects must complete by the end of the assertion.
 
-          This can happen for a few reasons:
+          The effects that are still running were started by the following action\(pluralSuffix):
+
+          \(initiatingActions)
+
+          To fix you need to inspect the effects returned from the above action\(pluralSuffix) and \
+          make sure that all of them are completed by the end of your assertion. There are a few \
+          reasons why your effects may not have completed:
 
           • If you are using a scheduler in your effect, then make sure that you wait enough time \
           for the effect to finish. If you are using a test scheduler, then make sure you advance \
