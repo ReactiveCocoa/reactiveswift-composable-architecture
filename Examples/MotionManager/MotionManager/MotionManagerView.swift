@@ -176,12 +176,12 @@ struct AppView_Previews: PreviewProvider {
       create: { _ in .fireAndForget {} },
       destroy: { _ in .fireAndForget {} },
       deviceMotion: { _ in nil },
-      startDeviceMotionUpdates: { _, _, _ in
+      startDeviceMotionUpdates: { _, _, _ -> Effect<DeviceMotion, Error> in
         isStarted = true
         return Effect.timer(interval: .milliseconds(100), on: QueueScheduler.main)
-          .filter { _ in isStarted }
-          .map { $0.timeIntervalSince1970 * 2 }
-          .map { t in
+          .filter { _ -> Bool in isStarted }
+          .map { t -> TimeInterval in t.timeIntervalSince1970 * 2 }
+          .map { t -> DeviceMotion in
             DeviceMotion(
               attitude: .init(quaternion: .init(x: 1, y: 0, z: 0, w: 0)),
               gravity: .init(x: sin(2 * t), y: -cos(-t), z: sin(3 * t)),

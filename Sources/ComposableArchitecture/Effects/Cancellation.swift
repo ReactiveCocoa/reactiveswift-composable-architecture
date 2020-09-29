@@ -48,10 +48,10 @@ extension Effect {
 
       let disposable =
         self
-        .on {
+        .on(value: {
           guard isCaching else { return }
           values.append($0)
-        }
+        })
         .start(subject.input)
 
       var cancellationDisposable: AnyDisposable!
