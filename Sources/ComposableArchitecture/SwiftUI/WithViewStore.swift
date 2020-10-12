@@ -1,3 +1,4 @@
+#if canImport(Combine) && canImport(SwiftUI)
 import Combine
 import SwiftUI
 
@@ -105,3 +106,4 @@ extension WithViewStore: DynamicViewContent where State: Collection, Content: Dy
     self.viewStore.state
   }
 }
+#endif
