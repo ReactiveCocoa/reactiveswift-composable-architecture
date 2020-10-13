@@ -1,5 +1,10 @@
 import Foundation
 
+#if os(Linux) || os(Android)
+import let CDispatch.NSEC_PER_USEC
+import let CDispatch.NSEC_PER_SEC
+#endif
+
 func debugOutput(_ value: Any, indent: Int = 0) -> String {
   var visitedItems: Set<ObjectIdentifier> = []
 

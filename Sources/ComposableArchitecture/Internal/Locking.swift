@@ -1,5 +1,6 @@
 import Foundation
 
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 extension UnsafeMutablePointer where Pointee == os_unfair_lock_s {
   @inlinable @discardableResult
   func sync<R>(_ work: () -> R) -> R {
@@ -8,6 +9,7 @@ extension UnsafeMutablePointer where Pointee == os_unfair_lock_s {
     return work()
   }
 }
+#endif
 
 extension NSRecursiveLock {
   @inlinable @discardableResult
