@@ -1,3 +1,4 @@
+#if canImport(os)
 import os.signpost
 
 extension Reducer {
@@ -112,3 +113,4 @@ func debugCaseOutput(_ value: Any) -> String {
 private func isUnlabeledArgument(_ label: String) -> Bool {
   label.firstIndex(where: { $0 != "." && !$0.isNumber }) == nil
 }
+#endif
