@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 import SwiftUI
 import XCTest
 
@@ -20,3 +21,4 @@ class LocalizedStringKeyTests: XCTestCase {
     )
   }
 }
+#endif
