@@ -69,3 +69,7 @@ let package = Package(
     ),
   ]
 )
+
+#if os(Linux)
+package.targets.removeAll(where: { $0.type == .test && $0.name != "ComposableArchitectureTests" })
+#endif
