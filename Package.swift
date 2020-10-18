@@ -70,7 +70,7 @@ let package = Package(
   ]
 )
 
-#if os(Linux)
+#if os(Linux) || os(Android)
 package.products.removeAll(where: { $0.name != "ComposableArchitecture" })
 package.targets.removeAll(where: { $0.name != "ComposableArchitecture" && $0.name != "ComposableArchitectureTests" })
 #endif
