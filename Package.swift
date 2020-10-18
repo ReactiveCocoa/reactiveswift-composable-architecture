@@ -71,5 +71,6 @@ let package = Package(
 )
 
 #if os(Linux)
-package.targets.removeAll(where: { $0.type == .test && $0.name != "ComposableArchitectureTests" })
+package.products.removeAll(where: { $0.name != "ComposableArchitecture" })
+package.targets.removeAll(where: { $0.name != "ComposableArchitecture" && $0.name != "ComposableArchitectureTests" })
 #endif
