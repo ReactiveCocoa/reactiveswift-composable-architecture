@@ -1,6 +1,10 @@
+#if canImport(Combine)
 import Combine
+#endif
 import ReactiveSwift
+#if canImport(SwiftUI)
 import SwiftUI
+#endif
 
 /// A `ViewStore` is an object that can observe state changes and send actions. They are most
 /// commonly used in views, such as SwiftUI views, UIView or UIViewController, but they can be
@@ -42,7 +46,7 @@ import SwiftUI
 ///     }
 ///
 @dynamicMemberLookup
-public final class ViewStore<State, Action>: ObservableObject {
+public final class ViewStore<State, Action> {
   /// A producer of state.
   public let produced: Produced<State>
 
@@ -86,14 +90,19 @@ public final class ViewStore<State, Action>: ObservableObject {
   /// The current state.
   public private(set) var state: State {
     willSet {
+#if canImport(Combine)
       if #available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *) {
         self.objectWillChange.send()
       }
+#endif
     }
   }
 
+#if canImport(Combine)
   @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
   public lazy var objectWillChange = ObservableObjectPublisher()
+#endif
+
 
   let _send: (Action) -> Void
 
@@ -115,6 +124,7 @@ public final class ViewStore<State, Action>: ObservableObject {
     self._send(action)
   }
 
+#if canImport(SwiftUI)
   /// Derives a binding from the store that prevents direct writes to state and instead sends
   /// actions to the store.
   ///
@@ -241,6 +251,7 @@ public final class ViewStore<State, Action>: ObservableObject {
   public func binding(send action: Action) -> Binding<State> {
     self.binding(send: { _ in action })
   }
+#endif
 }
 
 extension ViewStore where State: Equatable {
@@ -248,3 +259,8 @@ extension ViewStore where State: Equatable {
     self.init(store, removeDuplicates: ==)
   }
 }
+
+#if canImport(Combine)
+extension ViewStore: ObservableObject {
+}
+#endif

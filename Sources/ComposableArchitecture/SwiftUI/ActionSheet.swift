@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 import SwiftUI
 
 /// A data type that describes the state of an action sheet that can be shown to the user. The
@@ -221,3 +222,4 @@ extension ActionSheetState {
     )
   }
 }
+#endif

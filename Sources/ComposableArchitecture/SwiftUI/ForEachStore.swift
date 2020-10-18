@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 import SwiftUI
 
 /// A structure that computes views on demand from a store on a collection of data.
@@ -119,3 +120,4 @@ where Data: Collection, ID: Hashable, Content: View {
     self.content()
   }
 }
+#endif

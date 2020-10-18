@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 import Foundation
 
 /// An array of elements that can be identified by a given key path.
@@ -295,3 +296,4 @@ where Element: Identifiable, ID == Element.ID {
 @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 public typealias IdentifiedArrayOf<Element> = IdentifiedArray<Element.ID, Element>
 where Element: Identifiable
+#endif

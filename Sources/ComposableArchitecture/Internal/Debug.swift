@@ -1,5 +1,10 @@
 import Foundation
 
+#if os(Linux) || os(Android)
+import let CDispatch.NSEC_PER_USEC
+import let CDispatch.NSEC_PER_SEC
+#endif
+
 func debugOutput(_ value: Any, indent: Int = 0) -> String {
   var visitedItems: Set<ObjectIdentifier> = []
 
@@ -173,6 +178,18 @@ private let dateFormatter: ISO8601DateFormatter = {
 }()
 
 extension DispatchQueue: CustomDebugOutputConvertible {
+#if os(Linux) || os(Android)
+  public var debugOutput: String {
+    switch self.label {
+    case "com.apple.main-thread": return "DispatchQueue.main"
+    case "com.apple.root.default-qos": return "DispatchQueue.global()"
+    case _ where self.label == "com.apple.root.\(self.qos.qosClass)-qos":
+      return "DispatchQueue.global(qos: .\(self.qos.qosClass))"
+    default:
+      return "DispatchQueue(label: \(self.label.debugDescription), qos: .\(self.qos.qosClass))"
+    }
+  }
+#else
   public var debugOutput: String {
     switch (self, self.label) {
     case (.main, _): return "DispatchQueue.main"
@@ -183,6 +200,7 @@ extension DispatchQueue: CustomDebugOutputConvertible {
       return "DispatchQueue(label: \(self.label.debugDescription), qos: .\(self.qos.qosClass))"
     }
   }
+#endif
 }
 
 extension Effect: CustomDebugOutputConvertible {

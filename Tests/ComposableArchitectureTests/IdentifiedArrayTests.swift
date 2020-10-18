@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 import XCTest
 
 @testable import ComposableArchitecture
@@ -247,3 +248,4 @@ final class IdentifiedArrayTests: XCTestCase {
       ], array)
   }
 }
+#endif

@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 import SwiftUI
 
 /// A view that safely unwraps a store of optional state in order to show one of two views.
@@ -83,3 +84,4 @@ public struct IfLetStore<State, Action, Content>: View where Content: View {
     )
   }
 }
+#endif

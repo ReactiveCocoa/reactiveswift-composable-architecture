@@ -1,7 +1,9 @@
 import ComposableArchitecture
 import ReactiveSwift
 import XCTest
+#if canImport(os)
 import os.signpost
+#endif
 
 final class ReducerTests: XCTestCase {
   func testCallableAsFunction() {
@@ -200,6 +202,7 @@ final class ReducerTests: XCTestCase {
     )
   }
 
+#if canImport(os)
   @available(iOS 12.0, *)
   func testDefaultSignpost() {
     let reducer = Reducer<Int, Void, Void>.empty.signpost(log: .default)
@@ -225,4 +228,5 @@ final class ReducerTests: XCTestCase {
       }
     self.wait(for: [expectation], timeout: 0.1)
   }
+#endif
 }

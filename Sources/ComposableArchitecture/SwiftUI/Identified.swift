@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 /// A wrapper around a value and a hashable identifier that conforms to identifiable.
 @dynamicMemberLookup
 public struct Identified<ID, Value>: Identifiable where ID: Hashable {
@@ -54,3 +55,4 @@ extension Identified: Encodable where ID: Encodable, Value: Encodable {}
 extension Identified: Equatable where Value: Equatable {}
 
 extension Identified: Hashable where Value: Hashable {}
+#endif

@@ -1,3 +1,4 @@
+#if canImport(os)
 import os.signpost
 
 extension Reducer {
@@ -82,6 +83,7 @@ extension Effect where Error == Never {
       })
   }
 }
+#endif
 
 func debugCaseOutput(_ value: Any) -> String {
   func debugCaseOutputHelp(_ value: Any) -> String {

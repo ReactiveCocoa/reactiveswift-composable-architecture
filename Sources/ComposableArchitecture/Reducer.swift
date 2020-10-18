@@ -406,6 +406,7 @@ public struct Reducer<State, Action, Environment> {
     }
   }
 
+#if canImport(SwiftUI)
   /// A version of `pullback` that transforms a reducer that works on an element into one that works
   /// on an identified array of elements.
   ///
@@ -487,7 +488,8 @@ public struct Reducer<State, Action, Environment> {
         .map { toLocalAction.embed((id, $0)) }
     }
   }
-
+#endif
+    
   /// A version of `pullback` that transforms a reducer that works on an element into one that works
   /// on a dictionary of element values.
   ///
