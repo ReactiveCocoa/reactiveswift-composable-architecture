@@ -102,6 +102,7 @@ import XCTest
       array.remove(atOffsets: [0, 2])
       XCTAssertEqual(array, [User(id: 2, name: "Blob Jr.")])
     }
+    
     #if canImport(SwiftUI)
     func testMoveFromOffsets() {
       struct User: Equatable, Identifiable {

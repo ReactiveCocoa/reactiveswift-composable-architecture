@@ -182,6 +182,7 @@ where ID: Hashable {
       _ = self.remove(at: offset)
     }
   }
+  
   #if canImport(SwiftUI)
   public mutating func move(fromOffsets source: IndexSet, toOffset destination: Int) {
     self.ids.move(fromOffsets: source, toOffset: destination)
