@@ -1,5 +1,4 @@
-#if canImport(SwiftUI)
-  import XCTest
+import XCTest
 
   @testable import ComposableArchitecture
 
@@ -103,7 +102,8 @@
       array.remove(atOffsets: [0, 2])
       XCTAssertEqual(array, [User(id: 2, name: "Blob Jr.")])
     }
-
+    
+    #if canImport(SwiftUI)
     func testMoveFromOffsets() {
       struct User: Equatable, Identifiable {
         let id: Int
@@ -122,7 +122,8 @@
         [User(id: 2, name: "Blob Jr."), User(id: 3, name: "Blob Sr."), User(id: 1, name: "Blob")]
       )
     }
-
+    #endif
+    
     func testReplaceSubrange() {
       struct User: Equatable, Identifiable {
         let id: Int
@@ -249,4 +250,3 @@
         ], array)
     }
   }
-#endif
