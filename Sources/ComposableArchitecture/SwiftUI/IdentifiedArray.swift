@@ -182,10 +182,11 @@ where ID: Hashable {
       _ = self.remove(at: offset)
     }
   }
-  
+  #if canImport(SwiftUI)
   public mutating func move(fromOffsets source: IndexSet, toOffset destination: Int) {
     self.ids.move(fromOffsets: source, toOffset: destination)
   }
+  #endif
   
   public mutating func sort(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows {
     try self.ids.sort {
