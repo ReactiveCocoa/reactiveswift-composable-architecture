@@ -405,7 +405,7 @@ public struct Reducer<State, Action, Environment> {
       .map { toLocalAction.embed((index, $0)) }
     }
   }
-  
+
   /// A version of `pullback` that transforms a reducer that works on an element into one that works
   /// on an identified array of elements.
   ///
@@ -451,34 +451,34 @@ public struct Reducer<State, Action, Environment> {
       guard let (id, localAction) = toLocalAction.extract(from: globalAction) else {
         return .none
       }
-      
+
       // This does not need to be a fatal error because of the unwrap that follows it.
       assert(
         globalState[keyPath: toLocalState][id: id] != nil,
         """
-          "\(debugCaseOutput(localAction))" was received by a "forEach" reducer at id \(id) \
-          when its state contained no element at this id. This is considered an application logic \
-          error, and can happen for a few reasons:
+        "\(debugCaseOutput(localAction))" was received by a "forEach" reducer at id \(id) \
+        when its state contained no element at this id. This is considered an application logic \
+        error, and can happen for a few reasons:
 
-          * This "forEach" reducer was combined with or run from another reducer that removed the \
-          element at this id when it handled this action. To fix this make sure that this \
-          "forEach" reducer is run before any other reducers that can move or remove elements from \
-          state. This ensures that "forEach" reducers can handle their actions for the element at \
-          the intended id.
+        * This "forEach" reducer was combined with or run from another reducer that removed the \
+        element at this id when it handled this action. To fix this make sure that this \
+        "forEach" reducer is run before any other reducers that can move or remove elements from \
+        state. This ensures that "forEach" reducers can handle their actions for the element at \
+        the intended id.
 
-          * An in-flight effect emitted this action while state contained no element at this id. \
-          To fix this make sure that effects for this "forEach" reducer are canceled whenever \
-          elements are moved or removed from its state. If your "forEach" reducer returns any \
-          long-living effects, you should use the identifier-based "forEach", instead.
+        * An in-flight effect emitted this action while state contained no element at this id. \
+        To fix this make sure that effects for this "forEach" reducer are canceled whenever \
+        elements are moved or removed from its state. If your "forEach" reducer returns any \
+        long-living effects, you should use the identifier-based "forEach", instead.
 
-          * This action was sent to the store while its state contained no element at this id. \
-          To fix this make sure that actions for this reducer can only be sent to a view store when \
-          its state contains an element at this id. In SwiftUI applications, use `ForEachStore`.
-          """,
+        * This action was sent to the store while its state contained no element at this id. \
+        To fix this make sure that actions for this reducer can only be sent to a view store when \
+        its state contains an element at this id. In SwiftUI applications, use `ForEachStore`.
+        """,
         file: file,
         line: line
       )
-      
+
       return
         self
         .reducer(

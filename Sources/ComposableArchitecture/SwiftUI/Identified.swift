@@ -3,7 +3,7 @@
 public struct Identified<ID, Value>: Identifiable where ID: Hashable {
   public let id: ID
   public var value: Value
-  
+
   /// Initializes an identified value from a given value and a hashable identifier.
   ///
   /// - Parameters:
@@ -13,7 +13,7 @@ public struct Identified<ID, Value>: Identifiable where ID: Hashable {
     self.id = id
     self.value = value
   }
-  
+
   /// Initializes an identified value from a given value and a function that can return a hashable
   /// identifier from the value.
   ///
@@ -25,7 +25,7 @@ public struct Identified<ID, Value>: Identifiable where ID: Hashable {
   public init(_ value: Value, id: (Value) -> ID) {
     self.init(value, id: id(value))
   }
-  
+
   // NB: This overload works around a bug in key path function expressions and `\.self`.
   /// Initializes an identified value from a given value and a function that can return a hashable
   /// identifier from the value.
@@ -38,7 +38,7 @@ public struct Identified<ID, Value>: Identifiable where ID: Hashable {
   public init(_ value: Value, id: KeyPath<Value, ID>) {
     self.init(value, id: value[keyPath: id])
   }
-  
+
   public subscript<LocalValue>(
     dynamicMember keyPath: WritableKeyPath<Value, LocalValue>
   ) -> LocalValue {

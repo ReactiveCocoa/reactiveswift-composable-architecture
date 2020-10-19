@@ -41,16 +41,16 @@ public struct IdentifiedArray<ID, Element>: MutableCollection, RandomAccessColle
 where ID: Hashable {
   /// A key path to a value that identifies an element.
   public let id: KeyPath<Element, ID>
-  
+
   /// A raw array of each element's identifier.
   public private(set) var ids: [ID]
-  
+
   /// A raw array of the underlying elements.
   public var elements: [Element] { Array(self) }
-  
+
   // TODO: Support multiple elements with the same identifier but different data.
   private var dictionary: [ID: Element]
-  
+
   /// Initializes an identified array with a sequence of elements and a key
   /// path to an element's identifier.
   ///
@@ -60,12 +60,12 @@ where ID: Hashable {
   public init<S>(_ elements: S, id: KeyPath<Element, ID>)
   where S: Sequence, S.Element == Element {
     self.id = id
-    
+
     let idsAndElements = elements.map { (id: $0[keyPath: id], element: $0) }
     self.ids = idsAndElements.map { $0.id }
     self.dictionary = Dictionary(idsAndElements, uniquingKeysWith: { $1 })
   }
-  
+
   /// Initializes an empty identified array with a key path to an element's
   /// identifier.
   ///
@@ -73,71 +73,71 @@ where ID: Hashable {
   public init(id: KeyPath<Element, ID>) {
     self.init([], id: id)
   }
-  
+
   public var startIndex: Int { self.ids.startIndex }
   public var endIndex: Int { self.ids.endIndex }
-  
+
   public func index(after i: Int) -> Int {
     self.ids.index(after: i)
   }
-  
+
   public func index(before i: Int) -> Int {
     self.ids.index(before: i)
   }
-  
+
   public subscript(position: Int) -> Element {
     // NB: `_read` crashes Xcode Preview compilation.
     get { self.dictionary[self.ids[position]]! }
     _modify { yield &self.dictionary[self.ids[position]]! }
   }
-  
+
   #if DEBUG
-  /// Direct access to an element by its identifier.
-  ///
-  /// - Parameter id: The identifier of element to access. Must be a valid identifier for an
-  ///   element of the array and will _not_ insert elements that are not already in the array, or
-  ///   remove elements when passed `nil`. Use `append` or `insert(_:at:)` to insert elements. Use
-  ///   `remove(id:)` to remove an element by its identifier.
-  /// - Returns: The element.
-  public subscript(id id: ID) -> Element? {
-    get { self.dictionary[id] }
-    set {
-      if newValue != nil && self.dictionary[id] == nil {
-        fatalError(
-          """
-              Can't update element with identifier \(id) because no such element exists in the array.
+    /// Direct access to an element by its identifier.
+    ///
+    /// - Parameter id: The identifier of element to access. Must be a valid identifier for an
+    ///   element of the array and will _not_ insert elements that are not already in the array, or
+    ///   remove elements when passed `nil`. Use `append` or `insert(_:at:)` to insert elements. Use
+    ///   `remove(id:)` to remove an element by its identifier.
+    /// - Returns: The element.
+    public subscript(id id: ID) -> Element? {
+      get { self.dictionary[id] }
+      set {
+        if newValue != nil && self.dictionary[id] == nil {
+          fatalError(
+            """
+            Can't update element with identifier \(id) because no such element exists in the array.
 
-              If you are trying to insert an element into the array, use the "append" or "insert" \
-              methods.
-              """
-        )
-      }
-      if newValue == nil {
-        fatalError(
-          """
-              Can't update element with identifier \(id) with nil.
+            If you are trying to insert an element into the array, use the "append" or "insert" \
+            methods.
+            """
+          )
+        }
+        if newValue == nil {
+          fatalError(
+            """
+            Can't update element with identifier \(id) with nil.
 
-              If you are trying to remove an element from the array, use the "remove(id:) method."
-              """
-        )
+            If you are trying to remove an element from the array, use the "remove(id:) method."
+            """
+          )
+        }
+        self.dictionary[id] = newValue
       }
-      self.dictionary[id] = newValue
     }
-  }
   #else
-  public subscript(id id: ID) -> Element? {
-    // NB: `_read` crashes Xcode Preview compilation.
-    get { self.dictionary[id] }
-    _modify { yield &self.dictionary[id] }
-  }
+    public subscript(id id: ID) -> Element? {
+      // NB: `_read` crashes Xcode Preview compilation.
+      get { self.dictionary[id] }
+      _modify { yield &self.dictionary[id] }
+    }
   #endif
-  
+
   public mutating func insert(_ newElement: Element, at i: Int) {
     let id = newElement[keyPath: self.id]
     self.dictionary[id] = newElement
     self.ids.insert(id, at: i)
   }
-  
+
   public mutating func insert<C>(
     contentsOf newElements: C, at i: Int
   ) where C: Collection, Element == C.Element {
@@ -145,7 +145,7 @@ where ID: Hashable {
       self.insert(newElement, at: i)
     }
   }
-  
+
   /// Removes and returns the element with the specified identifier.
   ///
   /// - Parameter id: The identifier of the element to remove.
@@ -158,12 +158,12 @@ where ID: Hashable {
     self.ids.removeAll(where: { $0 == id })
     return element!
   }
-  
+
   @discardableResult
   public mutating func remove(at position: Int) -> Element {
     self.remove(id: self.ids.remove(at: position))
   }
-  
+
   public mutating func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows {
     var ids: [ID] = []
     for (index, id) in zip(self.ids.indices, self.ids).reversed() {
@@ -176,34 +176,34 @@ where ID: Hashable {
       self.dictionary[id] = nil
     }
   }
-  
+
   public mutating func remove(atOffsets offsets: IndexSet) {
     for offset in offsets.reversed() {
       _ = self.remove(at: offset)
     }
   }
-  
+
   #if canImport(SwiftUI)
-  public mutating func move(fromOffsets source: IndexSet, toOffset destination: Int) {
-    self.ids.move(fromOffsets: source, toOffset: destination)
-  }
+    public mutating func move(fromOffsets source: IndexSet, toOffset destination: Int) {
+      self.ids.move(fromOffsets: source, toOffset: destination)
+    }
   #endif
-  
+
   public mutating func sort(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows {
     try self.ids.sort {
       try areInIncreasingOrder(self.dictionary[$0]!, self.dictionary[$1]!)
     }
   }
-  
+
   public mutating func shuffle<T>(using generator: inout T) where T: RandomNumberGenerator {
     ids.shuffle(using: &generator)
   }
-  
+
   public mutating func shuffle() {
     var rng = SystemRandomNumberGenerator()
     self.shuffle(using: &rng)
   }
-  
+
   public mutating func reverse() {
     ids.reverse()
   }
@@ -278,17 +278,17 @@ where Element: Identifiable, ID == Element.ID {
   public init() {
     self.init([], id: \.id)
   }
-  
+
   public mutating func replaceSubrange<C, R>(_ subrange: R, with newElements: C)
   where C: Collection, R: RangeExpression, Element == C.Element, Index == R.Bound {
     let replacingIds = self.ids[subrange]
     let newIds = newElements.map { $0.id }
     ids.replaceSubrange(subrange, with: newIds)
-    
+
     for element in newElements {
       self.dictionary[element.id] = element
     }
-    
+
     for id in replacingIds where !self.ids.contains(id) {
       self.dictionary[id] = nil
     }
