@@ -4,7 +4,7 @@
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Ftrading-point%2Freactiveswift-composable-architecture%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/trading-point/reactiveswift-composable-architecture)
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Ftrading-point%2Freactiveswift-composable-architecture%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/trading-point/reactiveswift-composable-architecture)
 
-[Point-Free's](https://github.com/pointfreeco) [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) uses Apple's Combine framework as the basis of its `Effect` type. Unfortunately, Combine is only available on iOS 13 and macOS 10.15 and above. In order to be able to use it with earlier versions of the OSes, this fork has adapted The Composable Architecture to use [Reactive Swift](https://github.com/ReactiveCocoa/ReactiveSwift) as the basis for the `Effect` type.
+[Point-Free's](https://github.com/pointfreeco) [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) uses Apple's Combine framework as the basis of its `Effect` type. Unfortunately, Combine is only available on iOS 13 and macOS 10.15 and above. In order to be able to use it with earlier versions of the OSes, this fork has adapted The Composable Architecture to use [Reactive Swift](https://github.com/ReactiveCocoa/ReactiveSwift) as the basis for the `Effect` type. Since release 0.8.1 this fork has also added Linux compatibility.
 
 ## Effect type implementations
 <details>
@@ -19,7 +19,7 @@ Using ReactiveSwift, which doesn't use Combine's type model, `Effect<Output, Fai
 
 # The Composable Architecture
 
-The Composable Architecture (TCA, for short) is a library for building applications in a consistent and understandable way, with composition, testing, and ergonomics in mind. It can be used in SwiftUI, UIKit, and more, and on any Apple platform (iOS, macOS, tvOS, and watchOS).
+The Composable Architecture (TCA, for short) is a library for building applications in a consistent and understandable way, with composition, testing, and ergonomics in mind. It can be used in SwiftUI, UIKit, and more, and on any Apple platform (iOS, macOS, tvOS, and watchOS), and also on Linux.
 
 * [What is the Composable Architecture?](#what-is-the-composable-architecture)
 * [Learn more](#learn-more)
@@ -420,7 +420,7 @@ If you are interested in contributing a wrapper library for a framework that we 
 
 ## Requirements
 
-This fork of The Composable Architecture uses the ReactiveSwift framework, it currently requires minimum deployment targets of iOS 12, macOS 10.14, Mac Catalyst 14, tvOS 14, and watchOS 5, although it may be possible to support earlier versions too.
+This fork of The Composable Architecture uses the ReactiveSwift framework, it currently requires minimum deployment targets of iOS 12, macOS 10.14, Mac Catalyst 14, tvOS 14, and watchOS 5, although it may be possible to support earlier versions too. Since release 0.8.1, Linux is also supported.
 
 ## Installation
 
@@ -431,18 +431,6 @@ You can add ComposableArchitecture to an Xcode project by adding it as a package
   3. Depending on how your project is structured:
       - If you have a single application target that needs access to the library, then add **ComposableArchitecture** directly to your application.
       - If you want to use this library from multiple targets you must create a shared framework that depends on **ComposableArchitecture** and then depend on that framework in all of your targets. For an example of this, check out the [Tic-Tac-Toe](./Examples/TicTacToe) demo application, which splits lots of features into modules and consumes the static library in this fashion using the **TicTacToeCommon** framework.
-
-### Using with older OS versions that don't support Combine and SwiftUI
-
-This fork is compatible with ealier versions of iOS and macOS that don't support Combine or SwiftUI (eg iOS 11.x, 12.x and macOS 10.14.x). However, it still supports SwiftUI and maintains all the SwiftUI specific code from the original library. This also includes some references to Combine (mainly for `ObservableObject` support).
-
-If you want to use this library in a target built for an OS that doesn't support SwiftUI or Combine, you will need to add the following linker options to force SwiftUI and Combine to be weakly linked, in order to avoid having a runtime crash when dyld attemps to resolve the linkage and cannot find the frameworks:
-
-```
-OTHER_LDFLAGS = -weak_framework Combine -weak_framework SwiftUI
-```
-
-In Xcode, add these options to the `Other Linker Flags` section of `Build Settings`.
 
 ## Documentation
 
