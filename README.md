@@ -25,7 +25,6 @@ The Composable Architecture (TCA, for short) is a library for building applicati
 * [Learn more](#learn-more)
 * [Examples](#examples)
 * [Basic usage](#basic-usage)
-* [Supplemental libraries](#supplementary-libraries)
 * [FAQ](#faq)
 * [Requirements](#requirements)
 * [Installation](#installation)
@@ -75,8 +74,6 @@ This repo comes with _lots_ of examples to demonstrate how to solve common and c
   * Navigation
   * Higher-order reducers
   * Reusable components
-* [Location manager](./Examples/LocationManager)
-* [Motion manager](./Examples/MotionManager)
 * [Search](./Examples/Search)
 * [Speech Recognition](./Examples/SpeechRecognition)
 * [Tic-Tac-Toe](./Examples/TicTacToe)
@@ -362,17 +359,6 @@ The Composable Architecture comes with a number of tools to aid in debugging.
 
     <img src="https://s3.amazonaws.com/pointfreeco-production/point-free-pointers/0044-signposts-cover.jpg" width="600">
 
-## Supplementary libraries
-
-One of the most important principles of the Composable Architecture is that side effects are never performed directly, but instead are wrapped in the `Effect` type, returned from reducers, and then the `Store` later performs the effect. This is crucial for simplifying how data flows through an application, and for gaining testability on the full end-to-end cycle of user action to effect execution.
-
-However, this also means that many libraries and SDKs you interact with on a daily basis need to be retrofitted to be a little more friendly to the Composable Architecture style. That's why we'd like to ease the pain of using some of Apple's most popular frameworks by providing wrapper libraries that expose their functionality in a way that plays nicely with our library. So far we support:
-
-* [`ComposableCoreLocation`](./Sources/ComposableCoreLocation/): A wrapper around `CLLocationManager` that makes it easy to use from a reducer, and easy to write tests for how your logic interacts with `CLLocationManager`'s functionality.
-* [`ComposableCoreMotion`](./Sources/ComposableCoreMotion/): A wrapper around `CMMotionManager` that makes it easy to use from a reducer, and easy to write tests for how your logic interacts with `CMMotionManager`'s functionality.
-* More to come soon. Keep an eye out 😉
-
-If you are interested in contributing a wrapper library for a framework that we have not yet covered, feel free to open an issue expressing your interest so that we can discuss a path forward.
 
 ## FAQ
 

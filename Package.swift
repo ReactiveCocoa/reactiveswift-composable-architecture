@@ -15,14 +15,6 @@ let package = Package(
       name: "ComposableArchitecture",
       targets: ["ComposableArchitecture"]
     ),
-    .library(
-      name: "ComposableCoreLocation",
-      targets: ["ComposableCoreLocation"]
-    ),
-    .library(
-      name: "ComposableCoreMotion",
-      targets: ["ComposableCoreMotion"]
-    ),
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "0.1.1"),
@@ -42,37 +34,5 @@ let package = Package(
         "ComposableArchitecture"
       ]
     ),
-    .target(
-      name: "ComposableCoreLocation",
-      dependencies: [
-        "ComposableArchitecture",
-        "ReactiveSwift",
-      ]
-    ),
-    .testTarget(
-      name: "ComposableCoreLocationTests",
-      dependencies: [
-        "ComposableCoreLocation"
-      ]
-    ),
-    .target(
-      name: "ComposableCoreMotion",
-      dependencies: [
-        "ComposableArchitecture"
-      ]
-    ),
-    .testTarget(
-      name: "ComposableCoreMotionTests",
-      dependencies: [
-        "ComposableCoreMotion"
-      ]
-    ),
   ]
 )
-
-#if os(Linux) || os(Android)
-  package.products.removeAll(where: { $0.name != "ComposableArchitecture" })
-  package.targets.removeAll(where: {
-    $0.name != "ComposableArchitecture" && $0.name != "ComposableArchitectureTests"
-  })
-#endif
