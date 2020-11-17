@@ -57,7 +57,7 @@ final class StoreTests: XCTestCase {
     var outputs: [String] = []
 
     parentStore
-      .scope(state: { $0.map { "\($0)" }.skipRepeats() })
+      .producerScope(state: { $0.map { "\($0)" }.skipRepeats() })
       .startWithValues { childStore in
         childStore.$state.producer
           .startWithValues { outputs.append($0) }
@@ -200,7 +200,7 @@ final class StoreTests: XCTestCase {
     var outputs: [Int] = []
 
     parentStore
-      .scope { $0.skipRepeats() }
+      .producerScope { $0.skipRepeats() }
       .startWithValues { outputs.append($0.$state.value) }
 
     XCTAssertEqual(outputs, [0])
