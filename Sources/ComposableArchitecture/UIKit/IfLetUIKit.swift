@@ -44,7 +44,7 @@ extension Store {
   ) -> Disposable where State == Wrapped? {
     let elseDisposable =
       self
-      .scope(
+      .producerScope(
         state: { state -> Effect<Wrapped?, Never> in
           state
             .skipRepeats { ($0 != nil) == ($1 != nil) }
@@ -56,7 +56,7 @@ extension Store {
 
     let unwrapDisposable =
       self
-      .scope(
+      .producerScope(
         state: { state -> Effect<Wrapped, Never> in
           state
             .skipRepeats { ($0 != nil) == ($1 != nil) }

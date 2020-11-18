@@ -88,7 +88,7 @@ public final class Store<State, Action> {
   ///     `LocalState`.
   ///   - fromLocalAction: A function that transforms `LocalAction` into `Action`.
   /// - Returns: A producer of stores with its domain (state and action) transformed.
-  public func scope<LocalState, LocalAction>(
+  public func producerScope<LocalState, LocalAction>(
     state toLocalState: @escaping (Effect<State, Never>) -> Effect<LocalState, Never>,
     action fromLocalAction: @escaping (LocalAction) -> Action
   ) -> Effect<Store<LocalState, LocalAction>, Never> {
@@ -125,10 +125,10 @@ public final class Store<State, Action> {
   ///   of `LocalState`.
   /// - Returns: A producer of stores with its domain (state and action)
   ///   transformed.
-  public func scope<LocalState>(
+  public func producerScope<LocalState>(
     state toLocalState: @escaping (Effect<State, Never>) -> Effect<LocalState, Never>
   ) -> Effect<Store<LocalState, Action>, Never> {
-    self.scope(state: toLocalState, action: { $0 })
+    self.producerScope(state: toLocalState, action: { $0 })
   }
 
   func send(_ action: Action) {
