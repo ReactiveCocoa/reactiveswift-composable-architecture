@@ -293,7 +293,7 @@
               Must handle \(receivedActions.count) received \
               action\(receivedActions.count == 1 ? "" : "s") before sending an action: …
 
-              Unhandled actions: \(debugOutput(receivedActions))
+              Unhandled actions: \(debugOutput(receivedActions.map { $0.action }))
               """,
               file: step.file, line: step.line
             )
@@ -353,7 +353,7 @@
               Must handle \(receivedActions.count) received \
               action\(receivedActions.count == 1 ? "" : "s") before performing this work: …
 
-              Unhandled actions: \(debugOutput(receivedActions))
+              Unhandled actions: \(debugOutput(receivedActions.map { $0.action }))
               """,
               file: step.file, line: step.line
             )
@@ -371,7 +371,7 @@
               Must handle \(receivedActions.count) received \
               action\(receivedActions.count == 1 ? "" : "s") before performing this work: …
 
-              Unhandled actions: \(debugOutput(receivedActions))
+              Unhandled actions: \(debugOutput(receivedActions.map { $0.action }))
               """,
               file: step.file, line: step.line
             )
@@ -390,7 +390,7 @@
           Received \(receivedActions.count) unexpected \
           action\(receivedActions.count == 1 ? "" : "s"): …
 
-          Unhandled actions: \(debugOutput(receivedActions))
+          Unhandled actions: \(debugOutput(receivedActions.map { $0.action }))
           """,
           file: file, line: line
         )
