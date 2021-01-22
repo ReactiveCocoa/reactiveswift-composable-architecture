@@ -123,7 +123,7 @@ public struct AlertState<Action> {
 
   public struct Button {
     public var action: Action?
-    var type: `Type`
+    public var type: `Type`
 
     public static func cancel(
       _ label: TextState,
@@ -152,7 +152,7 @@ public struct AlertState<Action> {
       Self(action: action, type: .destructive(label: label))
     }
 
-    enum `Type` {
+    public enum `Type` {
       case cancel(label: TextState?)
       case `default`(label: TextState)
       case destructive(label: TextState)
