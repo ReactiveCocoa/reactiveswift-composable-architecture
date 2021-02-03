@@ -109,9 +109,9 @@
       self.viewStore.state
     }
   }
+#endif
 
-  #if compiler(>=5.3)
-
+#if canImport(Combine) && canImport(SwiftUI) && compiler(>=5.3)
   import SwiftUI
 
   /// A structure that transforms a store into an observable view store in order to compute scenes
@@ -183,7 +183,5 @@
       self.init(store, removeDuplicates: ==, content: content)
     }
   }
-
-  #endif
 
 #endif
