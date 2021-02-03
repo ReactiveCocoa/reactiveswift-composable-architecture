@@ -100,11 +100,7 @@ import SwiftUI
 ///       }
 ///     )
 ///
-@available(iOS 13, *)
-@available(macCatalyst 13, *)
-@available(macOS, unavailable)
-@available(tvOS 13, *)
-@available(watchOS 6, *)
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 public struct ActionSheetState<Action> {
   public let id = UUID()
   public var buttons: [Button]
@@ -124,11 +120,7 @@ public struct ActionSheetState<Action> {
   public typealias Button = AlertState<Action>.Button
 }
 
-@available(iOS 13, *)
-@available(macCatalyst 13, *)
-@available(macOS, unavailable)
-@available(tvOS 13, *)
-@available(watchOS 6, *)
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 extension ActionSheetState: CustomDebugOutputConvertible {
   public var debugOutput: String {
     let fields = (
@@ -140,11 +132,7 @@ extension ActionSheetState: CustomDebugOutputConvertible {
   }
 }
 
-@available(iOS 13, *)
-@available(macCatalyst 13, *)
-@available(macOS, unavailable)
-@available(tvOS 13, *)
-@available(watchOS 6, *)
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 extension ActionSheetState: Equatable where Action: Equatable {
   public static func == (lhs: Self, rhs: Self) -> Bool {
     lhs.title == rhs.title
@@ -153,11 +141,7 @@ extension ActionSheetState: Equatable where Action: Equatable {
   }
 }
 
-@available(iOS 13, *)
-@available(macCatalyst 13, *)
-@available(macOS, unavailable)
-@available(tvOS 13, *)
-@available(watchOS 6, *)
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 extension ActionSheetState: Hashable where Action: Hashable {
   public func hash(into hasher: inout Hasher) {
     hasher.combine(self.title)
@@ -166,18 +150,10 @@ extension ActionSheetState: Hashable where Action: Hashable {
   }
 }
 
-@available(iOS 13, *)
-@available(macCatalyst 13, *)
-@available(macOS, unavailable)
-@available(tvOS 13, *)
-@available(watchOS 6, *)
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 extension ActionSheetState: Identifiable {}
 
-@available(iOS 13, *)
-@available(macCatalyst 13, *)
-@available(macOS 10.15, *)
-@available(tvOS 13, *)
-@available(watchOS 6, *)
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 extension View {
   /// Displays an action sheet when the store's state becomes non-`nil`, and dismisses it when it
   /// becomes `nil`.
@@ -187,11 +163,8 @@ extension View {
   ///   - dismissal: An action to send when the action sheet is dismissed through non-user actions,
   ///     such as when an action sheet is automatically dismissed by the system. Use this action to
   ///     `nil` out the associated action sheet state.
-  @available(iOS 13, *)
-  @available(macCatalyst 13, *)
+  @available(iOS 13, macCatalyst 13, tvOS 13, watchOS 6, *)
   @available(macOS, unavailable)
-  @available(tvOS 13, *)
-  @available(watchOS 6, *)
   public func actionSheet<Action>(
     _ store: Store<ActionSheetState<Action>?, Action>,
     dismiss: Action
@@ -205,12 +178,10 @@ extension View {
   }
 }
 
-@available(iOS 13, *)
-@available(macCatalyst 13, *)
-@available(macOS, unavailable)
-@available(tvOS 13, *)
-@available(watchOS 6, *)
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 extension ActionSheetState {
+  @available(iOS 13, macCatalyst 13, tvOS 13, watchOS 6, *)
+  @available(macOS, unavailable)
   fileprivate func toSwiftUI(send: @escaping (Action) -> Void) -> SwiftUI.ActionSheet {
     SwiftUI.ActionSheet(
       title: Text(self.title),

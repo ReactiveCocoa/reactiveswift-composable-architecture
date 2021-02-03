@@ -1,12 +1,10 @@
+#if canImport(SwiftUI)
+
 import SwiftUI
 
 // NB: Deprecated after 0.10.0:
 
-@available(iOS 13, *)
-@available(macCatalyst 13, *)
-@available(macOS, unavailable)
-@available(tvOS 13, *)
-@available(watchOS 6, *)
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 extension ActionSheetState {
   @available(*, deprecated, message: "'title' and 'message' should be 'TextState'")
   @_disfavoredOverload
@@ -23,6 +21,7 @@ extension ActionSheetState {
   }
 }
 
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 extension AlertState {
   @available(*, deprecated, message: "'title' and 'message' should be 'TextState'")
   @_disfavoredOverload
@@ -55,6 +54,7 @@ extension AlertState {
   }
 }
 
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 extension AlertState.Button {
   @available(*, deprecated, message: "'label' should be 'TextState'")
   @_disfavoredOverload
@@ -83,6 +83,7 @@ extension AlertState.Button {
     Self(action: action, type: .destructive(label: .init(label)))
   }
 }
+#endif
 
 // NB: Deprecated after 0.9.0:
 
