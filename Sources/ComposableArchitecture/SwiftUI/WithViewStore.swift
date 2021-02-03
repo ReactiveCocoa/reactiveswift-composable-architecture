@@ -114,9 +114,9 @@
 
   import SwiftUI
 
-  /// A structure that transforms a store into an observable view store in order to compute scenes from
-  /// store state.
-  @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+  /// A structure that transforms a store into an observable view store in order to compute scenes
+  /// from store state.
+  @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
   extension WithViewStore: Scene where Content: Scene {
     public typealias Body = Content
 
@@ -152,7 +152,7 @@
     }
   }
 
-  @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+  @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
   extension WithViewStore where Content: Scene, State: Equatable {
     /// Initializes a structure that transforms a store into an observable view store in order to
     /// compute views from equatable store state.
@@ -168,7 +168,7 @@
     }
   }
 
-  @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+  @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
   extension WithViewStore where Content: Scene, State == Void {
     /// Initializes a structure that transforms a store into an observable view store in order to
     /// compute views from equatable store state.
