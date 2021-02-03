@@ -44,7 +44,7 @@ final class CountersTableViewController: UITableViewController {
     self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellIdentifier)
 
     self.viewStore.produced.counters
-      .startWithValues({ [weak self] in self?.tableView.reloadData() })
+      .startWithValues({ [weak self] _ in self?.tableView.reloadData() })
   }
 
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
