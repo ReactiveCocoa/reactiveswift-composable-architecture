@@ -19,11 +19,24 @@
   ///   initializer that takes a binding (see
   ///   [here](https://gist.github.com/mbrandonw/dee2ceac2c316a1619cfdf1dc7945f66)).
   @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-  public struct WithViewStore<State, Action, Content>: View where Content: View {
+  public struct WithViewStore<State, Action, Content> {
     private let content: (ViewStore<State, Action>) -> Content
     private var prefix: String?
     @ObservedObject private var viewStore: ViewStore<State, Action>
 
+    /// Prints debug information to the console whenever the view is computed.
+    ///
+    /// - Parameter prefix: A string with which to prefix all debug messages.
+    /// - Returns: A structure that prints debug messages for all computations.
+    public func debug(_ prefix: String = "") -> Self {
+      var view = self
+      view.prefix = prefix
+      return view
+    }
+  }
+
+  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
+  extension WithViewStore: View where Content: View {
     /// Initializes a structure that transforms a store into an observable view store in order to
     /// compute views from store state.
 
@@ -41,7 +54,7 @@
       self.viewStore = ViewStore(store, removeDuplicates: isDuplicate)
     }
 
-    public var body: some View {
+    public var body: Content {
       #if DEBUG
         if let prefix = self.prefix {
           print(
@@ -54,20 +67,10 @@
       #endif
       return self.content(self.viewStore)
     }
-
-    /// Prints debug information to the console whenever the view is computed.
-    ///
-    /// - Parameter prefix: A string with which to prefix all debug messages.
-    /// - Returns: A structure that prints debug messages for all computations.
-    public func debug(_ prefix: String = "") -> Self {
-      var view = self
-      view.prefix = prefix
-      return view
-    }
   }
 
   @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-  extension WithViewStore where State: Equatable {
+  extension WithViewStore where Content: View, State: Equatable {
     /// Initializes a structure that transforms a store into an observable view store in order to
     /// compute views from equatable store state.
     ///
@@ -83,7 +86,7 @@
   }
 
   @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-  extension WithViewStore where State == Void {
+  extension WithViewStore where Content: View, State == Void {
     /// Initializes a structure that transforms a store into an observable view store in order to
     /// compute views from equatable store state.
     ///
@@ -106,4 +109,79 @@
       self.viewStore.state
     }
   }
+#endif
+
+#if canImport(Combine) && canImport(SwiftUI) && compiler(>=5.3)
+  import SwiftUI
+
+  /// A structure that transforms a store into an observable view store in order to compute scenes
+  /// from store state.
+  @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
+  extension WithViewStore: Scene where Content: Scene {
+    public typealias Body = Content
+
+    /// Initializes a structure that transforms a store into an observable view store in order to
+    /// compute scenes from store state.
+
+    /// - Parameters:
+    ///   - store: A store.
+    ///   - isDuplicate: A function to determine when two `State` values are equal. When values are
+    ///     equal, repeat view computations are removed,
+    ///   - content: A function that can generate content from a view store.
+    public init(
+      _ store: Store<State, Action>,
+      removeDuplicates isDuplicate: @escaping (State, State) -> Bool,
+      @SceneBuilder content: @escaping (ViewStore<State, Action>) -> Content
+    ) {
+      self.content = content
+      self.viewStore = ViewStore(store, removeDuplicates: isDuplicate)
+    }
+
+    public var body: Content {
+      #if DEBUG
+        if let prefix = self.prefix {
+          print(
+            """
+            \(prefix.isEmpty ? "" : "\(prefix): ")\
+            Evaluating WithViewStore<\(State.self), \(Action.self), ...>.body
+            """
+          )
+        }
+      #endif
+      return self.content(self.viewStore)
+    }
+  }
+
+  @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
+  extension WithViewStore where Content: Scene, State: Equatable {
+    /// Initializes a structure that transforms a store into an observable view store in order to
+    /// compute views from equatable store state.
+    ///
+    /// - Parameters:
+    ///   - store: A store of equatable state.
+    ///   - content: A function that can generate content from a view store.
+    public init(
+      _ store: Store<State, Action>,
+      @SceneBuilder content: @escaping (ViewStore<State, Action>) -> Content
+    ) {
+      self.init(store, removeDuplicates: ==, content: content)
+    }
+  }
+
+  @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
+  extension WithViewStore where Content: Scene, State == Void {
+    /// Initializes a structure that transforms a store into an observable view store in order to
+    /// compute views from equatable store state.
+    ///
+    /// - Parameters:
+    ///   - store: A store of equatable state.
+    ///   - content: A function that can generate content from a view store.
+    public init(
+      _ store: Store<State, Action>,
+      @SceneBuilder content: @escaping (ViewStore<State, Action>) -> Content
+    ) {
+      self.init(store, removeDuplicates: ==, content: content)
+    }
+  }
+
 #endif
