@@ -26,14 +26,14 @@ enum EffectsCancellationAction: Equatable {
   case cancelButtonTapped
   case stepperChanged(Int)
   case triviaButtonTapped
-  case triviaResponse(Result<String, TriviaApiError>)
+  case triviaResponse(Result<String, NumbersApiError>)
 }
 
 struct TriviaApiError: Error, Equatable {}
 
 struct EffectsCancellationEnvironment {
   var mainQueue: DateScheduler
-  var trivia: (Int) -> Effect<String, TriviaApiError>
+  var numberFact: (Int) -> Effect<String, NumbersApiError>
 }
 
 // MARK: - Business logic
@@ -59,7 +59,7 @@ let effectsCancellationReducer = Reducer<
     state.currentTrivia = nil
     state.isTriviaRequestInFlight = true
 
-    return environment.trivia(state.count)
+    return environment.numberFact(state.count)
       .observe(on: environment.mainQueue)
       .catchToEffect()
       .map(EffectsCancellationAction.triviaResponse)
@@ -129,7 +129,7 @@ struct EffectsCancellation_Previews: PreviewProvider {
           reducer: effectsCancellationReducer,
           environment: EffectsCancellationEnvironment(
             mainQueue: QueueScheduler.main,
-            trivia: liveTrivia(for:)
+            numberFact: liveNumberFact(for:)
           )
         )
       )
