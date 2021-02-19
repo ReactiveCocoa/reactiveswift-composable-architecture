@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "DC9194F724201A7800A5BE1F"
-               BuildableName = "NewGameCore.framework"
-               BlueprintName = "NewGameCore"
-               ReferencedContainer = "container:TicTacToe.xcodeproj">
+               BlueprintIdentifier = "DC5BDCA924589177009C65A3"
+               BuildableName = "VoiceMemos.app"
+               BlueprintName = "VoiceMemos"
+               ReferencedContainer = "container:VoiceMemos.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -32,10 +32,10 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "DC9194FF24201A7800A5BE1F"
-               BuildableName = "NewGameCoreTests.xctest"
-               BlueprintName = "NewGameCoreTests"
-               ReferencedContainer = "container:TicTacToe.xcodeproj">
+               BlueprintIdentifier = "DC5BDCBF24589179009C65A3"
+               BuildableName = "VoiceMemosTests.xctest"
+               BlueprintName = "VoiceMemosTests"
+               ReferencedContainer = "container:VoiceMemos.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -50,6 +50,16 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "DC5BDCA924589177009C65A3"
+            BuildableName = "VoiceMemos.app"
+            BlueprintName = "VoiceMemos"
+            ReferencedContainer = "container:VoiceMemos.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -57,15 +67,16 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "DC9194F724201A7800A5BE1F"
-            BuildableName = "NewGameCore.framework"
-            BlueprintName = "NewGameCore"
-            ReferencedContainer = "container:TicTacToe.xcodeproj">
+            BlueprintIdentifier = "DC5BDCA924589177009C65A3"
+            BuildableName = "VoiceMemos.app"
+            BlueprintName = "VoiceMemos"
+            ReferencedContainer = "container:VoiceMemos.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
