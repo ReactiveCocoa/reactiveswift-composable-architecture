@@ -213,6 +213,7 @@ extension Reducer {
   }
 }
 
+#if canImport(SwiftUI)
 extension ViewStore {
   /// Derives a binding from the store that mutates state at the given writable key path by wrapping
   /// a `BindingAction` with the store's action type.
@@ -243,3 +244,4 @@ extension ViewStore {
     )
   }
 }
+#endif
