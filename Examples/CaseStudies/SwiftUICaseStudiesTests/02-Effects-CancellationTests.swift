@@ -13,7 +13,7 @@ class EffectsCancellationTests: XCTestCase {
       reducer: effectsCancellationReducer,
       environment: .init(
         mainQueue: self.scheduler,
-        trivia: { n in Effect(value: "\(n) is a good number Brent") }
+        numberFact: { n in Effect(value: "\(n) is a good number Brent") }
       )
     )
 
@@ -43,7 +43,7 @@ class EffectsCancellationTests: XCTestCase {
       reducer: effectsCancellationReducer,
       environment: .init(
         mainQueue: self.scheduler,
-        trivia: { _ in Effect(error: TriviaApiError()) }
+        numberFact: { _ in Effect(error: NumbersApiError()) }
       )
     )
 
@@ -54,7 +54,7 @@ class EffectsCancellationTests: XCTestCase {
       .do {
         self.scheduler.advance()
       },
-      .receive(.triviaResponse(.failure(TriviaApiError()))) {
+      .receive(.triviaResponse(.failure(NumbersApiError()))) {
         $0.isTriviaRequestInFlight = false
       }
     )
@@ -72,7 +72,7 @@ class EffectsCancellationTests: XCTestCase {
       reducer: effectsCancellationReducer,
       environment: .init(
         mainQueue: self.scheduler,
-        trivia: { n in Effect(value: "\(n) is a good number Brent") }
+        numberFact: { n in Effect(value: "\(n) is a good number Brent") }
       )
     )
 
@@ -95,7 +95,7 @@ class EffectsCancellationTests: XCTestCase {
       reducer: effectsCancellationReducer,
       environment: .init(
         mainQueue: self.scheduler,
-        trivia: { n in Effect(value: "\(n) is a good number Brent") }
+        numberFact: { n in Effect(value: "\(n) is a good number Brent") }
       )
     )
 
