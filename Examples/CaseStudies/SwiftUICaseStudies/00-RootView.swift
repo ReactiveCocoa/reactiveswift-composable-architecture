@@ -42,6 +42,16 @@ struct RootView: View {
             )
 
             NavigationLink(
+              "Form bindings",
+              destination: BindingFormView(
+                store: self.store.scope(
+                  state: { $0.bindingForm },
+                  action: RootAction.bindingForm
+                )
+              )
+            )
+
+            NavigationLink(
               "Optional state",
               destination: OptionalBasicsView(
                 store: self.store.scope(
