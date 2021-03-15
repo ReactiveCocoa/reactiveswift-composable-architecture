@@ -126,6 +126,24 @@ extension Effect {
     self.map(Result<Value, Error>.success)
       .flatMapError { Effect<Result<Value, Error>, Never>(value: Result.failure($0)) }
   }
+
+  /// Turns any publisher into an `Effect` for any output and failure type by ignoring all output
+  /// and any failure.
+  ///
+  /// This is useful for times you want to fire off an effect but don't want to feed any data back
+  /// into the system.
+  ///
+  ///     case .buttonTapped:
+  ///       return analyticsClient.track("Button Tapped")
+  ///         .fireAndForget()
+  ///
+  /// - Returns: An effect that never produces output or errors.
+  public func fireAndForget<NewValue, NewError>() -> Effect<NewValue, NewError> {
+    self.flatMapError { _ in .empty }
+      .flatMap(.latest) { _ in
+        .empty
+      }
+  }
 }
 
 extension Effect where Value == Never {
