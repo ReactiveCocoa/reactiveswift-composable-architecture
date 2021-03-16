@@ -344,6 +344,8 @@ final class DebugTests: XCTestCase {
     )
   }
 
+#if canImport(SwiftUI)
+  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   func testTextState() {
     XCTAssertEqual(
       debugOutput(
@@ -410,6 +412,7 @@ final class DebugTests: XCTestCase {
       """
     )
   }
+#endif
 
   func testEffectOutput() {
     //    XCTAssertEqual(
