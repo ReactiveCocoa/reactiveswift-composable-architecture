@@ -39,22 +39,18 @@ final class ComposableArchitectureTests: XCTestCase {
       environment: scheduler
     )
 
-    store.assert(
-      .send(.incrAndSquareLater),
-      .do { scheduler.advance(by: .seconds(1)) },
-      .receive(.squareNow) { $0 = 4 },
-      .do { scheduler.advance(by: .seconds(1)) },
-      .receive(.incrNow) { $0 = 5 },
-      .receive(.squareNow) { $0 = 25 }
-    )
+    store.send(.incrAndSquareLater)
+    scheduler.advance(by: .seconds(1))
+    store.receive(.squareNow) { $0 = 4 }
+    scheduler.advance(by: .seconds(1))
+    store.receive(.incrNow) { $0 = 5 }
+    store.receive(.squareNow) { $0 = 25 }
 
-    store.assert(
-      .send(.incrAndSquareLater),
-      .do { scheduler.advance(by: .seconds(2)) },
-      .receive(.squareNow) { $0 = 625 },
-      .receive(.incrNow) { $0 = 626 },
-      .receive(.squareNow) { $0 = 391876 }
-    )
+    store.send(.incrAndSquareLater)
+    scheduler.advance(by: .seconds(2))
+    store.receive(.squareNow) { $0 = 625 }
+    store.receive(.incrNow) { $0 = 626 }
+    store.receive(.squareNow) { $0 = 391876 }
   }
 
   func testSimultaneousWorkOrdering() {
@@ -102,13 +98,11 @@ final class ComposableArchitectureTests: XCTestCase {
       )
     )
 
-    store.assert(
-      .send(.start),
-      .send(.incr) { $0 = 1 },
-      .do { subject.input.send(value: ()) },
-      .receive(.incr) { $0 = 2 },
-      .send(.end)
-    )
+    store.send(.start)
+    store.send(.incr) { $0 = 1 }
+    subject.input.send(value: ())
+    store.receive(.incr) { $0 = 2 }
+    store.send(.end)
   }
 
   func testCancellation() {
@@ -154,16 +148,12 @@ final class ComposableArchitectureTests: XCTestCase {
       )
     )
 
-    store.assert(
-      .send(.incr) { $0 = 1 },
-      .do { scheduler.advance() },
-      .receive(.response(1)) { $0 = 1 }
-    )
+    store.send(.incr) { $0 = 1 }
+    scheduler.advance()
+    store.receive(.response(1)) { $0 = 1 }
 
-    store.assert(
-      .send(.incr) { $0 = 2 },
-      .send(.cancel),
-      .do { scheduler.run() }
-    )
+    store.send(.incr) { $0 = 2 }
+    store.send(.cancel)
+    scheduler.run()
   }
 }
