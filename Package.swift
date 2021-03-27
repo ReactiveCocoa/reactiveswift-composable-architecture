@@ -26,8 +26,8 @@ let package = Package(
       name: "ComposableArchitecture",
       dependencies: [
         "ReactiveSwift",
-        "CasePaths",
-        "XCTestDynamicOverlay",
+        .product(name: "CasePaths", package: "swift-case-paths"),
+        .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
       ]
     ),
     .testTarget(
