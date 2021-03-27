@@ -19,16 +19,16 @@ class LongLivingEffectsTests: XCTestCase {
 
     store.send(.onAppear)
 
-      // Simulate a screenshot being taken
+    // Simulate a screenshot being taken
     screenshotTaken.input.send(value: ())
     store.receive(.userDidTakeScreenshotNotification) {
-        $0.screenshotCount = 1
+      $0.screenshotCount = 1
     }
 
     store.send(.onDisappear)
 
-      // Simulate a screenshot being taken to show no effects
-      // are executed.
+    // Simulate a screenshot being taken to show no effects
+    // are executed.
     screenshotTaken.input.send(value: ())
   }
 }

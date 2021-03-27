@@ -13,7 +13,10 @@ extension ImmediateScheduler: DateScheduler {
     schedule(action)
   }
 
-  public func schedule(after date: Date, interval: DispatchTimeInterval, leeway: DispatchTimeInterval, action: @escaping () -> Void) -> Disposable? {
+  public func schedule(
+    after date: Date, interval: DispatchTimeInterval, leeway: DispatchTimeInterval,
+    action: @escaping () -> Void
+  ) -> Disposable? {
     schedule(action)
   }
 }

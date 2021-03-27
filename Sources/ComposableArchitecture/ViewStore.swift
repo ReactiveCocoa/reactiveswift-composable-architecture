@@ -275,4 +275,3 @@ extension ViewStore where State == Void {
   extension ViewStore: ObservableObject {
   }
 #endif
-

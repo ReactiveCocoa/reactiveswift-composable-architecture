@@ -215,7 +215,8 @@ class VoiceMemosTests: XCTestCase {
       $0.voiceMemos[0].mode = .playing(progress: 0)
     }
     store.receive(.voiceMemo(index: 0, action: .timerUpdated(0)))
-    store.receive(.voiceMemo(index: 0, action: .audioPlayerClient(.failure(.decodeErrorDidOccur)))) {
+    store.receive(.voiceMemo(index: 0, action: .audioPlayerClient(.failure(.decodeErrorDidOccur))))
+    {
       $0.alert = .init(title: .init("Voice memo playback failed."))
       $0.voiceMemos[0].mode = .notPlaying
     }

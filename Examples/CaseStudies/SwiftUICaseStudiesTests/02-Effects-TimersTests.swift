@@ -17,30 +17,30 @@ class TimersTests: XCTestCase {
     )
 
     store.send(.toggleTimerButtonTapped) {
-        $0.isTimerActive = true
+      $0.isTimerActive = true
     }
     self.scheduler.advance(by: .seconds(1))
     store.receive(.timerTicked) {
-        $0.secondsElapsed = 1
+      $0.secondsElapsed = 1
     }
     self.scheduler.advance(by: .seconds(5))
     store.receive(.timerTicked) {
-        $0.secondsElapsed = 2
+      $0.secondsElapsed = 2
     }
     store.receive(.timerTicked) {
-        $0.secondsElapsed = 3
+      $0.secondsElapsed = 3
     }
     store.receive(.timerTicked) {
-        $0.secondsElapsed = 4
+      $0.secondsElapsed = 4
     }
     store.receive(.timerTicked) {
-        $0.secondsElapsed = 5
+      $0.secondsElapsed = 5
     }
     store.receive(.timerTicked) {
-        $0.secondsElapsed = 6
+      $0.secondsElapsed = 6
     }
     store.send(.toggleTimerButtonTapped) {
-        $0.isTimerActive = false
-      }
+      $0.isTimerActive = false
+    }
   }
 }

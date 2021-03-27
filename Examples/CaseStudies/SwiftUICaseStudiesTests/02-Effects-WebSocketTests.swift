@@ -1,5 +1,5 @@
-import ReactiveSwift
 import ComposableArchitecture
+import ReactiveSwift
 import XCTest
 
 @testable import SwiftUICaseStudies
@@ -15,7 +15,7 @@ class WebSocketTests: XCTestCase {
       environment: WebSocketEnvironment(
         mainQueue: ImmediateScheduler(),
         webSocket: .mock(
-            open: { _, _, _ in socketSubject.output.producer },
+          open: { _, _, _ in socketSubject.output.producer },
           receive: { _ in receiveSubject.output.producer },
           send: { _, _ in Effect(value: nil) },
           sendPing: { _ in .none }
@@ -63,7 +63,7 @@ class WebSocketTests: XCTestCase {
       environment: WebSocketEnvironment(
         mainQueue: ImmediateScheduler(),
         webSocket: .mock(
-            open: { _, _, _ in socketSubject.output.producer },
+          open: { _, _, _ in socketSubject.output.producer },
           receive: { _ in receiveSubject.output.producer },
           send: { _, _ in Effect(value: NSError(domain: "", code: 1)) },
           sendPing: { _ in .none }
@@ -108,9 +108,9 @@ class WebSocketTests: XCTestCase {
       environment: WebSocketEnvironment(
         mainQueue: scheduler,
         webSocket: .mock(
-            open: { _, _, _ in socketSubject.output.producer },
+          open: { _, _, _ in socketSubject.output.producer },
           receive: { _ in .none },
-            sendPing: { _ in pingSubject.output.producer }
+          sendPing: { _ in pingSubject.output.producer }
         )
       )
     )
@@ -144,8 +144,8 @@ class WebSocketTests: XCTestCase {
       environment: WebSocketEnvironment(
         mainQueue: ImmediateScheduler(),
         webSocket: .mock(
-            cancel: { _, _, _ in .fireAndForget { socketSubject.input.sendCompleted() } },
-            open: { _, _, _ in socketSubject.output.producer },
+          cancel: { _, _, _ in .fireAndForget { socketSubject.input.sendCompleted() } },
+          open: { _, _, _ in socketSubject.output.producer },
           receive: { _ in .none },
           sendPing: { _ in .none }
         )

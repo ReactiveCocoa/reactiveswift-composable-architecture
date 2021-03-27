@@ -205,9 +205,9 @@
           return
             effects
             .on(
-                starting: { [weak self] in self?.longLivingEffects.insert(effect) },
-                completed: { [weak self] in self?.longLivingEffects.remove(effect) },
-                disposed: { [weak self] in self?.longLivingEffects.remove(effect) }
+              starting: { [weak self] in self?.longLivingEffects.insert(effect) },
+              completed: { [weak self] in self?.longLivingEffects.remove(effect) },
+              disposed: { [weak self] in self?.longLivingEffects.remove(effect) }
             )
             .map { .init(origin: .receive($0), file: action.file, line: action.line) }
 
