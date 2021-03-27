@@ -17,21 +17,23 @@ let package = Package(
     )
   ],
   dependencies: [
-    .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "0.1.3"),
     .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift", from: "6.4.0"),
+    .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "0.1.3"),
+    .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "0.1.0"),
   ],
   targets: [
     .target(
       name: "ComposableArchitecture",
       dependencies: [
-        .product(name: "CasePaths", package: "swift-case-paths"),
         "ReactiveSwift",
+        "CasePaths",
+        "XCTestDynamicOverlay",
       ]
     ),
     .testTarget(
       name: "ComposableArchitectureTests",
       dependencies: [
-        "ComposableArchitecture"
+        "ComposableArchitecture",
       ]
     ),
   ]
