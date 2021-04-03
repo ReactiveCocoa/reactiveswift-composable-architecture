@@ -7,11 +7,19 @@ import ReactiveSwift
 /// You will typically construct a single one of these at the root of your application, and then use
 /// the `scope` method to derive more focused stores that can be passed to subviews.
 public final class Store<State, Action> {
-  @MutableProperty private(set) var state: State
+  @MutableProperty
+  private(set) var state: State
+  
   private var isSending = false
   private let reducer: (inout State, Action) -> Effect<Action, Never>
   private var synchronousActionsToSend: [Action] = []
   private var bufferedActions: [Action] = []
+  
+  @DisposablesScopedStorage
+  private var effectDisposables: [UUID: Disposable] = [:]
+  
+  // Property for testing effectDisposables deinitialization
+  internal var effectDisposablesCount: Int { effectDisposables.values.count }
 
   /// Initializes a store from an initial state, a reducer, and an environment.
   ///
@@ -252,16 +260,37 @@ public final class Store<State, Action> {
       self.isSending = true
       let effect = self.reducer(&self.state, action)
       self.isSending = false
+      
+      var didComplete = false
+      let effectID = UUID()
 
       var isProcessingEffects = true
-      effect.startWithValues { [weak self] action in
-        if isProcessingEffects {
-          self?.synchronousActionsToSend.append(action)
-        } else {
-          self?.send(action)
+      
+      let observer = Signal<Action, Never>.Observer(
+        value: { [weak self] action in
+          if isProcessingEffects {
+            self?.synchronousActionsToSend.append(action)
+          } else {
+            self?.send(action)
+          }
+        },
+        failed: .none,
+        completed: { [weak self] in
+          didComplete = true
+          self?.effectDisposables.removeValue(forKey: effectID)?.dispose()
+        },
+        interrupted: { [weak self] in
+          self?.effectDisposables.removeValue(forKey: effectID)?.dispose()
         }
-      }
+      )
+      let effectDisposable = effect.start(observer)
       isProcessingEffects = false
+      
+      if !didComplete {
+        self.effectDisposables[effectID] = effectDisposable
+      } else {
+        effectDisposable.dispose()
+      }
     }
   }
 

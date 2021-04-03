@@ -4,6 +4,38 @@ import XCTest
 @testable import ComposableArchitecture
 
 final class StoreTests: XCTestCase {
+  
+  func testEffectDisposablesDeinitialization() {
+    enum Action {
+      case triggerDelay
+      case delayDidComplete
+    }
+    let delayedReducer = Reducer<Void, Action, DateScheduler> { _, action, mainQueue in
+      switch action {
+      case .triggerDelay:
+        return Effect(value: .delayDidComplete).delay(1, on: mainQueue)
+        
+      case .delayDidComplete:
+        return .none
+      }
+    }
+
+    let store = Store(
+      initialState: (),
+      reducer: delayedReducer,
+      environment: QueueScheduler.main
+    )
+    
+    store.send(.triggerDelay)
+    store.send(.triggerDelay)
+    store.send(.triggerDelay)
+    
+    XCTAssertEqual(store.effectDisposablesCount, 3)
+    
+    XCTWaiter().wait(for: [XCTestExpectation()], timeout: 1.1)
+    
+    XCTAssertEqual(store.effectDisposablesCount, 0)
+  }
 
   func testScopedStoreReceivesUpdatesFromParent() {
     let counterReducer = Reducer<Int, Void, Void> { state, _, _ in
