@@ -280,6 +280,7 @@ public final class Store<State, Action> {
           self?.effectDisposables.removeValue(forKey: effectID)?.dispose()
         },
         interrupted: { [weak self] in
+          didComplete = true
           self?.effectDisposables.removeValue(forKey: effectID)?.dispose()
         }
       )

@@ -29,6 +29,7 @@ final class StoreTests: XCTestCase {
     store.send(.triggerDelay)
     store.send(.triggerDelay)
     store.send(.triggerDelay)
+    store.send(.delayDidComplete)
     
     XCTAssertEqual(store.effectDisposablesCount, 3)
     
