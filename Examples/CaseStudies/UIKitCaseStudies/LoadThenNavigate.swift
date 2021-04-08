@@ -67,7 +67,7 @@ class LazyNavigationViewController: UIViewController {
 
     self.title = "Load then navigate"
 
-    self.view.backgroundColor = .white
+    self.view.backgroundColor = .systemBackground
 
     let button = UIButton(type: .system)
     button.addTarget(self, action: #selector(loadOptionalCounterTapped), for: .touchUpInside)
