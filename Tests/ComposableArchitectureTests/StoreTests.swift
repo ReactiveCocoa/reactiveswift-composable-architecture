@@ -31,11 +31,11 @@ final class StoreTests: XCTestCase {
     store.send(.triggerDelay)
     store.send(.delayDidComplete)
     
-    XCTAssertEqual(store.effectDisposablesCount, 3)
+    XCTAssertEqual(store.effectDisposables.count, 3)
     
     XCTWaiter().wait(for: [XCTestExpectation()], timeout: 1.1)
     
-    XCTAssertEqual(store.effectDisposablesCount, 0)
+    XCTAssertEqual(store.effectDisposables.count, 0)
   }
 
   func testScopedStoreReceivesUpdatesFromParent() {
