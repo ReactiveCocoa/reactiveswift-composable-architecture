@@ -4,7 +4,7 @@ import XCTest
 @testable import ComposableArchitecture
 
 final class StoreTests: XCTestCase {
-  
+
   func testEffectDisposablesDeinitialization() {
     enum Action {
       case triggerDelay
@@ -14,7 +14,7 @@ final class StoreTests: XCTestCase {
       switch action {
       case .triggerDelay:
         return Effect(value: .delayDidComplete).delay(1, on: mainQueue)
-        
+
       case .delayDidComplete:
         return .none
       }
@@ -25,16 +25,16 @@ final class StoreTests: XCTestCase {
       reducer: delayedReducer,
       environment: QueueScheduler.main
     )
-    
+
     store.send(.triggerDelay)
     store.send(.triggerDelay)
     store.send(.triggerDelay)
     store.send(.delayDidComplete)
-    
+
     XCTAssertEqual(store.effectDisposables.count, 3)
-    
+
     XCTWaiter().wait(for: [XCTestExpectation()], timeout: 1.1)
-    
+
     XCTAssertEqual(store.effectDisposables.count, 0)
   }
 

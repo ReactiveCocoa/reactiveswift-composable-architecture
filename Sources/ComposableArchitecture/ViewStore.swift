@@ -68,7 +68,7 @@ public final class ViewStore<State, Action> {
     """
   )
   public var publisher: StoreProducer<State> { produced }
-  
+
   internal var viewDisposable: Disposable?
 
   /// Initializes a view store from a store.
@@ -259,7 +259,7 @@ public final class ViewStore<State, Action> {
       self.binding(send: { _ in action })
     }
   #endif
-  
+
   deinit {
     viewDisposable?.dispose()
   }
