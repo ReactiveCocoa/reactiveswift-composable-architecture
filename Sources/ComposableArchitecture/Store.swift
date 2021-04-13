@@ -174,21 +174,9 @@ public final class Store<State, Action> {
         return .none
       }
     )
-    let observer = Signal<State, Never>.Observer(
-      value: { [weak localStore] state in
-        localStore?.state = toLocalState(state)
-      },
-      failed: .none,
-      completed: { [weak localStore] in
-        localStore?.parentDisposable?.dispose()
-        localStore?.parentDisposable = nil
-      },
-      interrupted: { [weak localStore] in
-        localStore?.parentDisposable?.dispose()
-        localStore?.parentDisposable = nil
-      }
-    )
-    localStore.parentDisposable = self.$state.producer.start(observer)
+    localStore.parentDisposable = self.$state.producer.startWithValues { [weak localStore] state in
+      localStore?.state = toLocalState(state)
+    }
     return localStore
   }
   

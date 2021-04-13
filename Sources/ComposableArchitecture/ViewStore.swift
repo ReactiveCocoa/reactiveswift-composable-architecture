@@ -85,21 +85,9 @@ public final class ViewStore<State, Action> {
     self.produced = Produced(by: producer)
     self.state = store.state
     self._send = store.send
-    let observer = Signal<State, Never>.Observer(
-      value: { [weak self] state in
-        self?.state = state
-      },
-      failed: .none,
-      completed: { [weak self] in
-        self?.viewDisposable?.dispose()
-        self?.viewDisposable = nil
-      },
-      interrupted: { [weak self] in
-        self?.viewDisposable?.dispose()
-        self?.viewDisposable = nil
-      }
-    )
-    viewDisposable = producer.start(observer)
+    self.viewDisposable = producer.startWithValues { [weak self] state in
+      self?.state = state
+    }
   }
 
   /// The current state.
