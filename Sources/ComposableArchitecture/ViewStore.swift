@@ -68,6 +68,8 @@ public final class ViewStore<State, Action> {
     """
   )
   public var publisher: StoreProducer<State> { produced }
+  
+  internal var viewDisposable: Disposable?
 
   /// Initializes a view store from a store.
   ///
@@ -83,8 +85,8 @@ public final class ViewStore<State, Action> {
     self.produced = Produced(by: producer)
     self.state = store.state
     self._send = store.send
-    producer.startWithValues { [weak self] in
-      self?.state = $0
+    self.viewDisposable = producer.startWithValues { [weak self] state in
+      self?.state = state
     }
   }
 
@@ -257,6 +259,10 @@ public final class ViewStore<State, Action> {
       self.binding(send: { _ in action })
     }
   #endif
+  
+  deinit {
+    viewDisposable?.dispose()
+  }
 }
 
 extension ViewStore where State: Equatable {
