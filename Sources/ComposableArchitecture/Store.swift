@@ -219,7 +219,6 @@ public final class Store<State, Action> {
             return .none
           }
         )
-        
         localStore.parentDisposable = self.$state.producer.startWithValues { [weak localStore] state in
           guard let localStore = localStore else { return }
           localStore.state = extractLocalState(state) ?? localStore.state
@@ -260,9 +259,8 @@ public final class Store<State, Action> {
       
       var didComplete = false
       let effectID = UUID()
-      
+
       var isProcessingEffects = true
-      
       let observer = Signal<Action, Never>.Observer(
         value: { [weak self] action in
           if isProcessingEffects {
