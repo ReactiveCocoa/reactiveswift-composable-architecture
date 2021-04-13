@@ -334,6 +334,13 @@ public struct Produced<Value>: SignalProducerConvertible {
   ) -> Effect<LocalValue, Never> where LocalValue: Equatable {
     self.producer.map(keyPath).skipRepeats()
   }
+    
+  /// Returns the resulting producer of a given key path.
+  public subscript<LocalValue>(
+    dynamicMember keyPath: KeyPath<Value, LocalValue>
+  ) -> Produced<LocalValue> where LocalValue: Equatable {
+    Produced<LocalValue>(by: self.producer.map(keyPath).skipRepeats())
+  }
 }
 
 @available(
