@@ -35,39 +35,6 @@ final class StoreTests: XCTestCase {
     
     XCTAssertEqual(values, [0, 1, 2, 3])
   }
-  
-  func testEffectDisposablesDeinitialization() {
-    enum Action {
-      case triggerDelay
-      case delayDidComplete
-    }
-    let delayedReducer = Reducer<Void, Action, DateScheduler> { _, action, mainQueue in
-      switch action {
-      case .triggerDelay:
-        return Effect(value: .delayDidComplete).delay(1, on: mainQueue)
-        
-      case .delayDidComplete:
-        return .none
-      }
-    }
-
-    let store = Store(
-      initialState: (),
-      reducer: delayedReducer,
-      environment: QueueScheduler.main
-    )
-    
-    store.send(.triggerDelay)
-    store.send(.triggerDelay)
-    store.send(.triggerDelay)
-    store.send(.delayDidComplete)
-    
-    XCTAssertEqual(store.effectDisposables.count, 3)
-    
-    XCTWaiter().wait(for: [XCTestExpectation()], timeout: 1.1)
-    
-    XCTAssertEqual(store.effectDisposables.count, 0)
-  }
 
   func testEffectDisposablesDeinitialization() {
     enum Action {

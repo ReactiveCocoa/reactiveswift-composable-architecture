@@ -71,8 +71,6 @@ public final class ViewStore<State, Action> {
   
   internal var viewDisposable: Disposable?
 
-  internal var viewDisposable: Disposable?
-
   /// Initializes a view store from a store.
   ///
   /// - Parameters:
