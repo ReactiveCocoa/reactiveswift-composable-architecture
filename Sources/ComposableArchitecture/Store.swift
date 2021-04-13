@@ -322,10 +322,23 @@ public final class Store<State, Action> {
 /// A producer of store state.
 @dynamicMemberLookup
 public struct Produced<Value>: SignalProducerConvertible {
-  public let producer: Effect<Value, Never>
+  private let _producer: Effect<Value, Never>
+  private let comparator: (Value, Value) -> Bool
   
-  init(by upstream: Effect<Value, Never>) {
-    self.producer = upstream
+  public var producer: Effect<Value, Never> {
+    _producer.skipRepeats(comparator)
+  }
+  
+  init(
+    by upstream: Effect<Value, Never>,
+    isEqual: @escaping (Value, Value) -> Bool
+  ) {
+    self._producer = upstream
+    self.comparator = isEqual
+  }
+  
+  init(by upstream: Effect<Value, Never>) where Value: Equatable {
+    self.init(by: upstream, isEqual: ==)
   }
   
   /// Returns the resulting producer of a given key path.
