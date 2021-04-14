@@ -9,14 +9,14 @@ import ReactiveSwift
 public final class Store<State, Action> {
   @MutableProperty
   private(set) var state: State
-  
+
   private var isSending = false
   private let reducer: (inout State, Action) -> Effect<Action, Never>
   private var synchronousActionsToSend: [Action] = []
   private var bufferedActions: [Action] = []
   internal var effectDisposables: [UUID: Disposable] = [:]
   internal var parentDisposable: Disposable?
-  
+
   /// Initializes a store from an initial state, a reducer, and an environment.
   ///
   /// - Parameters:
@@ -33,7 +33,7 @@ public final class Store<State, Action> {
       reducer: { reducer.run(&$0, $1, environment) }
     )
   }
-  
+
   /// Scopes the store to one that exposes local state and actions.
   ///
   /// This can be useful for deriving new stores to hand to child views in an application. For
@@ -179,7 +179,7 @@ public final class Store<State, Action> {
     }
     return localStore
   }
-  
+
   /// Scopes the store to one that exposes local state.
   ///
   /// - Parameter toLocalState: A function that transforms `State` into `LocalState`.
@@ -189,7 +189,7 @@ public final class Store<State, Action> {
   ) -> Store<LocalState, Action> {
     self.scope(state: toLocalState, action: { $0 })
   }
-  
+
   /// Scopes the store to a producer of stores of more local state and local actions.
   ///
   /// - Parameters:
@@ -201,14 +201,14 @@ public final class Store<State, Action> {
     state toLocalState: @escaping (Effect<State, Never>) -> Effect<LocalState, Never>,
     action fromLocalAction: @escaping (LocalAction) -> Action
   ) -> Effect<Store<LocalState, LocalAction>, Never> {
-    
+
     func extractLocalState(_ state: State) -> LocalState? {
       var localState: LocalState?
       _ = toLocalState(Effect(value: state))
         .startWithValues { localState = $0 }
       return localState
     }
-    
+
     return toLocalState(self.$state.producer)
       .map { localState in
         let localStore = Store<LocalState, LocalAction>(
@@ -219,14 +219,15 @@ public final class Store<State, Action> {
             return .none
           }
         )
-        localStore.parentDisposable = self.$state.producer.startWithValues { [weak localStore] state in
+        localStore.parentDisposable = self.$state.producer.startWithValues {
+          [weak localStore] state in
           guard let localStore = localStore else { return }
           localStore.state = extractLocalState(state) ?? localStore.state
         }
         return localStore
       }
   }
-  
+
   /// Scopes the store to a producer of stores of more local state and local actions.
   ///
   /// - Parameter toLocalState: A function that transforms a producer of `State` into a producer
@@ -238,7 +239,7 @@ public final class Store<State, Action> {
   ) -> Effect<Store<LocalState, Action>, Never> {
     self.producerScope(state: toLocalState, action: { $0 })
   }
-  
+
   func send(_ action: Action) {
     if !self.isSending {
       self.synchronousActionsToSend.append(action)
@@ -246,17 +247,17 @@ public final class Store<State, Action> {
       self.bufferedActions.append(action)
       return
     }
-    
+
     while !self.synchronousActionsToSend.isEmpty || !self.bufferedActions.isEmpty {
       let action =
         !self.synchronousActionsToSend.isEmpty
         ? self.synchronousActionsToSend.removeFirst()
         : self.bufferedActions.removeFirst()
-      
+
       self.isSending = true
       let effect = self.reducer(&self.state, action)
       self.isSending = false
-      
+
       var didComplete = false
       let effectID = UUID()
 
@@ -281,7 +282,7 @@ public final class Store<State, Action> {
       )
       let effectDisposable = effect.start(observer)
       isProcessingEffects = false
-      
+
       if !didComplete {
         self.effectDisposables[effectID] = effectDisposable
       } else {
@@ -289,18 +290,18 @@ public final class Store<State, Action> {
       }
     }
   }
-  
+
   /// Returns a "stateless" store by erasing state to `Void`.
   public var stateless: Store<Void, Action> {
     self.scope(state: { _ in () })
   }
-  
+
   /// Returns an "actionless" store by erasing action to `Never`.
   public var actionless: Store<State, Never> {
     func absurd<A>(_ never: Never) -> A {}
     return self.scope(state: { $0 }, action: absurd)
   }
-  
+
   private init(
     initialState: State,
     reducer: @escaping (inout State, Action) -> Effect<Action, Never>
@@ -308,7 +309,7 @@ public final class Store<State, Action> {
     self.reducer = reducer
     self.state = initialState
   }
-  
+
   deinit {
     self.parentDisposable?.dispose()
     self.effectDisposables.keys.forEach { id in
@@ -322,11 +323,11 @@ public final class Store<State, Action> {
 public struct Produced<Value>: SignalProducerConvertible {
   private let _producer: Effect<Value, Never>
   private let comparator: (Value, Value) -> Bool
-  
+
   public var producer: Effect<Value, Never> {
     _producer.skipRepeats(comparator)
   }
-  
+
   init(
     by upstream: Effect<Value, Never>,
     isEqual: @escaping (Value, Value) -> Bool
@@ -334,18 +335,18 @@ public struct Produced<Value>: SignalProducerConvertible {
     self._producer = upstream
     self.comparator = isEqual
   }
-  
+
   init(by upstream: Effect<Value, Never>) where Value: Equatable {
     self.init(by: upstream, isEqual: ==)
   }
-  
+
   /// Returns the resulting producer of a given key path.
   public subscript<LocalValue>(
     dynamicMember keyPath: KeyPath<Value, LocalValue>
   ) -> Effect<LocalValue, Never> where LocalValue: Equatable {
     self.producer.map(keyPath).skipRepeats()
   }
-    
+
   /// Returns the resulting producer of a given key path.
   public subscript<LocalValue>(
     dynamicMember keyPath: KeyPath<Value, LocalValue>
@@ -355,9 +356,9 @@ public struct Produced<Value>: SignalProducerConvertible {
 }
 
 @available(
-*, deprecated,
-message:
-"""
+  *, deprecated,
+  message:
+    """
 Consider using `Produced<State>` instead, this typealias is added for backward compatibility and will be removed in the next major release.
 """
 )

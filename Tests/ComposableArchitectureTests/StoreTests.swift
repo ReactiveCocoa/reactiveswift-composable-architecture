@@ -4,7 +4,7 @@ import XCTest
 @testable import ComposableArchitecture
 
 final class StoreTests: XCTestCase {
-    
+
   func testProducedMapping() {
     struct ChildState: Equatable {
       var value: Int = 0
@@ -12,7 +12,7 @@ final class StoreTests: XCTestCase {
     struct ParentState: Equatable {
       var child: ChildState = .init()
     }
-    
+
     let store = Store<ParentState, Void>(
       initialState: ParentState(),
       reducer: Reducer { state, _, _ in
@@ -21,18 +21,18 @@ final class StoreTests: XCTestCase {
       },
       environment: ()
     )
-    
+
     let viewStore = ViewStore(store)
     var values: [Int] = []
-    
+
     viewStore.produced.child.value.startWithValues { value in
       values.append(value)
     }
-    
+
     viewStore.send(())
     viewStore.send(())
     viewStore.send(())
-    
+
     XCTAssertEqual(values, [0, 1, 2, 3])
   }
 
