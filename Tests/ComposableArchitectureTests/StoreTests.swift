@@ -4,6 +4,37 @@ import XCTest
 @testable import ComposableArchitecture
 
 final class StoreTests: XCTestCase {
+    
+  func testProducedMapping() {
+    struct ChildState: Equatable {
+      var value: Int = 0
+    }
+    struct ParentState: Equatable {
+      var child: ChildState = .init()
+    }
+    
+    let store = Store<ParentState, Void>(
+      initialState: ParentState(),
+      reducer: Reducer { state, _, _ in
+        state.child.value += 1
+        return .none
+      },
+      environment: ()
+    )
+    
+    let viewStore = ViewStore(store)
+    var values: [Int] = []
+    
+    viewStore.produced.child.value.startWithValues { value in
+      values.append(value)
+    }
+    
+    viewStore.send(())
+    viewStore.send(())
+    viewStore.send(())
+    
+    XCTAssertEqual(values, [0, 1, 2, 3])
+  }
 
   func testEffectDisposablesDeinitialization() {
     enum Action {

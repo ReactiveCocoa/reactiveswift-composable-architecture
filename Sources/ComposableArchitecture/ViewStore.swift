@@ -68,7 +68,7 @@ public final class ViewStore<State, Action> {
     """
   )
   public var publisher: StoreProducer<State> { produced }
-
+  
   internal var viewDisposable: Disposable?
 
   /// Initializes a view store from a store.
@@ -81,11 +81,11 @@ public final class ViewStore<State, Action> {
     _ store: Store<State, Action>,
     removeDuplicates isDuplicate: @escaping (State, State) -> Bool
   ) {
-    let producer = store.$state.producer.skipRepeats(isDuplicate)
-    self.produced = Produced(by: producer)
+    let produced = Produced(by: store.$state.producer, isEqual: isDuplicate)
+    self.produced = produced
     self.state = store.state
     self._send = store.send
-    self.viewDisposable = producer.startWithValues { [weak self] state in
+    self.viewDisposable = produced.producer.startWithValues { [weak self] state in
       self?.state = state
     }
   }
@@ -259,7 +259,7 @@ public final class ViewStore<State, Action> {
       self.binding(send: { _ in action })
     }
   #endif
-
+  
   deinit {
     viewDisposable?.dispose()
   }
