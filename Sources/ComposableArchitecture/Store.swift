@@ -7,7 +7,7 @@ import ReactiveSwift
 /// You will typically construct a single one of these at the root of your application, and then use
 /// the `scope` method to derive more focused stores that can be passed to subviews.
 public final class Store<State, Action> {
-  @MutableProperty
+  @RecursiveMutableProperty
   private(set) var state: State
 
   private var isSending = false

@@ -99,4 +99,4 @@ extension Effect {
 }
 
 var cancellationCancellables: [AnyHashable: Set<AnyDisposable>] = [:]
-let cancellablesLock = NSRecursiveLock()
+let cancellablesLock = Lock.PthreadLock(recursive: true)
