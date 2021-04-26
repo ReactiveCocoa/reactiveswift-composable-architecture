@@ -69,5 +69,5 @@ extension Store {
       .startWithValues(unwrap)
 
     return CompositeDisposable([elseDisposable, unwrapDisposable])
-    }
+  }
 }

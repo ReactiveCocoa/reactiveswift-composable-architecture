@@ -27,7 +27,7 @@ final class StoreTests: XCTestCase {
 
     viewStore.produced.child.value.startWithValues { value in
       values.append(value)
-  }
+    }
 
     viewStore.send(())
     viewStore.send(())
@@ -346,19 +346,19 @@ final class StoreTests: XCTestCase {
 
     parentStore
       .ifLet(then: { childStore in
-      let vs = ViewStore(childStore)
+        let vs = ViewStore(childStore)
 
-      vs
-        .produced.producer
-        .startWithValues { _ in }
+        vs
+          .produced.producer
+          .startWithValues { _ in }
 
-      vs.send(false)
-      _ = XCTWaiter.wait(for: [.init()], timeout: 0.1)
-      vs.send(false)
-      _ = XCTWaiter.wait(for: [.init()], timeout: 0.1)
-      vs.send(false)
-      _ = XCTWaiter.wait(for: [.init()], timeout: 0.1)
-      XCTAssertEqual(vs.state, 3)
+        vs.send(false)
+        _ = XCTWaiter.wait(for: [.init()], timeout: 0.1)
+        vs.send(false)
+        _ = XCTWaiter.wait(for: [.init()], timeout: 0.1)
+        vs.send(false)
+        _ = XCTWaiter.wait(for: [.init()], timeout: 0.1)
+        XCTAssertEqual(vs.state, 3)
       })
   }
 
