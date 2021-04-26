@@ -1,28 +1,28 @@
 import ReactiveSwift
 
 extension Store {
-  /// Subscribes to updates when a store containing optional state goes from `nil` to non-`nil` or
-  /// non-`nil` to `nil`.
+  /// Calls one of two closures depending on whether a store's optional state is `nil` or not, and
+  /// whenever this condition changes for as long as the cancellable lives.
   ///
-  /// **NOTE:** one of the `unwrap` or `else` closures is always called based on the *initial* state of the
-  /// optional state (`nil` or non-`nil`), in addition to subsequent changes of `nil` / non-`nil`.
+  /// If the store's state is non-`nil`, it will safely unwrap the value and bundle it into a new
+  /// store of non-optional state that is passed to the first closure. If the store's state is
+  /// `nil`, the second closure is called instead.
   ///
-  /// This is useful for handling navigation in UIKit. The state for a screen that you want to
-  /// navigate to can be held as an optional value in the parent, and when that value switches
-  /// from `nil` to non-`nil` you want to trigger a navigation and hand the detail view a `Store`
-  /// whose domain has been scoped to just that feature:
+  /// This method is useful for handling navigation in UIKit. The state for a screen the user wants
+  /// to navigate to can be held as an optional value in the parent, and when that value goes from
+  /// `nil` to non-`nil`, or non-`nil` to `nil`, you can update the navigation stack accordingly:
   ///
-  ///     class MasterViewController: UIViewController {
-  ///       let store: Store<MasterState, MasterAction>
+  ///     class ParentViewController: UIViewController {
+  ///       let store: Store<ParentState, ParentAction>
   ///       ...
   ///       func viewDidLoad() {
   ///         ...
   ///         self.store
-  ///           .scope(state: \.optionalDetail, action: MasterAction.detail)
+  ///           .scope(state: \.optionalChild, action: ParentAction.child)
   ///           .ifLet(
-  ///             then: { [weak self] detailStore in
+  ///             then: { [weak self] childStore in
   ///               self?.navigationController?.pushViewController(
-  ///                 DetailViewController(store: detailStore),
+  ///                 ChildViewController(store: childStore),
   ///                 animated: true
   ///               )
   ///             },
@@ -35,16 +35,15 @@ extension Store {
   ///     }
   ///
   /// - Parameters:
-  ///   - unwrap: A function that is called with a store of non-optional state whenever the store's
-  ///     optional state is initially non-`nil` or goes from `nil` to non-`nil`.
-  ///   - else: A function that is called whenever the store's optional state is initially `nil` or
+  ///   - unwrap: A function that is called with a store of non-optional state when the store's
+  ///     state is non-`nil`, or whenever it goes from `nil` to non-`nil`.
+  ///   - else: A function that is called when the store's optional state is `nil`, or whenever it
   ///     goes from non-`nil` to `nil`.
-
-  /// - Returns: A cancellable associated with the underlying subscription.
-  @discardableResult
+  /// - Returns: A disposable that maintains a subscription to updates whenever the store's state
+  ///   goes from `nil` to non-`nil` and vice versa, so that the caller can react to these changes.
   public func ifLet<Wrapped>(
     then unwrap: @escaping (Store<Wrapped, Action>) -> Void,
-    else: @escaping () -> Void
+    else: @escaping () -> Void = {}
   ) -> Disposable where State == Wrapped? {
     let elseDisposable =
       self
@@ -70,18 +69,5 @@ extension Store {
       .startWithValues(unwrap)
 
     return CompositeDisposable([elseDisposable, unwrapDisposable])
-  }
-
-  /// An overload of `ifLet(then:else:)` for the times that you do not want to handle the `else`
-  /// case.
-  ///
-  /// - Parameter unwrap: A function that is called with a store of non-optional state whenever the
-  ///   store's optional state is initially non-`nil` or goes from `nil` to non-`nil`.
-  /// - Returns: A cancellable associated with the underlying subscription.
-  @discardableResult
-  public func ifLet<Wrapped>(
-    then unwrap: @escaping (Store<Wrapped, Action>) -> Void
-  ) -> Disposable where State == Wrapped? {
-    self.ifLet(then: unwrap, else: {})
-  }
+    }
 }
