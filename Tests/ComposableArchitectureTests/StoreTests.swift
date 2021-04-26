@@ -27,7 +27,7 @@ final class StoreTests: XCTestCase {
 
     viewStore.produced.child.value.startWithValues { value in
       values.append(value)
-    }
+  }
 
     viewStore.send(())
     viewStore.send(())
@@ -344,7 +344,8 @@ final class StoreTests: XCTestCase {
       environment: ()
     )
 
-    parentStore.ifLet { childStore in
+    parentStore
+      .ifLet(then: { childStore in
       let vs = ViewStore(childStore)
 
       vs
@@ -358,7 +359,7 @@ final class StoreTests: XCTestCase {
       vs.send(false)
       _ = XCTWaiter.wait(for: [.init()], timeout: 0.1)
       XCTAssertEqual(vs.state, 3)
-    }
+      })
   }
 
   func testActionQueuing() {
