@@ -41,6 +41,7 @@ extension Store {
   ///     goes from non-`nil` to `nil`.
   /// - Returns: A disposable that maintains a subscription to updates whenever the store's state
   ///   goes from `nil` to non-`nil` and vice versa, so that the caller can react to these changes.
+  @discardableResult
   public func ifLet<Wrapped>(
     then unwrap: @escaping (Store<Wrapped, Action>) -> Void,
     else: @escaping () -> Void = {}
