@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0A3E03A32635F30B00660BE9 /* DiffableListsOfState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3E03A22635F30B00660BE9 /* DiffableListsOfState.swift */; };
+		0A3E03A62636075400660BE9 /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = 0A3E03A52636075400660BE9 /* OrderedCollections */; };
+		0AD0180F2639AECD00E7386E /* CounterCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD0180E2639AECD00E7386E /* CounterCollectionViewCell.swift */; };
+		0AD018112639AF0800E7386E /* IdentifiedStateContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD018102639AF0800E7386E /* IdentifiedStateContainer.swift */; };
 		4F5AC11F24ECC7E4009DC50B /* 01-GettingStarted-SharedStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F5AC11E24ECC7E4009DC50B /* 01-GettingStarted-SharedStateTests.swift */; };
 		CA0C0C4724B89BEC00CBDD8A /* 04-HigherOrderReducers-LifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0C0C4624B89BEC00CBDD8A /* 04-HigherOrderReducers-LifecycleTests.swift */; };
 		CA0C51FB245389CC00A04EAB /* 04-HigherOrderReducers-ReusableOfflineDownloadsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0C51FA245389CC00A04EAB /* 04-HigherOrderReducers-ReusableOfflineDownloadsTests.swift */; };
@@ -147,6 +151,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0A3E03A22635F30B00660BE9 /* DiffableListsOfState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffableListsOfState.swift; sourceTree = "<group>"; };
+		0AD0180E2639AECD00E7386E /* CounterCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CounterCollectionViewCell.swift; sourceTree = "<group>"; };
+		0AD018102639AF0800E7386E /* IdentifiedStateContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentifiedStateContainer.swift; sourceTree = "<group>"; };
 		4F5AC11E24ECC7E4009DC50B /* 01-GettingStarted-SharedStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "01-GettingStarted-SharedStateTests.swift"; sourceTree = "<group>"; };
 		CA0C0C4624B89BEC00CBDD8A /* 04-HigherOrderReducers-LifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "04-HigherOrderReducers-LifecycleTests.swift"; sourceTree = "<group>"; };
 		CA0C51FA245389CC00A04EAB /* 04-HigherOrderReducers-ReusableOfflineDownloadsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "04-HigherOrderReducers-ReusableOfflineDownloadsTests.swift"; sourceTree = "<group>"; };
@@ -248,6 +255,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0A3E03A62636075400660BE9 /* OrderedCollections in Frameworks */,
 				DC1394102469E27300EE1157 /* ComposableArchitecture in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -277,6 +285,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0AD0180D2639AEB400E7386E /* DiffableListsOfState */ = {
+			isa = PBXGroup;
+			children = (
+				0A3E03A22635F30B00660BE9 /* DiffableListsOfState.swift */,
+				0AD0180E2639AECD00E7386E /* CounterCollectionViewCell.swift */,
+				0AD018102639AF0800E7386E /* IdentifiedStateContainer.swift */,
+			);
+			path = DiffableListsOfState;
+			sourceTree = "<group>";
+		};
 		CA6AC25F2451131C00C71CB3 /* 04-HigherOrderReducers-ResuableOfflineDownloads */ = {
 			isa = PBXGroup;
 			children = (
@@ -327,6 +345,7 @@
 				DC630FD92451016B00BAECBA /* ListsOfState.swift */,
 				DC4C6ED92450E6050066A05D /* NavigateAndLoad.swift */,
 				DC25DC602450F2B000082E81 /* LoadThenNavigate.swift */,
+				0AD0180D2639AEB400E7386E /* DiffableListsOfState */,
 				DC25DC622450F2D100082E81 /* Internal */,
 				DC4C6EAF2450DD380066A05D /* Assets.xcassets */,
 				DC4C6EB42450DD380066A05D /* LaunchScreen.storyboard */,
@@ -515,6 +534,7 @@
 			name = UIKitCaseStudies;
 			packageProductDependencies = (
 				DC13940F2469E27300EE1157 /* ComposableArchitecture */,
+				0A3E03A52636075400660BE9 /* OrderedCollections */,
 			);
 			productName = UIKitCaseStudies;
 			productReference = DC4C6EA72450DD380066A05D /* UIKitCaseStudies.app */;
@@ -625,6 +645,9 @@
 				Base,
 			);
 			mainGroup = DC89C40A24460F95006900B9;
+			packageReferences = (
+				0A3E03A42636075400660BE9 /* XCRemoteSwiftPackageReference "swift-collections" */,
+			);
 			productRefGroup = DC89C41424460F95006900B9 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -713,13 +736,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0A3E03A32635F30B00660BE9 /* DiffableListsOfState.swift in Sources */,
 				DC4C6ED82450E4570066A05D /* UIViewRepresented.swift in Sources */,
+				0AD018112639AF0800E7386E /* IdentifiedStateContainer.swift in Sources */,
 				DC25DC642450F2DF00082E81 /* ActivityIndicatorViewController.swift in Sources */,
 				DC4C6ED62450E1050066A05D /* CounterViewController.swift in Sources */,
 				DC4C6EDA2450E6050066A05D /* NavigateAndLoad.swift in Sources */,
 				DC4C6EAC2450DD380066A05D /* SceneDelegate.swift in Sources */,
 				DC25DC612450F2B000082E81 /* LoadThenNavigate.swift in Sources */,
 				DC25DC5F2450F13200082E81 /* IfLetStoreController.swift in Sources */,
+				0AD0180F2639AECD00E7386E /* CounterCollectionViewCell.swift in Sources */,
 				DC4C6EAE2450DD380066A05D /* RootViewController.swift in Sources */,
 				DC630FDA2451016B00BAECBA /* ListsOfState.swift in Sources */,
 			);
@@ -1244,7 +1270,23 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		0A3E03A42636075400660BE9 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-collections.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.0.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		0A3E03A52636075400660BE9 /* OrderedCollections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0A3E03A42636075400660BE9 /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = OrderedCollections;
+		};
 		CAF88E9024B8E3AF00539345 /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ComposableArchitecture;

@@ -583,16 +583,15 @@ public struct Reducer<State, Action, Environment> {
   ///     generally considered a logic error, as a child reducer cannot process a child action
   ///     for unavailable child state.
   /// - Returns: A reducer that works on `GlobalState`, `GlobalAction`, `GlobalEnvironment`.
-  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-  public func forEach<GlobalState, GlobalAction, GlobalEnvironment, ID>(
-    state toLocalState: WritableKeyPath<GlobalState, IdentifiedArray<ID, State>>,
+    public func forEach<GlobalState, GlobalAction, GlobalEnvironment, ID, LocalContainer>(
+    state toLocalState: WritableKeyPath<GlobalState, LocalContainer>,
     action toLocalAction: CasePath<GlobalAction, (ID, Action)>,
     environment toLocalEnvironment: @escaping (GlobalEnvironment) -> Environment,
     breakpointOnNil: Bool = true,
     _ file: StaticString = #file,
     _ line: UInt = #line
-
-  ) -> Reducer<GlobalState, GlobalAction, GlobalEnvironment> {
+  ) -> Reducer<GlobalState, GlobalAction, GlobalEnvironment>
+    where LocalContainer: IdentifiedContainer, LocalContainer.Element == State, LocalContainer.ID == ID {
     .init { globalState, globalAction, globalEnvironment in
       guard let (id, localAction) = toLocalAction.extract(from: globalAction) else { return .none }
       if globalState[keyPath: toLocalState][id: id] == nil {
