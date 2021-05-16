@@ -102,6 +102,7 @@
 // NB: Deprecated after 0.9.0:
 
 extension Store {
+  @_disfavoredOverload
   @available(*, deprecated, renamed: "producerScope(state:)")
   public func scope<LocalState>(
     state toLocalState: @escaping (Effect<State, Never>) -> Effect<LocalState, Never>
@@ -109,6 +110,7 @@ extension Store {
     self.producerScope(state: toLocalState)
   }
 
+  @_disfavoredOverload
   @available(*, deprecated, renamed: "producerScope(state:action:)")
   public func scope<LocalState, LocalAction>(
     state toLocalState: @escaping (Effect<State, Never>) -> Effect<LocalState, Never>,
