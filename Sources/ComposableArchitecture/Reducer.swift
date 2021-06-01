@@ -443,7 +443,7 @@ public struct Reducer<State, Action, Environment> {
               """,
               stderr
             )
-            raise(SIGTRAP)
+            breakpoint()
           }
         #endif
         return .none
@@ -532,7 +532,7 @@ public struct Reducer<State, Action, Environment> {
               """,
               stderr
             )
-            raise(SIGTRAP)
+            breakpoint()
           }
         #endif
         return .none
@@ -627,7 +627,7 @@ public struct Reducer<State, Action, Environment> {
               """,
               stderr
             )
-            raise(SIGTRAP)
+            breakpoint()
           }
         #endif
         return .none
@@ -701,7 +701,7 @@ public struct Reducer<State, Action, Environment> {
               """,
               stderr
             )
-            raise(SIGTRAP)
+            breakpoint()
           }
         #endif
         return .none
