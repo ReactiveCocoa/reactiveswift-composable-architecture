@@ -21,7 +21,7 @@ class LoginSwiftUITests: XCTestCase {
         mainQueue: ImmediateScheduler()
       )
     )
-    .scope(state: { $0.view }, action: LoginAction.view)
+    .scope(state: LoginView.ViewState.init, action: LoginAction.init)
 
     store.send(.emailChanged("blob@pointfree.co")) {
       $0.email = "blob@pointfree.co"
@@ -55,7 +55,7 @@ class LoginSwiftUITests: XCTestCase {
         mainQueue: ImmediateScheduler()
       )
     )
-    .scope(state: { $0.view }, action: LoginAction.view)
+    .scope(state: LoginView.ViewState.init, action: LoginAction.init)
 
     store.send(.emailChanged("2fa@pointfree.co")) {
       $0.email = "2fa@pointfree.co"
@@ -91,7 +91,7 @@ class LoginSwiftUITests: XCTestCase {
         mainQueue: ImmediateScheduler()
       )
     )
-    .scope(state: { $0.view }, action: LoginAction.view)
+    .scope(state: LoginView.ViewState.init, action: LoginAction.init)
 
     store.send(.emailChanged("blob")) {
       $0.email = "blob"

@@ -195,7 +195,7 @@ struct VoiceMemosView: View {
           List {
             ForEachStore(
               self.store.scope(
-                state: { $0.voiceMemos }, action: VoiceMemosAction.voiceMemo(index:action:)
+                state: \.voiceMemos, action: VoiceMemosAction.voiceMemo(index:action:)
               ),
               id: \.url,
               content: VoiceMemoView.init(store:)
@@ -243,7 +243,7 @@ struct VoiceMemosView: View {
           .padding()
         }
         .alert(
-          self.store.scope(state: { $0.alert }),
+          self.store.scope(state: \.alert),
           dismiss: .alertDismissed
         )
         .navigationBarTitle("Voice memos")

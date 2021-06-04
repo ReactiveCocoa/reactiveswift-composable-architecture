@@ -71,13 +71,15 @@ struct PresentAndLoadView: View {
       }
       .sheet(
         isPresented: viewStore.binding(
-          get: { $0.isSheetPresented },
+          get: \.isSheetPresented,
           send: PresentAndLoadAction.setSheet(isPresented:)
         )
       ) {
         IfLetStore(
           self.store.scope(
-            state: { $0.optionalCounter }, action: PresentAndLoadAction.optionalCounter),
+            state: \.optionalCounter,
+            action: PresentAndLoadAction.optionalCounter
+          ),
           then: CounterView.init(store:),
           else: { ActivityIndicator() }
         )

@@ -100,7 +100,7 @@ struct FavoriteButton<ID>: View where ID: Hashable {
       Button(action: { viewStore.send(.buttonTapped) }) {
         Image(systemName: viewStore.isFavorite ? "heart.fill" : "heart")
       }
-      .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+      .alert(self.store.scope(state: \.alert), dismiss: .alertDismissed)
     }
   }
 }
@@ -139,7 +139,7 @@ struct EpisodeView: View {
         Spacer()
 
         FavoriteButton(
-          store: self.store.scope(state: { $0.favorite }, action: EpisodeAction.favorite))
+          store: self.store.scope(state: \.favorite, action: EpisodeAction.favorite))
       }
     }
   }
@@ -180,7 +180,7 @@ struct EpisodesView: View {
     Form {
       Section(header: Text(template: readMe, .caption)) {
         ForEachStore(
-          self.store.scope(state: { $0.episodes }, action: EpisodesAction.episode(index:action:))
+          self.store.scope(state: \.episodes, action: EpisodesAction.episode(index:action:))
         ) { rowStore in
           EpisodeView(store: rowStore)
             .buttonStyle(BorderlessButtonStyle())

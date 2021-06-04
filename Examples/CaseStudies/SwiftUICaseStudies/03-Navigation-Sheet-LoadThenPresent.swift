@@ -80,13 +80,15 @@ struct LoadThenPresentView: View {
       }
       .sheet(
         isPresented: viewStore.binding(
-          get: { $0.isSheetPresented },
+          get: \.isSheetPresented,
           send: LoadThenPresentAction.setSheet(isPresented:)
         )
       ) {
         IfLetStore(
           self.store.scope(
-            state: { $0.optionalCounter }, action: LoadThenPresentAction.optionalCounter),
+            state: \.optionalCounter,
+            action: LoadThenPresentAction.optionalCounter
+          ),
           then: CounterView.init(store:)
         )
       }

@@ -6,12 +6,22 @@ import TicTacToeCommon
 import TwoFactorCore
 
 public struct TwoFactorView: View {
+  let store: Store<TwoFactorState, TwoFactorAction>
+
   struct ViewState: Equatable {
     var alert: AlertState<TwoFactorAction>?
     var code: String
     var isActivityIndicatorVisible: Bool
     var isFormDisabled: Bool
     var isSubmitButtonDisabled: Bool
+
+    init(state: TwoFactorState) {
+      self.alert = state.alert
+      self.code = state.code
+      self.isActivityIndicatorVisible = state.isTwoFactorRequestInFlight
+      self.isFormDisabled = state.isTwoFactorRequestInFlight
+      self.isSubmitButtonDisabled = !state.isFormValid
+    }
   }
 
   enum ViewAction: Equatable {
@@ -20,14 +30,14 @@ public struct TwoFactorView: View {
     case submitButtonTapped
   }
 
-  let store: Store<TwoFactorState, TwoFactorAction>
-
   public init(store: Store<TwoFactorState, TwoFactorAction>) {
     self.store = store
   }
 
   public var body: some View {
-    WithViewStore(self.store.scope(state: { $0.view }, action: TwoFactorAction.view)) { viewStore in
+    WithViewStore(
+      self.store.scope(state: ViewState.init, action: TwoFactorAction.init)
+    ) { viewStore in
       ScrollView {
         VStack(spacing: 16) {
           Text(#"To confirm the second factor enter "1234" into the form."#)
@@ -36,7 +46,7 @@ public struct TwoFactorView: View {
             Text("Code")
             TextField(
               "1234",
-              text: viewStore.binding(get: { $0.code }, send: ViewAction.codeChanged)
+              text: viewStore.binding(get: \.code, send: ViewAction.codeChanged)
             )
             .keyboardType(.numberPad)
             .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -53,7 +63,7 @@ public struct TwoFactorView: View {
             }
           }
         }
-        .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+        .alert(self.store.scope(state: \.alert), dismiss: .alertDismissed)
         .disabled(viewStore.isFormDisabled)
         .padding(.horizontal)
       }
@@ -62,27 +72,15 @@ public struct TwoFactorView: View {
   }
 }
 
-extension TwoFactorState {
-  var view: TwoFactorView.ViewState {
-    TwoFactorView.ViewState(
-      alert: self.alert,
-      code: self.code,
-      isActivityIndicatorVisible: self.isTwoFactorRequestInFlight,
-      isFormDisabled: self.isTwoFactorRequestInFlight,
-      isSubmitButtonDisabled: !self.isFormValid
-    )
-  }
-}
-
 extension TwoFactorAction {
-  static func view(_ localAction: TwoFactorView.ViewAction) -> Self {
-    switch localAction {
+  init(action: TwoFactorView.ViewAction) {
+    switch action {
     case .alertDismissed:
-      return .alertDismissed
+      self = .alertDismissed
     case let .codeChanged(code):
-      return .codeChanged(code)
+      self = .codeChanged(code)
     case .submitButtonTapped:
-      return .submitButtonTapped
+      self = .submitButtonTapped
     }
   }
 }
@@ -101,7 +99,11 @@ struct TwoFactorView_Previews: PreviewProvider {
                 Effect(value: .init(token: "deadbeef", twoFactorRequired: false))
               }
             ),
+<<<<<<< ours
             mainQueue: QueueScheduler.main
+=======
+            mainQueue: .main
+>>>>>>> theirs
           )
         )
       )
