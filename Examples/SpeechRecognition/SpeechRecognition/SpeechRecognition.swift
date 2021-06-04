@@ -147,7 +147,7 @@ struct SpeechRecognitionView: View {
         }
       }
       .padding()
-      .alert(self.store.scope(state: { $0.alert }), dismiss: .dismissAuthorizationStateAlert)
+      .alert(self.store.scope(state: \.alert), dismiss: .dismissAuthorizationStateAlert)
     }
   }
 }

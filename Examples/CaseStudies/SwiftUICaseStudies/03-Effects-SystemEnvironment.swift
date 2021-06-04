@@ -106,7 +106,7 @@ struct MultipleDependenciesView: View {
           }
 
           Button("Delayed Alert") { viewStore.send(.alertButtonTapped) }
-            .alert(self.store.scope(state: { $0.alert }), dismiss: .alertDismissed)
+            .alert(self.store.scope(state: \.alert), dismiss: .alertDismissed)
         }
 
         Section(
