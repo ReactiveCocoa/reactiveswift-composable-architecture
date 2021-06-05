@@ -221,9 +221,9 @@ public final class Store<State, Action> {
         )
         localStore.parentDisposable = self.$state.producer.startWithValues {
           [weak localStore] state in
-            guard let localStore = localStore else { return }
+          guard let localStore = localStore else { return }
           localStore.state = extractLocalState(state) ?? localStore.state
-          }
+        }
         return localStore
       }
   }
@@ -344,7 +344,7 @@ public struct Produced<Value>: SignalProducerConvertible {
     dynamicMember keyPath: KeyPath<Value, LocalValue>
   ) -> Produced<LocalValue> where LocalValue: Equatable {
     Produced<LocalValue>(by: self.producer.map(keyPath).skipRepeats())
-}
+  }
 }
 
 @available(
