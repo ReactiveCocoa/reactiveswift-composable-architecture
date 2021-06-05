@@ -1,8 +1,9 @@
+#if canImport(Darwin)
 import Darwin
-
+#endif
 /// Raises a debug breakpoint iff a debugger is attached.
 @inline(__always) func breakpoint() {
-  #if DEBUG
+  #if DEBUG && canImport(Darwin)
   // https://github.com/bitstadium/HockeySDK-iOS/blob/c6e8d1e940299bec0c0585b1f7b86baf3b17fc82/Classes/BITHockeyHelper.m#L346-L370
   var name: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()]
   var info: kinfo_proc = kinfo_proc()
@@ -26,3 +27,4 @@ import Darwin
   }
   #endif
 }
+
