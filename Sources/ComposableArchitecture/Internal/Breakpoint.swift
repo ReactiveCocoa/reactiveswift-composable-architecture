@@ -1,3 +1,5 @@
+import Darwin
+
 /// Raises a debug breakpoint iff a debugger is attached.
 @inline(__always) func breakpoint() {
   #if DEBUG

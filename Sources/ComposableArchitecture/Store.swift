@@ -28,7 +28,7 @@ public final class Store<State, Action> {
     reducer: Reducer<State, Action, Environment>,
     environment: Environment
   ) {
-    self.state = CurrentValueSubject(initialState)
+    self.state = initialState
     self.reducer = { state, action in reducer.run(&state, action, environment) }
   }
 
