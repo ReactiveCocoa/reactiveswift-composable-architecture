@@ -143,7 +143,7 @@ where Data: Collection, ID: Hashable, Content: View {
           //     views for elements no longer in the collection.
           //
           // Feedback filed: https://gist.github.com/stephencelis/cdf85ae8dab437adc998fb0204ed9a6b
-          let element = store.state.value[id: id]!
+          let element = store.$state.value[id: id]!
           return content(
             store.scope(
               state: { $0[id: id] ?? element },
