@@ -86,7 +86,7 @@ public let loginReducer = Reducer<LoginState, LoginAction, LoginEnvironment>.com
       state.isLoginRequestInFlight = true
       return environment.authenticationClient
         .login(LoginRequest(email: state.email, password: state.password))
-        .receive(on: environment.mainQueue)
+        .observe(on: environment.mainQueue)
         .catchToEffect()
         .map(LoginAction.loginResponse)
       

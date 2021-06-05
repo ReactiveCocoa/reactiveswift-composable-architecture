@@ -7,7 +7,6 @@ import UIKit
 public final class TwoFactorViewController: UIViewController {
   let store: Store<TwoFactorState, TwoFactorAction>
   let viewStore: ViewStore<ViewState, ViewAction>
-  private var cancellables: Set<AnyCancellable> = []
 
   struct ViewState: Equatable {
     let alert: AlertState<TwoFactorAction>?
