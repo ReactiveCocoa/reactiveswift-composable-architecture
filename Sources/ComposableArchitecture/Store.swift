@@ -23,15 +23,13 @@ public final class Store<State, Action> {
   ///   - initialState: The state to start the application in.
   ///   - reducer: The reducer that powers the business logic of the application.
   ///   - environment: The environment of dependencies for the application.
-  public convenience init<Environment>(
+  public init<Environment>(
     initialState: State,
     reducer: Reducer<State, Action, Environment>,
     environment: Environment
   ) {
-    self.init(
-      initialState: initialState,
-      reducer: { reducer.run(&$0, $1, environment) }
-    )
+    self.state = CurrentValueSubject(initialState)
+    self.reducer = { state, action in reducer.run(&state, action, environment) }
   }
 
   /// Scopes the store to one that exposes local state and actions.
@@ -168,11 +166,12 @@ public final class Store<State, Action> {
   ) -> Store<LocalState, LocalAction> {
     let localStore = Store<LocalState, LocalAction>(
       initialState: toLocalState(self.state),
-      reducer: { localState, localAction in
+      reducer: .init { localState, localAction, _ in
         self.send(fromLocalAction(localAction))
         localState = toLocalState(self.state)
         return .none
-      }
+      },
+      environment: ()
     )
     localStore.parentDisposable = self.$state.producer.startWithValues { [weak localStore] state in
       localStore?.state = toLocalState(state)
@@ -213,17 +212,18 @@ public final class Store<State, Action> {
       .map { localState in
         let localStore = Store<LocalState, LocalAction>(
           initialState: localState,
-          reducer: { localState, localAction in
+          reducer: .init { localState, localAction, _ in
             self.send(fromLocalAction(localAction))
             localState = extractLocalState(self.state) ?? localState
             return .none
-          }
+          },
+          environment: ()
         )
         localStore.parentDisposable = self.$state.producer.startWithValues {
           [weak localStore] state in
-          guard let localStore = localStore else { return }
+            guard let localStore = localStore else { return }
           localStore.state = extractLocalState(state) ?? localStore.state
-        }
+          }
         return localStore
       }
   }
@@ -302,14 +302,6 @@ public final class Store<State, Action> {
     return self.scope(state: { $0 }, action: absurd)
   }
 
-  private init(
-    initialState: State,
-    reducer: @escaping (inout State, Action) -> Effect<Action, Never>
-  ) {
-    self.reducer = reducer
-    self.state = initialState
-  }
-
   deinit {
     self.parentDisposable?.dispose()
     self.effectDisposables.keys.forEach { id in
@@ -352,7 +344,7 @@ public struct Produced<Value>: SignalProducerConvertible {
     dynamicMember keyPath: KeyPath<Value, LocalValue>
   ) -> Produced<LocalValue> where LocalValue: Equatable {
     Produced<LocalValue>(by: self.producer.map(keyPath).skipRepeats())
-  }
+}
 }
 
 @available(
