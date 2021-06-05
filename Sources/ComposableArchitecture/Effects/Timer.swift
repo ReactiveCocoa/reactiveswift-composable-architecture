@@ -83,6 +83,6 @@ extension Effect where Value == Date, Error == Never {
     return SignalProducer.timer(
       interval: interval, on: scheduler, leeway: tolerance ?? .seconds(.max)
     )
-    .cancellable(id: id)
+      .cancellable(id: id, cancelInFlight: true)
   }
 }
