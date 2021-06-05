@@ -1,10 +1,8 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import XCTest
 
 final class ViewStoreTests: XCTestCase {
-  var cancellables: Set<AnyCancellable> = []
-
   override func setUp() {
     super.setUp()
     equalityChecks = 0
@@ -21,9 +19,8 @@ final class ViewStoreTests: XCTestCase {
     let viewStore = ViewStore(store)
 
     var emissionCount = 0
-    viewStore.publisher
-      .sink { _ in emissionCount += 1 }
-      .store(in: &self.cancellables)
+    viewStore.produced.producer
+      .startWithValues { _ in emissionCount += 1 }
 
     XCTAssertEqual(emissionCount, 1)
     viewStore.send(())
@@ -51,14 +48,14 @@ final class ViewStoreTests: XCTestCase {
     let viewStore3 = ViewStore(store3)
     let viewStore4 = ViewStore(store4)
 
-    viewStore1.publisher.sink { _ in }.store(in: &self.cancellables)
-    viewStore2.publisher.sink { _ in }.store(in: &self.cancellables)
-    viewStore3.publisher.sink { _ in }.store(in: &self.cancellables)
-    viewStore4.publisher.sink { _ in }.store(in: &self.cancellables)
-    viewStore1.publisher.substate.sink { _ in }.store(in: &self.cancellables)
-    viewStore2.publisher.substate.sink { _ in }.store(in: &self.cancellables)
-    viewStore3.publisher.substate.sink { _ in }.store(in: &self.cancellables)
-    viewStore4.publisher.substate.sink { _ in }.store(in: &self.cancellables)
+    viewStore1.produced.producer.startWithValues { _ in }
+    viewStore2.produced.producer.startWithValues { _ in }
+    viewStore3.produced.producer.startWithValues { _ in }
+    viewStore4.produced.producer.startWithValues { _ in }
+    viewStore1.produced.substate.startWithValues { _ in }
+    viewStore2.produced.substate.startWithValues { _ in }
+    viewStore3.produced.substate.startWithValues { _ in }
+    viewStore4.produced.substate.startWithValues { _ in }
 
     XCTAssertEqual(0, equalityChecks)
     XCTAssertEqual(0, subEqualityChecks)

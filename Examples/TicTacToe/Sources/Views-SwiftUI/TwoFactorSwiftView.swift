@@ -99,11 +99,7 @@ struct TwoFactorView_Previews: PreviewProvider {
                 Effect(value: .init(token: "deadbeef", twoFactorRequired: false))
               }
             ),
-<<<<<<< ours
             mainQueue: QueueScheduler.main
-=======
-            mainQueue: .main
->>>>>>> theirs
           )
         )
       )

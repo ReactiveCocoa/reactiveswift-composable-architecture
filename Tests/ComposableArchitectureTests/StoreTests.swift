@@ -437,9 +437,8 @@ final class StoreTests: XCTestCase {
 
     var emissions: [Int] = []
     let viewStore = ViewStore(store)
-    viewStore.publisher
-      .sink { emissions.append($0) }
-      .store(in: &self.cancellables)
+    viewStore.produced.producer
+      .startWithValues { emissions.append($0) }
 
     XCTAssertEqual(emissions, [0])
 

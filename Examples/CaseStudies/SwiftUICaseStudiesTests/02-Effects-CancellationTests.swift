@@ -36,7 +36,7 @@ class EffectsCancellationTests: XCTestCase {
       reducer: effectsCancellationReducer,
       environment: .init(
         mainQueue: ImmediateScheduler(),
-        numberFact: { _ in Fail(error: NumbersApiError()).eraseToEffect() }
+        numberFact: { _ in Effect(error: NumbersApiError()) }
       )
     )
 

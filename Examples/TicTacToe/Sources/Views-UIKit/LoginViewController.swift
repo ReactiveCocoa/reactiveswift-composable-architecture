@@ -8,7 +8,6 @@ import UIKit
 class LoginViewController: UIViewController {
   let store: Store<LoginState, LoginAction>
   let viewStore: ViewStore<ViewState, ViewAction>
-  private var cancellables: Set<AnyCancellable> = []
 
   struct ViewState: Equatable {
     let alert: AlertState<LoginAction>?

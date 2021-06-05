@@ -6,7 +6,6 @@ import UIKit
 public final class GameViewController: UIViewController {
   let store: Store<GameState, GameAction>
   let viewStore: ViewStore<ViewState, GameAction>
-  private var cancellables: Set<AnyCancellable> = []
 
   struct ViewState: Equatable {
     let board: [[String]]
