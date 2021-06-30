@@ -85,9 +85,11 @@ public final class ViewStore<State, Action> {
     self.produced = produced
     self.state = store.state
     self._send = store.send
-    self.viewDisposable = produced.producer.startWithValues { [weak self] state in
-      self?.state = state
-    }
+    self.viewDisposable = produced.producer
+      .skip(first: 1)
+      .startWithValues { [weak self] state in
+        self?.state = state
+      }
   }
 
   /// The current state.

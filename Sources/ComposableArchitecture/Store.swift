@@ -164,18 +164,24 @@ public final class Store<State, Action> {
     state toLocalState: @escaping (State) -> LocalState,
     action fromLocalAction: @escaping (LocalAction) -> Action
   ) -> Store<LocalState, LocalAction> {
+    var isSending = false
     let localStore = Store<LocalState, LocalAction>(
       initialState: toLocalState(self.state),
       reducer: .init { localState, localAction, _ in
+        isSending = true
+        defer { isSending = false }
         self.send(fromLocalAction(localAction))
         localState = toLocalState(self.state)
         return .none
       },
       environment: ()
     )
-    localStore.parentDisposable = self.$state.producer.startWithValues { [weak localStore] state in
-      localStore?.state = toLocalState(state)
-    }
+    localStore.parentDisposable = self.$state.producer
+      .skip(first: 1)
+      .startWithValues { [weak localStore] newValue in
+        guard !isSending else { return }
+        localStore?.state = toLocalState(newValue)
+      }
     return localStore
   }
 
