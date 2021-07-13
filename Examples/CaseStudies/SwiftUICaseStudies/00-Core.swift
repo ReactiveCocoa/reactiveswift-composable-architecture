@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import ReactiveSwift
 import UIKit
+import XCTestDynamicOverlay
 
 struct RootState {
   var alertAndActionSheet = AlertAndSheetState()
@@ -65,10 +66,10 @@ enum RootAction {
 struct RootEnvironment {
   var date: () -> Date
   var downloadClient: DownloadClient
+  var fact: FactClient
   var favorite: (UUID, Bool) -> Effect<Bool, Error>
   var fetchNumber: () -> Effect<Int, Never>
   var mainQueue: DateScheduler
-  var numberFact: (Int) -> Effect<String, NumbersApiError>
   var userDidTakeScreenshot: Effect<Void, Never>
   var uuid: () -> UUID
   var webSocket: WebSocketClient
@@ -76,10 +77,10 @@ struct RootEnvironment {
   static let live = Self(
     date: Date.init,
     downloadClient: .live,
+    fact: .live,
     favorite: favorite(id:isFavorite:),
     fetchNumber: liveFetchNumber,
     mainQueue: QueueScheduler.main,
-    numberFact: liveNumberFact(for:),
     userDidTakeScreenshot: liveUserDidTakeScreenshot.producer,
     uuid: UUID.init,
     webSocket: .live
@@ -143,13 +144,13 @@ let rootReducer = Reducer<RootState, RootAction, RootEnvironment>.combine(
     .pullback(
       state: \.effectsBasics,
       action: /RootAction.effectsBasics,
-      environment: { .init(mainQueue: $0.mainQueue, numberFact: $0.numberFact) }
+      environment: { .init(fact: $0.fact, mainQueue: $0.mainQueue) }
     ),
   effectsCancellationReducer
     .pullback(
       state: \.effectsCancellation,
       action: /RootAction.effectsCancellation,
-      environment: { .init(mainQueue: $0.mainQueue, numberFact: $0.numberFact) }
+      environment: { .init(fact: $0.fact, mainQueue: $0.mainQueue) }
     ),
   episodesReducer
     .pullback(
@@ -262,21 +263,6 @@ let rootReducer = Reducer<RootState, RootAction, RootEnvironment>.combine(
     )
 )
 .signpost()
-
-// This is the "live" trivia dependency that reaches into the outside world to fetch trivia.
-// Typically this live implementation of the dependency would live in its own module so that the
-// main feature doesn't need to compile it.
-func liveNumberFact(for n: Int) -> Effect<String, NumbersApiError> {
-  URLSession.shared.reactive.data(
-    with: URLRequest(url: URL(string: "http://numbersapi.com/\(n)/trivia")!)
-  )
-  .map { data, _ in String(decoding: data, as: UTF8.self) }
-  .flatMapError { _ in
-    Effect(value: "\(n) is a good number Brent")
-      .delay(1, on: QueueScheduler.main)
-  }
-  .promoteError(NumbersApiError.self)
-}
 
 private func liveFetchNumber() -> Effect<Int, Never> {
   Effect.deferred { Effect(value: Int.random(in: 1...1_000)) }

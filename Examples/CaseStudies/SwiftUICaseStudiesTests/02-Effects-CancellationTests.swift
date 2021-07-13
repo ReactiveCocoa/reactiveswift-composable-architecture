@@ -10,8 +10,8 @@ class EffectsCancellationTests: XCTestCase {
       initialState: .init(),
       reducer: effectsCancellationReducer,
       environment: .init(
-        mainQueue: ImmediateScheduler(),
-        numberFact: { n in Effect(value: "\(n) is a good number Brent") }
+        fact: .init(fetch: { n in Effect(value: "\(n) is a good number Brent") }),
+        mainQueue: ImmediateScheduler()
       )
     )
 
@@ -35,15 +35,15 @@ class EffectsCancellationTests: XCTestCase {
       initialState: .init(),
       reducer: effectsCancellationReducer,
       environment: .init(
-        mainQueue: ImmediateScheduler(),
-        numberFact: { _ in Effect(error: NumbersApiError()) }
+        fact: .init(fetch: { _ in Fail(error: FactClient.Error()).eraseToEffect() }),
+        mainQueue: ImmediateScheduler()
       )
     )
 
     store.send(.triviaButtonTapped) {
       $0.isTriviaRequestInFlight = true
     }
-    store.receive(.triviaResponse(.failure(NumbersApiError()))) {
+    store.receive(.triviaResponse(.failure(FactClient.Error()))) {
       $0.isTriviaRequestInFlight = false
     }
   }
@@ -60,8 +60,8 @@ class EffectsCancellationTests: XCTestCase {
       initialState: .init(),
       reducer: effectsCancellationReducer,
       environment: .init(
-        mainQueue: scheduler,
-        numberFact: { n in Effect(value: "\(n) is a good number Brent") }
+        fact: .init(fetch: { n in Effect(value: "\(n) is a good number Brent") }),
+        mainQueue: scheduler
       )
     )
 
@@ -80,8 +80,8 @@ class EffectsCancellationTests: XCTestCase {
       initialState: .init(),
       reducer: effectsCancellationReducer,
       environment: .init(
-        mainQueue: scheduler,
-        numberFact: { n in Effect(value: "\(n) is a good number Brent") }
+        fact: .init(fetch: { n in Effect(value: "\(n) is a good number Brent") }),
+        mainQueue: scheduler
       )
     )
 
