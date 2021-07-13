@@ -29,7 +29,7 @@ extension Effect {
     .deferred { () -> SignalProducer<Value, Error> in
       work()
       return .empty
-  }
+    }
   }
 
   /// Concatenates a variadic list of effects together into a single effect, which runs the effects
@@ -110,8 +110,8 @@ extension Effect {
         case let .failure(error):
           observer.send(error: error)
         }
-  }
-}
+      }
+    }
   }
 
   /// Turns any publisher into an ``Effect`` that cannot fail by wrapping its output and failure in
