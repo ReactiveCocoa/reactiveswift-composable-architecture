@@ -1,12 +1,12 @@
 import Foundation
 import ReactiveSwift
 
-/// The `Effect` type encapsulates a unit of work that can be run in the outside world, and can feed
-/// data back to the `Store`. It is the perfect place to do side effects, such as network requests,
+/// The ``Effect`` type encapsulates a unit of work that can be run in the outside world, and can feed
+/// data back to the ``Store``. It is the perfect place to do side effects, such as network requests,
 /// saving/loading from disk, creating timers, interacting with dependencies, and more.
 ///
-/// Effects are returned from reducers so that the `Store` can perform the effects after the reducer
-/// is done running. It is important to note that `Store` is not thread safe, and so all effects
+/// Effects are returned from reducers so that the ``Store`` can perform the effects after the reducer
+/// is done running. It is important to note that ``Store`` is not thread safe, and so all effects
 /// must receive values on the same thread, **and** if the store is being used to drive UI then it
 /// must receive values on the main thread.
 ///
@@ -59,8 +59,8 @@ extension Effect {
       }
   }
 
-  /// An Effect that waits until it is started before running
-  /// the supplied closure to create a new Effect, whose values
+  /// An ``Effect`` that waits until it is started before running
+  /// the supplied closure to create a new ``Effect``, whose values
   /// are then sent to the subscriber of this effect.
   public static func deferred(_ createProducer: @escaping () -> SignalProducer<Value, Error>)
     -> SignalProducer<Value, Error>
@@ -72,25 +72,29 @@ extension Effect {
   /// Creates an effect that can supply a single value asynchronously in the future.
   ///
   /// This can be helpful for converting APIs that are callback-based into ones that deal with
-  /// `Effect`s.
+  /// ``Effect``s.
   ///
   /// For example, to create an effect that delivers an integer after waiting a second:
   ///
-  ///     Effect<Int, Never>.future { callback in
-  ///       DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-  ///         callback(.success(42))
-  ///       }
-  ///     }
+  /// ```swift
+  /// Effect<Int, Never>.future { callback in
+  ///   DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+  ///     callback(.success(42))
+  ///   }
+  /// }
+  /// ```
   ///
   /// Note that you can only deliver a single value to the `callback`. If you send more they will be
   /// discarded:
   ///
-  ///     Effect<Int, Never>.future { callback in
-  ///       DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-  ///         callback(.success(42))
-  ///         callback(.success(1729)) // Will not be emitted by the effect
-  ///       }
-  ///     }
+  /// ```swift
+  /// Effect<Int, Never>.future { callback in
+  ///   DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+  ///     callback(.success(42))
+  ///     callback(.success(1729)) // Will not be emitted by the effect
+  ///   }
+  /// }
+  /// ```
   ///
   /// - Parameter attemptToFulfill: A closure that takes a `callback` as an argument which can be
   ///   used to feed it `Result<Output, Failure>` values.
@@ -110,16 +114,18 @@ extension Effect {
     }
   }
 
-  /// Turns any producer into an `Effect` that cannot fail by wrapping its output and failure in a
-  /// result.
+  /// Turns any publisher into an ``Effect`` that cannot fail by wrapping its output and failure in
+  /// a result.
   ///
   /// This can be useful when you are working with a failing API but want to deliver its data to an
   /// action that handles both success and failure.
   ///
-  ///     case .buttonTapped:
-  ///       return fetchUser(id: 1)
-  ///         .catchToEffect()
-  ///         .map(ProfileAction.userResponse)
+  /// ```swift
+  /// case .buttonTapped:
+  ///   return fetchUser(id: 1)
+  ///     .catchToEffect()
+  ///     .map(ProfileAction.userResponse)
+  /// ```
   ///
   /// - Returns: An effect that wraps `self`.
   public func catchToEffect() -> Effect<Result<Value, Error>, Never> {
@@ -127,15 +133,17 @@ extension Effect {
       .flatMapError { Effect<Result<Value, Error>, Never>(value: Result.failure($0)) }
   }
 
-  /// Turns any publisher into an `Effect` for any output and failure type by ignoring all output
+  /// Turns any `SignalProducer` into an ``Effect`` for any output and failure type by ignoring all output
   /// and any failure.
   ///
   /// This is useful for times you want to fire off an effect but don't want to feed any data back
   /// into the system. It can automatically promote an effect to your reducer's domain.
   ///
-  ///     case .buttonTapped:
-  ///       return analyticsClient.track("Button Tapped")
-  ///         .fireAndForget()
+  /// ```swift
+  /// case .buttonTapped:
+  ///   return analyticsClient.track("Button Tapped")
+  ///     .fireAndForget()
+  /// ```
   ///
   /// - Parameters:
   ///   - outputType: An output type.
@@ -154,7 +162,7 @@ extension Effect {
 
 extension Effect where Self.Error == Never {
 
-  /// Assigns each element from an Effect to a property on an object.
+  /// Assigns each element from an ``Effect`` to a property on an object.
   ///
   /// - Parameters:
   ///   - keyPath: The key path of the property to assign.
