@@ -9,8 +9,9 @@ extension Effect where Value == Date, Error == Never {
   /// and which adds the the ability to be cancelled via the `id`.
   ///
   /// To start and stop a timer in your feature you can create the timer effect from an action
-  /// and then use the `.cancel(id:)` effect to stop the timer:
+  /// and then use the ``Effect/cancel(id:)`` effect to stop the timer:
   ///
+  ///    ```swift
   ///     struct AppState {
   ///       var count = 0
   ///     }
@@ -38,34 +39,37 @@ extension Effect where Value == Date, Error == Never {
   ///         state.count += 1
   ///         return .none
   ///     }
+  ///    ```
   ///
   /// Then to test the timer in this feature you can use a test scheduler to advance time:
   ///
-  ///   func testTimer() {
-  ///     let scheduler = TestScheduler()
+  ///    ```swift
+  ///     func testTimer() {
+  ///       let scheduler = TestScheduler()
   ///
-  ///     let store = TestStore(
-  ///       initialState: .init(),
-  ///       reducer: appReducer,
-  ///       envirnoment: .init(
-  ///         mainQueue: scheduler
+  ///       let store = TestStore(
+  ///         initialState: .init(),
+  ///         reducer: appReducer,
+  ///         envirnoment: .init(
+  ///           mainQueue: scheduler
+  ///         )
   ///       )
-  ///     )
   ///
-  ///     store.send(.startButtonTapped)
+  ///       store.send(.startButtonTapped)
   ///
-  ///     scheduler.advance(by: .seconds(1))
-  ///     store.receive(.timerTicked) { $0.count = 1 }
+  ///       scheduler.advance(by: .seconds(1))
+  ///       store.receive(.timerTicked) { $0.count = 1 }
   ///
-  ///     scheduler.advance(by: .seconds(5))
-  ///     store.receive(.timerTicked) { $0.count = 2 }
-  ///     store.receive(.timerTicked) { $0.count = 3 }
-  ///     store.receive(.timerTicked) { $0.count = 4 }
-  ///     store.receive(.timerTicked) { $0.count = 5 }
-  ///     store.receive(.timerTicked) { $0.count = 6 }
+  ///       scheduler.advance(by: .seconds(5))
+  ///       store.receive(.timerTicked) { $0.count = 2 }
+  ///       store.receive(.timerTicked) { $0.count = 3 }
+  ///       store.receive(.timerTicked) { $0.count = 4 }
+  ///       store.receive(.timerTicked) { $0.count = 5 }
+  ///       store.receive(.timerTicked) { $0.count = 6 }
   ///
-  ///     store.send(.stopButtonTapped)
-  ///   }
+  ///       store.send(.stopButtonTapped)
+  ///     }
+  ///    ```
   ///
   /// - Parameters:
   ///   - interval: The time interval on which to publish events. For example, a value of `0.5`
