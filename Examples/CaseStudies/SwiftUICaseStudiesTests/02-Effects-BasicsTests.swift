@@ -10,8 +10,8 @@ class EffectsBasicsTests: XCTestCase {
       initialState: EffectsBasicsState(),
       reducer: effectsBasicsReducer,
       environment: EffectsBasicsEnvironment(
-        mainQueue: ImmediateScheduler(),
-        numberFact: { _ in fatalError("Unimplemented") }
+        fact: .unimplemented,
+        mainQueue: ImmediateScheduler()
       )
     )
 
@@ -31,8 +31,8 @@ class EffectsBasicsTests: XCTestCase {
       initialState: EffectsBasicsState(),
       reducer: effectsBasicsReducer,
       environment: EffectsBasicsEnvironment(
-        mainQueue: ImmediateScheduler(),
-        numberFact: { n in Effect(value: "\(n) is a good number Brent") }
+        fact: .init(fetch: { n in Effect(value: "\(n) is a good number Brent") }),
+        mainQueue: ImmediateScheduler()
       )
     )
 
