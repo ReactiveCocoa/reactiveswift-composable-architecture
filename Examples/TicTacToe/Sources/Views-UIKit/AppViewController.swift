@@ -35,13 +35,13 @@ class AppViewController: UINavigationController {
     super.viewDidLoad()
 
     self.store
-      .scope(state: \.login, action: AppAction.login)
+      .scope(state: /AppState.login, action: AppAction.login)
       .ifLet(then: { [weak self] loginStore in
         self?.setViewControllers([LoginViewController(store: loginStore)], animated: false)
       })
 
     self.store
-      .scope(state: \.newGame, action: AppAction.newGame)
+      .scope(state: /AppState.newGame, action: AppAction.newGame)
       .ifLet(then: { [weak self] newGameStore in
         self?.setViewControllers([NewGameViewController(store: newGameStore)], animated: false)
       })
