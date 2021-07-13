@@ -83,7 +83,8 @@
   /// to match the state after the action was sent. In this case the `count` field changes to `1`.
   ///
   /// For a more complex example, consider the following bare-bones search feature that uses the
-  /// ``Effect/debounce(id:for:scheduler:options:)`` operator to wait for the user to stop typing before making a network request:
+  /// ``Effect/debounce(id:for:scheduler:options:)`` operator to wait for the user to stop typing
+  /// before making a network request:
   ///
   ///    ```swift
   ///     struct SearchState: Equatable {
@@ -117,7 +118,7 @@
   ///           return .none
   ///         }
   ///     }
-  ///    ```swift
+  /// ```
   ///
   /// It can be fully tested by controlling the environment's scheduler and effect:
   ///
@@ -545,7 +546,7 @@
       self.scope(state: toLocalState, action: { $0 })
     }
 
-    /// A single step of a `TestStore` assertion.
+    /// A single step of a ``TestStore`` assertion.
     public struct Step {
       fileprivate let type: StepType
       fileprivate let file: StaticString

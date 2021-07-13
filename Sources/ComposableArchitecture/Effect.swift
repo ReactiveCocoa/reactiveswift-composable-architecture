@@ -29,7 +29,7 @@ extension Effect {
     .deferred { () -> SignalProducer<Value, Error> in
       work()
       return .empty
-    }
+  }
   }
 
   /// Concatenates a variadic list of effects together into a single effect, which runs the effects
@@ -87,14 +87,14 @@ extension Effect {
   /// Note that you can only deliver a single value to the `callback`. If you send more they will be
   /// discarded:
   ///
-  /// ```swift
+  ///    ```swift
   /// Effect<Int, Never>.future { callback in
   ///   DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
   ///     callback(.success(42))
   ///     callback(.success(1729)) // Will not be emitted by the effect
   ///   }
-  /// }
-  /// ```
+  ///     }
+  ///    ```
   ///
   /// - Parameter attemptToFulfill: A closure that takes a `callback` as an argument which can be
   ///   used to feed it `Result<Output, Failure>` values.
@@ -110,8 +110,8 @@ extension Effect {
         case let .failure(error):
           observer.send(error: error)
         }
-      }
-    }
+  }
+}
   }
 
   /// Turns any publisher into an ``Effect`` that cannot fail by wrapping its output and failure in
@@ -120,12 +120,12 @@ extension Effect {
   /// This can be useful when you are working with a failing API but want to deliver its data to an
   /// action that handles both success and failure.
   ///
-  /// ```swift
-  /// case .buttonTapped:
-  ///   return fetchUser(id: 1)
-  ///     .catchToEffect()
-  ///     .map(ProfileAction.userResponse)
-  /// ```
+  ///    ```swift
+  ///     case .buttonTapped:
+  ///       return fetchUser(id: 1)
+  ///         .catchToEffect()
+  ///         .map(ProfileAction.userResponse)
+  ///    ```
   ///
   /// - Returns: An effect that wraps `self`.
   public func catchToEffect() -> Effect<Result<Value, Error>, Never> {
@@ -139,11 +139,11 @@ extension Effect {
   /// This is useful for times you want to fire off an effect but don't want to feed any data back
   /// into the system. It can automatically promote an effect to your reducer's domain.
   ///
-  /// ```swift
-  /// case .buttonTapped:
-  ///   return analyticsClient.track("Button Tapped")
-  ///     .fireAndForget()
-  /// ```
+  ///    ```swift
+  ///     case .buttonTapped:
+  ///       return analyticsClient.track("Button Tapped")
+  ///         .fireAndForget()
+  ///    ```
   ///
   /// - Parameters:
   ///   - outputType: An output type.
