@@ -11,9 +11,9 @@ import SwiftUI
 /// commonly used in views, such as SwiftUI views, UIView or UIViewController, but they can be
 /// used anywhere it makes sense to observe state and send actions.
 ///
-/// In SwiftUI applications, a ``ViewStore`` is accessed most commonly using the ``WithViewStore`` view.
-/// It can be initialized with a store and a closure that is handed a view store and must return a
-/// view to be rendered:
+/// In SwiftUI applications, a ``ViewStore`` is accessed most commonly using the ``WithViewStore``
+/// view. It can be initialized with a store and a closure that is handed a view store and must
+/// return a view to be rendered:
 ///
 ///    ```swift
 ///     var body: some View {
@@ -25,6 +25,7 @@ import SwiftUI
 ///       }
 ///     }
 ///    ```
+///
 /// In UIKit applications a ``ViewStore`` can be created from a ``Store`` and then subscribed to for
 /// state updates:
 ///
@@ -49,6 +50,11 @@ import SwiftUI
 ///     }
 ///    ```
 ///
+/// ### Thread safety
+///
+/// The ``ViewStore`` class is not thread-safe, and all interactions with it must happen on the main
+/// thread. See the documentation of the ``Store`` class for more information why this decision was
+/// made.
 @dynamicMemberLookup
 public final class ViewStore<State, Action> {
   /// A producer of state.
@@ -134,8 +140,8 @@ public final class ViewStore<State, Action> {
   /// actions to the store.
   ///
   /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
-  /// since the ``Store`` does not allow directly writing its state; it only allows reading state and
-  /// sending actions.
+  /// since the ``Store`` does not allow directly writing its state; it only allows reading state
+  /// and sending actions.
   ///
   /// For example, a text field binding can be created like this:
   ///
@@ -181,8 +187,8 @@ public final class ViewStore<State, Action> {
   /// actions to the store.
   ///
   /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
-  /// since the ``Store`` does not allow directly writing its state; it only allows reading state and
-  /// sending actions.
+  /// since the ``Store`` does not allow directly writing its state; it only allows reading state
+  /// and sending actions.
   ///
   /// For example, an alert binding can be dealt with like this:
   ///
@@ -214,8 +220,8 @@ public final class ViewStore<State, Action> {
   /// actions to the store.
   ///
   /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
-  /// since the ``Store`` does not allow directly writing its state; it only allows reading state and
-  /// sending actions.
+  /// since the ``Store`` does not allow directly writing its state; it only allows reading state
+  /// and sending actions.
   ///
   /// For example, a text field binding can be created like this:
   ///
@@ -246,8 +252,8 @@ public final class ViewStore<State, Action> {
   /// actions to the store.
   ///
   /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
-  /// since the ``Store`` does not allow directly writing its state; it only allows reading state and
-  /// sending actions.
+  /// since the ``Store`` does not allow directly writing its state; it only allows reading state
+  /// and sending actions.
   ///
   /// For example, an alert binding can be dealt with like this:
   ///
