@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 import SwiftUI
 
 /// A view that can switch over a store of enum state and handle each case.
@@ -44,6 +45,7 @@ import SwiftUI
 /// - See also: `Reducer.pullback`, a method that aids in transforming reducers that operate on each
 ///   case of an enum into reducers that operate on the entire enum.
 ///
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 public struct SwitchStore<State, Action, Content>: View where Content: View {
   public let store: Store<State, Action>
   public let content: () -> Content
@@ -63,6 +65,7 @@ public struct SwitchStore<State, Action, Content>: View where Content: View {
 }
 
 /// A view that handles a specific case of enum state in a `SwitchStore`.
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 public struct CaseLet<GlobalState, GlobalAction, LocalState, LocalAction, Content>: View
 where Content: View {
   @EnvironmentObject private var store: StoreObservableObject<GlobalState, GlobalAction>
@@ -104,6 +107,7 @@ where Content: View {
 /// If you wish to use `SwitchStore` in a non-exhaustive manner (i.e. you do not want to provide
 /// a `CaseLet` for each case of the enum), then you must insert a `Default` view at the end of
 /// the `SwitchStore`'s body.
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 public struct Default<Content>: View where Content: View {
   private let content: () -> Content
 
@@ -121,6 +125,7 @@ public struct Default<Content>: View where Content: View {
   }
 }
 
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 extension SwitchStore {
   public init<State1, Action1, Content1, DefaultContent>(
     _ store: Store<State, Action>,
@@ -529,6 +534,7 @@ extension SwitchStore {
   }
 }
 
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 public struct _ExhaustivityCheckView<State, Action>: View {
   @EnvironmentObject private var store: StoreObservableObject<State, Action>
   let file: StaticString
@@ -539,7 +545,7 @@ public struct _ExhaustivityCheckView<State, Action>: View {
       let message = """
         Warning: SwitchStore.body@\(self.file):\(self.line)
 
-        "\(debugCaseOutput(self.store.wrappedValue.state.value))" was encountered by a \
+        "\(debugCaseOutput(self.store.wrappedValue.$state.value))" was encountered by a \
         "SwitchStore" that does not handle this case.
 
         Make sure that you exhaustively provide a "CaseLet" view for each case in "\(State.self)", \
@@ -574,6 +580,7 @@ public struct _ExhaustivityCheckView<State, Action>: View {
   }
 }
 
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 private class StoreObservableObject<State, Action>: ObservableObject {
   let wrappedValue: Store<State, Action>
 
@@ -599,3 +606,4 @@ private struct EnumValueWitnessTable {
   let getEnumTag: @convention(c) (UnsafeRawPointer, UnsafeRawPointer) -> UInt32
   let f13, f14: UnsafeRawPointer
 }
+#endif
