@@ -1,4 +1,5 @@
-import Combine
+import Foundation
+import ReactiveSwift
 
 extension Effect {
   /// Returns an effect that will be executed after given `dueTime`.
@@ -16,15 +17,12 @@ extension Effect {
   ///   - scheduler: The scheduler you want to deliver the defer output to.
   ///   - options: Scheduler options that customize the effect's delivery of elements.
   /// - Returns: An effect that will be executed after `dueTime`
-  public func deferred<S: Scheduler>(
-    for dueTime: S.SchedulerTimeType.Stride,
-    scheduler: S,
-    options: S.SchedulerOptions? = nil
-  ) -> Effect {
-    Just(())
-      .setFailureType(to: Failure.self)
-      .delay(for: dueTime, scheduler: scheduler, options: options)
-      .flatMap { self }
-      .eraseToEffect()
+  public func deferred(
+    for dueTime: TimeInterval,
+    scheduler: DateScheduler
+  ) -> Effect<Value, Error> {
+    SignalProducer<Void, Never>(value: ())
+      .delay(dueTime, on: scheduler)
+      .flatMap(.latest) { self }
   }
 }

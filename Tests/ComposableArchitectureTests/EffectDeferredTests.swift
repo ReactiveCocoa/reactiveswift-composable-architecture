@@ -1,20 +1,16 @@
-import Combine
 import ComposableArchitecture
+import ReactiveSwift
 import XCTest
 
 final class EffectDeferredTests: XCTestCase {
-  var cancellables: Set<AnyCancellable> = []
-  
   func testDeferred() {
-    let scheduler = DispatchQueue.test
+    let scheduler = TestScheduler()
     var values: [Int] = []
     
     func runDeferredEffect(value: Int) {
-      Just(value)
-        .eraseToEffect()
+      SignalProducer(value: value)
         .deferred(for: 1, scheduler: scheduler)
-        .sink { values.append($0) }
-        .store(in: &self.cancellables)
+        .startWithValues { values.append($0) }
     }
     
     runDeferredEffect(value: 1)
@@ -23,25 +19,25 @@ final class EffectDeferredTests: XCTestCase {
     XCTAssertEqual(values, [])
     
     // Waiting half the time also emits nothing
-    scheduler.advance(by: 0.5)
+    scheduler.advance(by: .milliseconds(500))
     XCTAssertEqual(values, [])
     
     // Run another deferred effect.
     runDeferredEffect(value: 2)
     
     // Waiting half the time emits first deferred effect received.
-    scheduler.advance(by: 0.5)
+    scheduler.advance(by: .milliseconds(500))
     XCTAssertEqual(values, [1])
     
     // Run another deferred effect.
     runDeferredEffect(value: 3)
     
     // Waiting half the time emits second deferred effect received.
-    scheduler.advance(by: 0.5)
+    scheduler.advance(by: .milliseconds(500))
     XCTAssertEqual(values, [1, 2])
     
     // Waiting the rest of the time emits the final effect value.
-    scheduler.advance(by: 0.5)
+    scheduler.advance(by: .milliseconds(500))
     XCTAssertEqual(values, [1, 2, 3])
     
     // Running out the scheduler
@@ -50,19 +46,17 @@ final class EffectDeferredTests: XCTestCase {
   }
   
   func testDeferredIsLazy() {
-    let scheduler = DispatchQueue.test
+    let scheduler = TestScheduler()
     var values: [Int] = []
     var effectRuns = 0
     
     func runDeferredEffect(value: Int) {
-      Deferred { () -> Just<Int> in
+      Effect.deferred { () -> Effect<Int, Never> in
         effectRuns += 1
-        return Just(value)
+        return Effect(value: value)
       }
-      .eraseToEffect()
       .deferred(for: 1, scheduler: scheduler)
-      .sink { values.append($0) }
-      .store(in: &self.cancellables)
+      .startWithValues { values.append($0) }
     }
     
     runDeferredEffect(value: 1)
@@ -70,12 +64,12 @@ final class EffectDeferredTests: XCTestCase {
     XCTAssertEqual(values, [])
     XCTAssertEqual(effectRuns, 0)
     
-    scheduler.advance(by: 0.5)
+    scheduler.advance(by: .milliseconds(500))
     
     XCTAssertEqual(values, [])
     XCTAssertEqual(effectRuns, 0)
     
-    scheduler.advance(by: 0.5)
+    scheduler.advance(by: .milliseconds(500))
     
     XCTAssertEqual(values, [1])
     XCTAssertEqual(effectRuns, 1)
