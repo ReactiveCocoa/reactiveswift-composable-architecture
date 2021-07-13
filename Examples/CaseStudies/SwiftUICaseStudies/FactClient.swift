@@ -1,6 +1,6 @@
+import ComposableArchitecture
 import Foundation
 import ReactiveSwift
-import ComposableArchitecture
 import XCTestDynamicOverlay
 
 struct FactClient {
@@ -32,7 +32,7 @@ extension FactClient {
   // to prove do not need the dependency.
   static let unimplemented = Self(
     fetch: { _ in
-    XCTFail("\(Self.self).fact is unimplemented.")
-    return .none
-  })
+      XCTFail("\(Self.self).fact is unimplemented.")
+      return .none
+    })
 }
