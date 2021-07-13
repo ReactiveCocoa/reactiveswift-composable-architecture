@@ -50,7 +50,8 @@ import SwiftUI
 ///     }
 ///    ```
 ///
-/// Enhance its reducer using ``Reducer/forEach(state:action:environment:breakpointOnNil:_:_:)-3ic87``:
+/// Enhance its reducer using
+/// ``Reducer/forEach(state:action:environment:breakpointOnNil:_:_:)-3ic87``:
 ///
 ///    ```swift
 ///     let appReducer = todoReducer.forEach(
@@ -69,7 +70,7 @@ import SwiftUI
 ///       TodoView(store: todoStore)
 ///     }
 ///    ```
-///    
+///
   @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 public struct ForEachStore<EachState, EachAction, Data, ID, Content>: DynamicViewContent
 where Data: Collection, ID: Hashable, Content: View {

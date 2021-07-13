@@ -50,7 +50,7 @@ extension Effect where Value == Date, Error == Never {
   ///       let store = TestStore(
   ///         initialState: .init(),
   ///         reducer: appReducer,
-  ///         envirnoment: .init(
+  ///     environment: .init(
   ///           mainQueue: scheduler
   ///         )
   ///       )
@@ -87,6 +87,6 @@ extension Effect where Value == Date, Error == Never {
     return SignalProducer.timer(
       interval: interval, on: scheduler, leeway: tolerance ?? .seconds(.max)
     )
-    .cancellable(id: id, cancelInFlight: true)
+      .cancellable(id: id, cancelInFlight: true)
   }
 }

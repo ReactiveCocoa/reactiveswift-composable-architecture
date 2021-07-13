@@ -2,7 +2,7 @@ import Foundation
 
 /// An array of elements that can be identified by a given key path.
 ///`
-/// A useful container of state that is intended to interface with `SwiftUI/ForEach`. For example,
+/// A useful container of state that is intended to interface with SwiftUI/`ForEach`. For example,
 /// your application may model a counter in an identifiable fashion:
 ///
 ///    ```swift
@@ -42,7 +42,7 @@ import Foundation
 ///       }
 ///     }
 ///    ```
-///    
+///
 @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 public struct IdentifiedArray<ID, Element>: MutableCollection, RandomAccessCollection
 where ID: Hashable {
