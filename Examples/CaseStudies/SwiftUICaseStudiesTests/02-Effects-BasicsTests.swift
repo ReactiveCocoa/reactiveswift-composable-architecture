@@ -10,7 +10,7 @@ class EffectsBasicsTests: XCTestCase {
       initialState: EffectsBasicsState(),
       reducer: effectsBasicsReducer,
       environment: EffectsBasicsEnvironment(
-        fact: .unimplemented,
+        fact: .failing,
         mainQueue: ImmediateScheduler()
       )
     )
