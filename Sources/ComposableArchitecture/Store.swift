@@ -119,7 +119,6 @@ public final class Store<State, Action> {
 
   private var isSending = false
   private let reducer: (inout State, Action) -> Effect<Action, Never>
-  private var synchronousActionsToSend: [Action] = []
   private var bufferedActions: [Action] = []
   internal var effectDisposables: [UUID: Disposable] = [:]
   internal var parentDisposable: Disposable?
@@ -282,17 +281,23 @@ public final class Store<State, Action> {
     state toLocalState: @escaping (State) -> LocalState,
     action fromLocalAction: @escaping (LocalAction) -> Action
   ) -> Store<LocalState, LocalAction> {
+    var isSending = false
     let localStore = Store<LocalState, LocalAction>(
       initialState: toLocalState(self.state),
       reducer: .init { localState, localAction, _ in
+        isSending = true
+        defer { isSending = false }
         self.send(fromLocalAction(localAction))
         localState = toLocalState(self.state)
         return .none
       },
       environment: ()
     )
-    localStore.parentDisposable = self.$state.producer.startWithValues { [weak localStore] state in
-      localStore?.state = toLocalState(state)
+    localStore.parentCancellable = self.state
+      .dropFirst()
+      .sink { [weak localStore] newValue in
+        guard !isSending else { return }
+        localStore?.state.value = toLocalState(newValue)
     }
     return localStore
   }
@@ -339,9 +344,9 @@ public final class Store<State, Action> {
         )
         localStore.parentDisposable = self.$state.producer.startWithValues {
           [weak localStore] state in
-          guard let localStore = localStore else { return }
+            guard let localStore = localStore else { return }
           localStore.state = extractLocalState(state) ?? localStore.state
-        }
+          }
         return localStore
       }
   }
@@ -359,47 +364,31 @@ public final class Store<State, Action> {
   }
 
   func send(_ action: Action) {
-    if !self.isSending {
-      self.synchronousActionsToSend.append(action)
-    } else {
       self.bufferedActions.append(action)
-      return
-    }
-
-    while !self.synchronousActionsToSend.isEmpty || !self.bufferedActions.isEmpty {
-      let action =
-        !self.synchronousActionsToSend.isEmpty
-        ? self.synchronousActionsToSend.removeFirst()
-        : self.bufferedActions.removeFirst()
+    guard !self.isSending else { return }
 
       self.isSending = true
-      let effect = self.reducer(&self.state, action)
+    var currentState = self.state.value
+    defer {
+      self.state.value = currentState
       self.isSending = false
+    }
+
+    while !self.bufferedActions.isEmpty {
+      let action = self.bufferedActions.removeFirst()
+      let effect = self.reducer(&currentState, action)
 
       var didComplete = false
-      let effectID = UUID()
-
-      var isProcessingEffects = true
-      let observer = Signal<Action, Never>.Observer(
-        value: { [weak self] action in
-          if isProcessingEffects {
-            self?.synchronousActionsToSend.append(action)
-          } else {
+      let uuid = UUID()
+      let effectCancellable = effect.sink(
+        receiveCompletion: { [weak self] _ in
+          didComplete = true
+          self?.effectCancellables[uuid] = nil
+        },
+        receiveValue: { [weak self] action in
             self?.send(action)
           }
-        },
-        failed: .none,
-        completed: { [weak self] in
-          didComplete = true
-          self?.effectDisposables.removeValue(forKey: effectID)?.dispose()
-        },
-        interrupted: { [weak self] in
-          didComplete = true
-          self?.effectDisposables.removeValue(forKey: effectID)?.dispose()
-        }
       )
-      let effectDisposable = effect.start(observer)
-      isProcessingEffects = false
 
       if !didComplete {
         self.effectDisposables[effectID] = effectDisposable
@@ -424,7 +413,7 @@ public final class Store<State, Action> {
     self.parentDisposable?.dispose()
     self.effectDisposables.keys.forEach { id in
       self.effectDisposables.removeValue(forKey: id)?.dispose()
-    }
+}
   }
 }
 

@@ -1,10 +1,10 @@
 import ReactiveSwift
 
 #if canImport(Combine)
-  import Combine
+import Combine
 #endif
 #if canImport(SwiftUI)
-  import SwiftUI
+import SwiftUI
 #endif
 
 /// A ``ViewStore`` is an object that can observe state changes and send actions. They are most
@@ -15,40 +15,40 @@ import ReactiveSwift
 /// view. It can be initialized with a store and a closure that is handed a view store and must
 /// return a view to be rendered:
 ///
-///    ```swift
-///     var body: some View {
-///       WithViewStore(self.store) { viewStore in
-///         VStack {
-///           Text("Current count: \(viewStore.count)")
-///           Button("Increment") { viewStore.send(.incrementButtonTapped) }
-///         }
-///       }
+/// ```swift
+/// var body: some View {
+///   WithViewStore(self.store) { viewStore in
+///     VStack {
+///       Text("Current count: \(viewStore.count)")
+///       Button("Increment") { viewStore.send(.incrementButtonTapped) }
 ///     }
-///    ```
+///   }
+/// }
+/// ```
 ///
 /// In UIKit applications a ``ViewStore`` can be created from a ``Store`` and then subscribed to for
 /// state updates:
 ///
-///    ```swift
-///     let store: Store<State, Action>
-///     let viewStore: ViewStore<State, Action>
+/// ```swift
+/// let store: Store<State, Action>
+/// let viewStore: ViewStore<State, Action>
 ///
-///     init(store: Store<State, Action>) {
-///       self.store = store
-///       self.viewStore = ViewStore(store)
-///     }
+/// init(store: Store<State, Action>) {
+///   self.store = store
+///   self.viewStore = ViewStore(store)
+/// }
 ///
-///     func viewDidLoad() {
-///       super.viewDidLoad()
+/// func viewDidLoad() {
+///   super.viewDidLoad()
 ///
 ///       self.viewStore.produced.count
 ///         .startWithValues { [weak self] in self?.countLabel.text = $0 }
-///     }
+/// }
 ///
-///     @objc func incrementButtonTapped() {
-///       self.viewStore.send(.incrementButtonTapped)
-///     }
-///    ```
+/// @objc func incrementButtonTapped() {
+///   self.viewStore.send(.incrementButtonTapped)
+/// }
+/// ```
 ///
 /// ### Thread safety
 ///
@@ -77,8 +77,11 @@ public final class ViewStore<State, Action> {
     """
   )
   public var publisher: StoreProducer<State> { produced }
-
   internal var viewDisposable: Disposable?
+
+  private let _send: (Action) -> Void
+  private let _state: CurrentValueSubject<State, Never>
+  private var viewCancellable: AnyCancellable?
 
   /// Initializes a view store from a store.
   ///
@@ -97,15 +100,17 @@ public final class ViewStore<State, Action> {
     self.viewDisposable = produced.producer.startWithValues { [weak self] state in
       self?.state = state
     }
-  }
 
-  /// The current state.
-  public private(set) var state: State {
-    willSet {
+    self.publisher = StorePublisher(self._state)
+    self.viewCancellable = store.state
+      .removeDuplicates(by: isDuplicate)
+      .sink { [weak self] in
+        guard let self = self else { return }
       #if canImport(Combine)
         if #available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *) {
-          self.objectWillChange.send()
-        }
+      self.objectWillChange.send()
+        self._state.send($0)
+    }
       #endif
     }
   }
@@ -119,7 +124,7 @@ public final class ViewStore<State, Action> {
 
   /// Returns the resulting value of a given key path.
   public subscript<LocalState>(dynamicMember keyPath: KeyPath<State, LocalState>) -> LocalState {
-    self.state[keyPath: keyPath]
+    self._state.value[keyPath: keyPath]
   }
 
   /// Sends an action to the store.
@@ -136,145 +141,145 @@ public final class ViewStore<State, Action> {
   }
 
   #if canImport(SwiftUI)
-    /// Derives a binding from the store that prevents direct writes to state and instead sends
-    /// actions to the store.
-    ///
-    /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
-    /// since the ``Store`` does not allow directly writing its state; it only allows reading state
-    /// and sending actions.
-    ///
-    /// For example, a text field binding can be created like this:
-    ///
-    ///    ```swift
-    ///     struct State { var name = "" }
-    ///     enum Action { case nameChanged(String) }
-    ///
-    ///     TextField(
-    ///       "Enter name",
-    ///       text: viewStore.binding(
-    ///         get: { $0.name },
-    ///         send: { Action.nameChanged($0) }
-    ///       )
-    ///     )
-    ///    ```
-    ///
-    /// - Parameters:
-    ///   - get: A function to get the state for the binding from the view
-    ///     store's full state.
-    ///   - localStateToViewAction: A function that transforms the binding's value
-    ///     into an action that can be sent to the store.
-    /// - Returns: A binding.
+  /// Derives a binding from the store that prevents direct writes to state and instead sends
+  /// actions to the store.
+  ///
+  /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
+  /// since the ``Store`` does not allow directly writing its state; it only allows reading state
+  /// and sending actions.
+  ///
+  /// For example, a text field binding can be created like this:
+  ///
+  /// ```swift
+  /// struct State { var name = "" }
+  /// enum Action { case nameChanged(String) }
+  ///
+  /// TextField(
+  ///   "Enter name",
+  ///   text: viewStore.binding(
+  ///     get: { $0.name },
+  ///     send: { Action.nameChanged($0) }
+  ///   )
+  /// )
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - get: A function to get the state for the binding from the view
+  ///     store's full state.
+  ///   - localStateToViewAction: A function that transforms the binding's value
+  ///     into an action that can be sent to the store.
+  /// - Returns: A binding.
     @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-    public func binding<LocalState>(
-      get: @escaping (State) -> LocalState,
-      send localStateToViewAction: @escaping (LocalState) -> Action
-    ) -> Binding<LocalState> {
-      Binding(
-        get: { get(self.state) },
-        set: { newLocalState, transaction in
-          if transaction.animation != nil {
-            withTransaction(transaction) {
-              self.send(localStateToViewAction(newLocalState))
-            }
-          } else {
+  public func binding<LocalState>(
+    get: @escaping (State) -> LocalState,
+    send localStateToViewAction: @escaping (LocalState) -> Action
+  ) -> Binding<LocalState> {
+    Binding(
+      get: { get(self._state.value) },
+      set: { newLocalState, transaction in
+        if transaction.animation != nil {
+          withTransaction(transaction) {
             self.send(localStateToViewAction(newLocalState))
           }
+        } else {
+          self.send(localStateToViewAction(newLocalState))
         }
-      )
-    }
+      }
+    )
+  }
 
-    /// Derives a binding from the store that prevents direct writes to state and instead sends
-    /// actions to the store.
-    ///
-    /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
-    /// since the ``Store`` does not allow directly writing its state; it only allows reading state
-    /// and sending actions.
-    ///
-    /// For example, an alert binding can be dealt with like this:
-    ///
-    ///    ```swift
-    ///     struct State { var alert: String? }
-    ///     enum Action { case alertDismissed }
-    ///
-    ///     .alert(
+  /// Derives a binding from the store that prevents direct writes to state and instead sends
+  /// actions to the store.
+  ///
+  /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
+  /// since the ``Store`` does not allow directly writing its state; it only allows reading state
+  /// and sending actions.
+  ///
+  /// For example, an alert binding can be dealt with like this:
+  ///
+  /// ```swift
+  /// struct State { var alert: String? }
+  /// enum Action { case alertDismissed }
+  ///
+  /// .alert(
+  ///   item: self.store.binding(
+  ///     get: { $0.alert },
+  ///     send: .alertDismissed
+  ///   )
+  /// ) { alert in Alert(title: Text(alert.message)) }
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - get: A function to get the state for the binding from the view store's full state.
+  ///   - action: The action to send when the binding is written to.
+  /// - Returns: A binding.
+    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
+  public func binding<LocalState>(
+    get: @escaping (State) -> LocalState,
+    send action: Action
+  ) -> Binding<LocalState> {
+    self.binding(get: get, send: { _ in action })
+  }
+
+  /// Derives a binding from the store that prevents direct writes to state and instead sends
+  /// actions to the store.
+  ///
+  /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
+  /// since the ``Store`` does not allow directly writing its state; it only allows reading state
+  /// and sending actions.
+  ///
+  /// For example, a text field binding can be created like this:
+  ///
+  /// ```swift
+  /// typealias State = String
+  /// enum Action { case nameChanged(String) }
+  ///
+  /// TextField(
+  ///   "Enter name",
+  ///   text: viewStore.binding(
+  ///     send: { Action.nameChanged($0) }
+  ///   )
+  /// )
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - localStateToViewAction: A function that transforms the binding's value
+  ///     into an action that can be sent to the store.
+  /// - Returns: A binding.
+    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
+  public func binding(
+    send localStateToViewAction: @escaping (State) -> Action
+  ) -> Binding<State> {
+    self.binding(get: { $0 }, send: localStateToViewAction)
+  }
+
+  /// Derives a binding from the store that prevents direct writes to state and instead sends
+  /// actions to the store.
+  ///
+  /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
+  /// since the ``Store`` does not allow directly writing its state; it only allows reading state
+  /// and sending actions.
+  ///
+  /// For example, an alert binding can be dealt with like this:
+  ///
+  /// ```swift
+  /// typealias State = String
+  /// enum Action { case alertDismissed }
+  ///
+  /// .alert(
     ///       item: self.store.binding(
-    ///         get: { $0.alert },
-    ///         send: .alertDismissed
-    ///       )
-    ///     ) { alert in Alert(title: Text(alert.message)) }
-    ///    ```
-    ///
-    /// - Parameters:
-    ///   - get: A function to get the state for the binding from the view store's full state.
-    ///   - action: The action to send when the binding is written to.
-    /// - Returns: A binding.
+  ///     send: .alertDismissed
+  ///   )
+  /// ) { title in Alert(title: Text(title)) }
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - action: The action to send when the binding is written to.
+  /// - Returns: A binding.
     @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-    public func binding<LocalState>(
-      get: @escaping (State) -> LocalState,
-      send action: Action
-    ) -> Binding<LocalState> {
-      self.binding(get: get, send: { _ in action })
-    }
-
-    /// Derives a binding from the store that prevents direct writes to state and instead sends
-    /// actions to the store.
-    ///
-    /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
-    /// since the ``Store`` does not allow directly writing its state; it only allows reading state
-    /// and sending actions.
-    ///
-    /// For example, a text field binding can be created like this:
-    ///
-    ///    ```swift
-    ///     typealias State = String
-    ///     enum Action { case nameChanged(String) }
-    ///
-    ///     TextField(
-    ///       "Enter name",
-    ///       text: viewStore.binding(
-    ///         send: { Action.nameChanged($0) }
-    ///       )
-    ///     )
-    ///    ```
-    ///
-    /// - Parameters:
-    ///   - localStateToViewAction: A function that transforms the binding's value
-    ///     into an action that can be sent to the store.
-    /// - Returns: A binding.
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-    public func binding(
-      send localStateToViewAction: @escaping (State) -> Action
-    ) -> Binding<State> {
-      self.binding(get: { $0 }, send: localStateToViewAction)
-    }
-
-    /// Derives a binding from the store that prevents direct writes to state and instead sends
-    /// actions to the store.
-    ///
-    /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
-    /// since the ``Store`` does not allow directly writing its state; it only allows reading state
-    /// and sending actions.
-    ///
-    /// For example, an alert binding can be dealt with like this:
-    ///
-    ///    ```swift
-    ///     typealias State = String
-    ///     enum Action { case alertDismissed }
-    ///
-    ///     .alert(
-    ///       item: self.store.binding(
-    ///         send: .alertDismissed
-    ///       )
-    ///     ) { title in Alert(title: Text(title)) }
-    ///    ```
-    ///
-    /// - Parameters:
-    ///   - action: The action to send when the binding is written to.
-    /// - Returns: A binding.
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-    public func binding(send action: Action) -> Binding<State> {
-      self.binding(send: { _ in action })
-    }
+  public func binding(send action: Action) -> Binding<State> {
+    self.binding(send: { _ in action })
+  }
   #endif
 
   deinit {

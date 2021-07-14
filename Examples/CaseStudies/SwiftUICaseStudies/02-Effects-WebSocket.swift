@@ -102,6 +102,7 @@ let webSocketReducer = Reducer<WebSocketState, WebSocketAction, WebSocketEnviron
     state.messageToSend = ""
 
     return environment.webSocket.send(WebSocketId(), .string(messageToSend))
+      .observe(on: environment.mainQueue)
       .map(WebSocketAction.sendResponse)
 
   case let .sendResponse(error):

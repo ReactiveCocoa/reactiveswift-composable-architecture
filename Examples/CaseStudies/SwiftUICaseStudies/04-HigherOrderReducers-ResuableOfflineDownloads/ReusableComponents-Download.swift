@@ -147,11 +147,11 @@ struct CityMapDetailView: View {
 }
 
 struct MapAppState {
-  var cityMaps: [CityMapState]
+  var cityMaps: IdentifiedArrayOf<CityMapState>
 }
 
 enum MapAppAction {
-  case cityMaps(index: Int, action: CityMapAction)
+  case cityMaps(id: CityMapState.ID, action: CityMapAction)
 }
 
 struct MapAppEnvironment {
@@ -161,7 +161,7 @@ struct MapAppEnvironment {
 
 let mapAppReducer: Reducer<MapAppState, MapAppAction, MapAppEnvironment> = cityMapReducer.forEach(
   state: \MapAppState.cityMaps,
-  action: /MapAppAction.cityMaps(index:action:),
+  action: /MapAppAction.cityMaps(id:action:),
   environment: {
     CityMapEnvironment(
       downloadClient: $0.downloadClient,
@@ -179,7 +179,7 @@ struct CitiesView: View {
         header: Text(readMe)
       ) {
         ForEachStore(
-          self.store.scope(state: \.cityMaps, action: MapAppAction.cityMaps(index:action:))
+          self.store.scope(state: \.cityMaps, action: MapAppAction.cityMaps(id:action:))
         ) { cityMapStore in
           CityMapRowView(store: cityMapStore)
             .buttonStyle(BorderlessButtonStyle())
@@ -209,7 +209,7 @@ struct DownloadList_Previews: PreviewProvider {
       NavigationView {
         CityMapDetailView(
           store: Store(
-            initialState: [CityMapState].mocks.first!,
+            initialState: IdentifiedArray.mocks.first!,
             reducer: .empty,
             environment: ()
           )
@@ -219,7 +219,7 @@ struct DownloadList_Previews: PreviewProvider {
   }
 }
 
-extension Array where Element == CityMapState {
+extension IdentifiedArray where ID == CityMapState.ID, Element == CityMapState {
   static let mocks: Self = [
     .init(
       downloadMode: .notDownloaded,

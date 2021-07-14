@@ -1,7 +1,6 @@
-import CasePaths
 
 #if canImport(SwiftUI)
-  import SwiftUI
+import SwiftUI
 #endif
 
 /// An action that describes simple mutations to some root state at a writable key path.
@@ -143,7 +142,7 @@ import CasePaths
 public struct BindingAction<Root>: Equatable {
   public let keyPath: PartialKeyPath<Root>
 
-  fileprivate let set: (inout Root) -> Void
+  let set: (inout Root) -> Void
   private let value: Any
   private let valueIsEqualTo: (Any) -> Bool
 
@@ -219,50 +218,50 @@ extension Reducer {
   /// .binding(action: /SettingsAction.binding)
   /// ```
   ///
-  /// - Parameter toBindingAction: A case path from this reducer's `Action` type to a
-  ///   `BindingAction` over this reducer's `State`.
+  /// - Parameter toBindingAction: A function that extracts a `BindingAction<State>` from an
+  /// `Action`. Typically this is done by using the prefix operator `/` to automatically derive
+  /// an extraction function from any case of any enum.
   /// - Returns: A reducer that applies ``BindingAction`` mutations to `State` before running this
   ///   reducer's logic.
-  public func binding(action toBindingAction: CasePath<Action, BindingAction<State>>) -> Self {
+  public func binding(action toBindingAction: @escaping (Action) -> BindingAction<State>?) -> Self {
     Self { state, action, environment in
-      toBindingAction.extract(from: action)?.set(&state)
-      return .none
+      toBindingAction(action)?.set(&state)
+      return self.run(&state, action, environment)
     }
-    .combined(with: self)
   }
 }
 
 #if canImport(SwiftUI)
-  extension ViewStore {
-    /// Derives a binding from the store that mutates state at the given writable key path by wrapping
-    /// a ``BindingAction`` with the store's action type.
-    ///
-    /// For example, a text field binding can be created like this:
-    ///
-    /// ```swift
-    /// struct State { var text = "" }
-    /// enum Action { case binding(BindingAction<State>) }
-    ///
-    /// TextField(
-    ///   "Enter text",
-    ///   text: viewStore.binding(keyPath: \.text, Action.binding)
-    /// )
-    /// ```
-    ///
-    /// - Parameters:
-    ///   - keyPath: A writable key path from the view store's state to a mutable field
-    ///   - action: A function that wraps a binding action in the view store's action type.
-    /// - Returns: A binding.
+extension ViewStore {
+  /// Derives a binding from the store that mutates state at the given writable key path by wrapping
+  /// a ``BindingAction`` with the store's action type.
+  ///
+  /// For example, a text field binding can be created like this:
+  ///
+  /// ```swift
+  /// struct State { var text = "" }
+  /// enum Action { case binding(BindingAction<State>) }
+  ///
+  /// TextField(
+  ///   "Enter text",
+  ///   text: viewStore.binding(keyPath: \.text, Action.binding)
+  /// )
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - keyPath: A writable key path from the view store's state to a mutable field
+  ///   - action: A function that wraps a binding action in the view store's action type.
+  /// - Returns: A binding.
     @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-    public func binding<LocalState>(
-      keyPath: WritableKeyPath<State, LocalState>,
-      send action: @escaping (BindingAction<State>) -> Action
-    ) -> Binding<LocalState>
-    where LocalState: Equatable {
-      self.binding(
-        get: { $0[keyPath: keyPath] },
-        send: { action(.set(keyPath, $0)) }
-      )
-    }
+  public func binding<LocalState>(
+    keyPath: WritableKeyPath<State, LocalState>,
+    send action: @escaping (BindingAction<State>) -> Action
+  ) -> Binding<LocalState>
+  where LocalState: Equatable {
+    self.binding(
+      get: { $0[keyPath: keyPath] },
+      send: { action(.set(keyPath, $0)) }
+    )
   }
+}
 #endif
