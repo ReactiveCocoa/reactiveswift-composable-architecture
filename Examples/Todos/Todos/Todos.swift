@@ -78,7 +78,7 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
     case .todo(id: _, action: .checkBoxToggled):
       struct TodoCompletionId: Hashable {}
       return Effect(value: .sortCompletedTodos)
-        .debounce(id: TodoCompletionId(), interval: 1, scheduler: environment.mainQueue.animation())
+        .debounce(id: TodoCompletionId(), for: 1, scheduler: environment.mainQueue.animation())
 
     case .todo:
       return .none

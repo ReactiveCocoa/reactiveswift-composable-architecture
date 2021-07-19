@@ -71,7 +71,7 @@ let searchReducer = Reducer<SearchState, SearchAction, SearchEnvironment> {
       .searchLocation(query)
       .observe(on: environment.mainQueue)
       .catchToEffect()
-      .debounce(id: SearchLocationId(), interval: 0.3, scheduler: environment.mainQueue)
+      .debounce(id: SearchLocationId(), for: 0.3, scheduler: environment.mainQueue)
       .map(SearchAction.locationsResponse)
 
   case let .locationWeatherResponse(.failure(locationWeather)):
