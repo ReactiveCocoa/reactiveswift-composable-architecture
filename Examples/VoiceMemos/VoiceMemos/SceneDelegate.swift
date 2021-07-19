@@ -18,8 +18,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
           initialState: VoiceMemosState(),
           reducer: voiceMemosReducer.debug(),
           environment: VoiceMemosEnvironment(
-            audioPlayerClient: .live,
-            audioRecorderClient: .live,
+            audioPlayer: .live,
+            audioRecorder: .live,
             date: Date.init,
             mainQueue: QueueScheduler.main,
             openSettings: .fireAndForget {

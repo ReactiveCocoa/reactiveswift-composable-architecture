@@ -47,7 +47,7 @@ let multipleDependenciesReducer = Reducer<
   switch action {
   case .alertButtonTapped:
     return Effect(value: .alertDelayReceived)
-      .delay(1, on: environment.mainQueue())
+      .delay(1, on: environment.mainQueue)
 
   case .alertDelayReceived:
     state.alert = .init(title: .init("Here's an alert after a delay!"))
@@ -158,7 +158,7 @@ struct MultipleDependenciesView_Previews: PreviewProvider {
 struct SystemEnvironment<Environment> {
   var date: () -> Date
   var environment: Environment
-  var mainQueue: () -> DateScheduler
+  var mainQueue: DateScheduler
   var uuid: () -> UUID
 
   subscript<Dependency>(
@@ -176,7 +176,7 @@ struct SystemEnvironment<Environment> {
     Self(
       date: Date.init,
       environment: environment,
-      mainQueue: { QueueScheduler.main },
+      mainQueue: .main,
       uuid: UUID.init
     )
   }
@@ -195,17 +195,25 @@ struct SystemEnvironment<Environment> {
 }
 
 #if DEBUG
+  import XCTestDynamicOverlay
+
   extension SystemEnvironment {
-    static func mock(
-      date: @escaping () -> Date = { fatalError("date dependency is unimplemented.") },
+    static func failing(
+      date: @escaping () -> Date = {
+        XCTFail("date dependency is unimplemented.")
+        return Date()
+      },
       environment: Environment,
-      mainQueue: @escaping () -> DateScheduler = { fatalError() },
-      uuid: @escaping () -> UUID = { fatalError("UUID dependency is unimplemented.") }
+      mainQueue: AnySchedulerOf<DispatchQueue> = .failing,
+      uuid: @escaping () -> UUID = {
+        XCTFail("UUID dependency is unimplemented.")
+        return UUID()
+      }
     ) -> Self {
       Self(
         date: date,
         environment: environment,
-        mainQueue: { mainQueue() },
+        mainQueue: mainQueue,
         uuid: uuid
       )
     }

@@ -3,12 +3,14 @@ import Foundation
 import ReactiveSwift
 import SwiftUI
 
-struct VoiceMemo: Equatable {
+struct VoiceMemo: Equatable, Identifiable {
   var date: Date
   var duration: TimeInterval
   var mode = Mode.notPlaying
   var title = ""
   var url: URL
+
+  var id: URL { self.url }
 
   enum Mode: Equatable {
     case notPlaying
