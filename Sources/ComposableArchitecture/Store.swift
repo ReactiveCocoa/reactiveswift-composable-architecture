@@ -346,9 +346,9 @@ public final class Store<State, Action> {
         )
         localStore.parentDisposable = self.$state.producer.startWithValues {
           [weak localStore] state in
-            guard let localStore = localStore else { return }
+          guard let localStore = localStore else { return }
           localStore.state = extractLocalState(state) ?? localStore.state
-          }
+        }
         return localStore
       }
   }
@@ -372,8 +372,8 @@ public final class Store<State, Action> {
     self.isSending = true
     var currentState = self.$state.value
     defer {
-      self.$state.value = currentState
       self.isSending = false
+      self.$state.value = currentState
     }
 
     while !self.bufferedActions.isEmpty {
