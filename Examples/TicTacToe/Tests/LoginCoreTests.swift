@@ -8,18 +8,19 @@ import XCTest
 
 class LoginCoreTests: XCTestCase {
   func testFlow_Success_TwoFactor_Integration() {
+    var authenticationClient = AuthenticationClient.failing
+    authenticationClient.login = { _ in
+      Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: true))
+    }
+    authenticationClient.twoFactor = { _ in
+      Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: false))
+    }
+
     let store = TestStore(
       initialState: LoginState(),
       reducer: loginReducer,
       environment: LoginEnvironment(
-        authenticationClient: .mock(
-          login: { _ in
-            Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: true))
-          },
-          twoFactor: { _ in
-            Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: false))
-          }
-        ),
+        authenticationClient: authenticationClient,
         mainQueue: ImmediateScheduler()
       )
     )
@@ -57,20 +58,20 @@ class LoginCoreTests: XCTestCase {
   }
 
   func testFlow_DismissEarly_TwoFactor_Integration() {
-    let scheduler = TestScheduler()
+    var authenticationClient = AuthenticationClient.failing
+    authenticationClient.login = { _ in
+      Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: true))
+    }
+    authenticationClient.twoFactor = { _ in
+      Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: false))
+    }
+    let scheduler = DispatchQueue.test
 
     let store = TestStore(
       initialState: LoginState(),
       reducer: loginReducer,
       environment: LoginEnvironment(
-        authenticationClient: .mock(
-          login: { _ in
-            Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: true))
-          },
-          twoFactor: { _ in
-            Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: false))
-          }
-        ),
+        authenticationClient: authenticationClient,
         mainQueue: scheduler
       )
     )

@@ -9,17 +9,18 @@ class WebSocketTests: XCTestCase {
     let socketSubject = Signal<WebSocketClient.Action, Never>.pipe()
     let receiveSubject = Signal<WebSocketClient.Message, NSError>.pipe()
 
+    var webSocket = WebSocketClient.failing
+    webSocket.open = { _, _, _ in socketSubject.eraseToEffect() }
+    webSocket.receive = { _ in receiveSubject.eraseToEffect() }
+    webSocket.send = { _, _ in Effect(value: nil) }
+    webSocket.sendPing = { _ in .none }
+
     let store = TestStore(
       initialState: .init(),
       reducer: webSocketReducer,
       environment: WebSocketEnvironment(
         mainQueue: ImmediateScheduler(),
-        webSocket: .mock(
-          open: { _, _, _ in socketSubject.output.producer },
-          receive: { _ in receiveSubject.output.producer },
-          send: { _, _ in Effect(value: nil) },
-          sendPing: { _ in .none }
-        )
+        webSocket: webSocket
       )
     )
 
@@ -57,17 +58,18 @@ class WebSocketTests: XCTestCase {
     let socketSubject = Signal<WebSocketClient.Action, Never>.pipe()
     let receiveSubject = Signal<WebSocketClient.Message, NSError>.pipe()
 
+    var webSocket = WebSocketClient.failing
+    webSocket.open = { _, _, _ in socketSubject.eraseToEffect() }
+    webSocket.receive = { _ in receiveSubject.eraseToEffect() }
+    webSocket.send = { _, _ in Effect(value: NSError(domain: "", code: 1)) }
+    webSocket.sendPing = { _ in .none }
+
     let store = TestStore(
       initialState: .init(),
       reducer: webSocketReducer,
       environment: WebSocketEnvironment(
         mainQueue: ImmediateScheduler(),
-        webSocket: .mock(
-          open: { _, _, _ in socketSubject.output.producer },
-          receive: { _ in receiveSubject.output.producer },
-          send: { _, _ in Effect(value: NSError(domain: "", code: 1)) },
-          sendPing: { _ in .none }
-        )
+        webSocket: webSocket
       )
     )
 
@@ -101,19 +103,20 @@ class WebSocketTests: XCTestCase {
     let socketSubject = Signal<WebSocketClient.Action, Never>.pipe()
     let pingSubject = Signal<NSError?, Never>.pipe()
 
-    let scheduler = TestScheduler()
+    var webSocket = WebSocketClient.failing
+    webSocket.open = { _, _, _ in socketSubject.eraseToEffect() }
+    webSocket.receive = { _ in .none }
+    webSocket.sendPing = { _ in pingSubject.eraseToEffect() }
+
+    let scheduler = DispatchQueue.test
     let store = TestStore(
       initialState: .init(),
       reducer: webSocketReducer,
       environment: WebSocketEnvironment(
         mainQueue: scheduler,
-        webSocket: .mock(
-          open: { _, _, _ in socketSubject.output.producer },
-          receive: { _ in .none },
-          sendPing: { _ in pingSubject.output.producer }
+        webSocket: webSocket
         )
       )
-    )
 
     store.send(.connectButtonTapped) {
       $0.connectivityState = .connecting
@@ -138,17 +141,18 @@ class WebSocketTests: XCTestCase {
   func testWebSocketConnectError() {
     let socketSubject = Signal<WebSocketClient.Action, Never>.pipe()
 
+    var webSocket = WebSocketClient.failing
+    webSocket.cancel = { _, _, _ in .fireAndForget { socketSubject.send(completion: .finished) } }
+    webSocket.open = { _, _, _ in socketSubject.eraseToEffect() }
+    webSocket.receive = { _ in .none }
+    webSocket.sendPing = { _ in .none }
+
     let store = TestStore(
       initialState: .init(),
       reducer: webSocketReducer,
       environment: WebSocketEnvironment(
         mainQueue: ImmediateScheduler(),
-        webSocket: .mock(
-          cancel: { _, _, _ in .fireAndForget { socketSubject.input.sendCompleted() } },
-          open: { _, _, _ in socketSubject.output.producer },
-          receive: { _ in .none },
-          sendPing: { _ in .none }
-        )
+        webSocket: webSocket
       )
     )
 
@@ -164,25 +168,11 @@ class WebSocketTests: XCTestCase {
 }
 
 extension WebSocketClient {
-  static func mock(
-    cancel: @escaping (AnyHashable, URLSessionWebSocketTask.CloseCode, Data?) -> Effect<
-      Never, Never
-    > = { _, _, _ in fatalError() },
-    open: @escaping (AnyHashable, URL, [String]) -> Effect<Action, Never> = { _, _, _ in
-      fatalError()
-    },
-    receive: @escaping (AnyHashable) -> Effect<Message, NSError> = { _ in fatalError() },
-    send: @escaping (AnyHashable, URLSessionWebSocketTask.Message) -> Effect<NSError?, Never> = {
-      _, _ in fatalError()
-    },
-    sendPing: @escaping (AnyHashable) -> Effect<NSError?, Never> = { _ in fatalError() }
-  ) -> Self {
-    Self(
-      cancel: cancel,
-      open: open,
-      receive: receive,
-      send: send,
-      sendPing: sendPing
+  static let failing = Self(
+    cancel: { _, _, _ in .failing("WebSocketClient.cancel") },
+    open: { _, _, _ in .failing("WebSocketClient.open") },
+    receive: { _ in .failing("WebSocketClient.receive") },
+    send: { _, _ in .failing("WebSocketClient.send") },
+    sendPing: { _ in .failing("WebSocketClient.sendPing") }
     )
   }
-}
