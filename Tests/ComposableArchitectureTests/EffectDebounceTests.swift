@@ -11,7 +11,7 @@ final class EffectDebounceTests: XCTestCase {
       struct CancelToken: Hashable {}
 
       Effect(value: value)
-        .debounce(id: CancelToken(), interval: 1, scheduler: scheduler)
+        .debounce(id: CancelToken(), for: 1, scheduler: scheduler)
         .startWithValues { values.append($0) }
     }
 
@@ -59,7 +59,7 @@ final class EffectDebounceTests: XCTestCase {
         effectRuns += 1
         return Effect(value: value)
       }
-      .debounce(id: CancelToken(), interval: 1, scheduler: scheduler)
+      .debounce(id: CancelToken(), for: 1, scheduler: scheduler)
       .startWithValues { values.append($0) }
     }
 

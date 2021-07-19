@@ -21,13 +21,13 @@ extension Effect {
   ///
   /// - Parameters:
   ///   - id: The effect's identifier.
-  ///   - dueTime: The duration you want to debounce for.
+  ///   - for: The duration you want to debounce for.
   ///   - scheduler: The scheduler you want to deliver the debounced output to.
   ///   - options: Scheduler options that customize the effect's delivery of elements.
   /// - Returns: An effect that publishes events only after a specified time elapses.
   public func debounce(
     id: AnyHashable,
-    interval: TimeInterval,
+    for interval: TimeInterval,
     scheduler: DateScheduler
   ) -> Effect<Value, Error> {
     Effect<Void, Never>.init(value: ())

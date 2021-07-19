@@ -17,7 +17,7 @@ final class EffectThrottleTests: XCTestCase {
         effectRuns += 1
         return .init(value: value)
       }
-      .throttle(id: CancelToken(), interval: 1, on: scheduler, latest: true)
+      .throttle(id: CancelToken(), for: 1, scheduler: scheduler, latest: true)
       .startWithValues { values.append($0) }
     }
 
@@ -63,7 +63,7 @@ final class EffectThrottleTests: XCTestCase {
         effectRuns += 1
         return .init(value: value)
       }
-      .throttle(id: CancelToken(), interval: 1, on: scheduler, latest: false)
+      .throttle(id: CancelToken(), for: 1, scheduler: scheduler, latest: false)
       .startWithValues { values.append($0) }
     }
 
@@ -109,7 +109,7 @@ final class EffectThrottleTests: XCTestCase {
         effectRuns += 1
         return .init(value: value)
       }
-      .throttle(id: CancelToken(), interval: 1, on: scheduler, latest: true)
+      .throttle(id: CancelToken(), for: 1, scheduler: scheduler, latest: true)
       .startWithValues { values.append($0) }
     }
 
@@ -133,16 +133,14 @@ final class EffectThrottleTests: XCTestCase {
     func runThrottledEffect(value: Int) {
       struct CancelToken: Hashable {}
 
-      Deferred { () -> Just<Int> in
+      Effect.deferred { () -> Effect<Int, Never> in
         effectRuns += 1
-        return Just(value)
+        return .init(value: value)
       }
-      .eraseToEffect()
       .throttle(
-        id: CancelToken(), for: 1, scheduler: scheduler.eraseToAnyScheduler(), latest: false
+        id: CancelToken(), for: 1, scheduler: scheduler, latest: false
       )
-      .sink { values.append($0) }
-      .store(in: &self.cancellables)
+      .startWithValues { values.append($0) }
     }
 
     runThrottledEffect(value: 1)
@@ -150,11 +148,11 @@ final class EffectThrottleTests: XCTestCase {
     // A value emits right away.
     XCTAssertEqual(values, [1])
 
-    scheduler.advance(by: 0.5)
+    scheduler.advance(by: .milliseconds(500))
 
     runThrottledEffect(value: 2)
 
-    scheduler.advance(by: 0.5)
+    scheduler.advance(by: .milliseconds(500))
 
     runThrottledEffect(value: 3)
 
