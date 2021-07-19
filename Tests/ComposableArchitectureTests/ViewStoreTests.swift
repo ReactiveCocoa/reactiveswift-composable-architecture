@@ -5,10 +5,7 @@ import ComposableArchitecture
 import ReactiveSwift
 import XCTest
 
-
 final class ViewStoreTests: XCTestCase {
-  var cancellables: Set<AnyCancellable> = []
-
   override func setUp() {
     super.setUp()
     equalityChecks = 0
@@ -101,7 +98,10 @@ final class ViewStoreTests: XCTestCase {
   }
 
   #if canImport(Combine)
+  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
   func testWillSet() {
+    var cancellables: Set<AnyCancellable> = []
+
     let reducer = Reducer<Int, Void, Void> { count, _, _ in
       count += 1
       return .none
@@ -114,7 +114,7 @@ final class ViewStoreTests: XCTestCase {
 
     viewStore.objectWillChange
       .sink { _ in results.append(viewStore.state) }
-      .store(in: &self.cancellables)
+      .store(in: &cancellables)
 
     viewStore.send(())
     viewStore.send(())
