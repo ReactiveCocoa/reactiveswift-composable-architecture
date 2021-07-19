@@ -142,7 +142,7 @@ class SearchTests: XCTestCase {
       reducer: searchReducer,
       environment: SearchEnvironment(
         weatherClient: weatherClient,
-        mainQueue: self.scheduler.eraseToAnyScheduler()
+        mainQueue: self.scheduler
       )
     )
 

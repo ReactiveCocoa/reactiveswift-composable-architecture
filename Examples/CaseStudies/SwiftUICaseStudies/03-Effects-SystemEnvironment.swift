@@ -176,7 +176,7 @@ struct SystemEnvironment<Environment> {
     Self(
       date: Date.init,
       environment: environment,
-      mainQueue: .main,
+      mainQueue: QueueScheduler.main,
       uuid: UUID.init
     )
   }
@@ -204,7 +204,7 @@ struct SystemEnvironment<Environment> {
         return Date()
       },
       environment: Environment,
-      mainQueue: AnySchedulerOf<DispatchQueue> = .failing,
+      mainQueue: DateScheduler = FailingScheduler(),
       uuid: @escaping () -> UUID = {
         XCTFail("UUID dependency is unimplemented.")
         return UUID()
