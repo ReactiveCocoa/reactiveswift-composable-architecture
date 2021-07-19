@@ -17,8 +17,8 @@ class SpeechRecognitionTests: XCTestCase {
       environment: AppEnvironment(
         mainQueue: ImmediateScheduler(),
         speechClient: speechClient
-        )
       )
+    )
 
     store.send(.recordButtonTapped) {
       $0.isRecording = true

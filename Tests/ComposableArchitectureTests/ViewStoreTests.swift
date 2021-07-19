@@ -1,9 +1,10 @@
-#if canImport(Combine)
-import Combine
-#endif
 import ComposableArchitecture
 import ReactiveSwift
 import XCTest
+
+#if canImport(Combine)
+  import Combine
+#endif
 
 final class ViewStoreTests: XCTestCase {
   override func setUp() {
@@ -98,30 +99,30 @@ final class ViewStoreTests: XCTestCase {
   }
 
   #if canImport(Combine)
-  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-  func testWillSet() {
-    var cancellables: Set<AnyCancellable> = []
+    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
+    func testWillSet() {
+      var cancellables: Set<AnyCancellable> = []
 
-    let reducer = Reducer<Int, Void, Void> { count, _, _ in
-      count += 1
-      return .none
+      let reducer = Reducer<Int, Void, Void> { count, _, _ in
+        count += 1
+        return .none
+      }
+
+      let store = Store(initialState: 0, reducer: reducer, environment: ())
+      let viewStore = ViewStore(store)
+
+      var results: [Int] = []
+
+      viewStore.objectWillChange
+        .sink { _ in results.append(viewStore.state) }
+        .store(in: &cancellables)
+
+      viewStore.send(())
+      viewStore.send(())
+      viewStore.send(())
+
+      XCTAssertEqual([0, 1, 2], results)
     }
-
-    let store = Store(initialState: 0, reducer: reducer, environment: ())
-    let viewStore = ViewStore(store)
-
-    var results: [Int] = []
-
-    viewStore.objectWillChange
-      .sink { _ in results.append(viewStore.state) }
-      .store(in: &cancellables)
-
-    viewStore.send(())
-    viewStore.send(())
-    viewStore.send(())
-
-    XCTAssertEqual([0, 1, 2], results)
-  }
   #endif
 }
 
