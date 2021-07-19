@@ -1,3 +1,4 @@
+import Foundation
 import ComposableArchitecture
 import ReactiveSwift
 import XCTest
@@ -6,9 +7,6 @@ import XCTest
 
 class VoiceMemosTests: XCTestCase {
   func testRecordMemoHappyPath() {
-    // NB: Combine's concatenation behavior is different in 13.3
-    guard #available(iOS 13.4, *) else { return }
-
     let audioRecorderSubject = Signal<
       AudioRecorderClient.Action, AudioRecorderClient.Failure
     >.pipe()
@@ -18,7 +16,7 @@ class VoiceMemosTests: XCTestCase {
     environment.audioRecorder.currentTime = { _ in Effect(value: 2.5) }
     environment.audioRecorder.requestRecordPermission = { Effect(value: true) }
     environment.audioRecorder.startRecording = { _, _ in
-      audioRecorderSubject.eraseToEffect()
+      audioRecorderSubject.output.producer
     }
     environment.audioRecorder.stopRecording = { _ in
             .fireAndForget {
@@ -27,7 +25,7 @@ class VoiceMemosTests: XCTestCase {
             }
           }
     environment.date = { Date(timeIntervalSinceReferenceDate: 0) }
-    environment.mainQueue = scheduler.eraseToAnyScheduler()
+    environment.mainQueue = scheduler
     environment.temporaryDirectory = { URL(fileURLWithPath: "/tmp") }
     environment.uuid = { UUID(uuidString: "DEADBEEF-DEAD-BEEF-DEAD-BEEFDEADBEEF")! }
 
@@ -81,7 +79,7 @@ class VoiceMemosTests: XCTestCase {
 
     var environment = VoiceMemosEnvironment.failing
     environment.audioRecorder.requestRecordPermission = { Effect(value: false) }
-    environment.mainQueue = .immediate
+    environment.mainQueue = ImmediateScheduler()
     environment.openSettings = .fireAndForget { didOpenSettings = true }
 
     let store = TestStore(
@@ -111,10 +109,10 @@ class VoiceMemosTests: XCTestCase {
     environment.audioRecorder.currentTime = { _ in Effect(value: 2.5) }
     environment.audioRecorder.requestRecordPermission = { Effect(value: true) }
     environment.audioRecorder.startRecording = { _, _ in
-      audioRecorderSubject.eraseToEffect()
+      audioRecorderSubject.output.producer
     }
     environment.date = { Date(timeIntervalSinceReferenceDate: 0) }
-    environment.mainQueue = .immediate
+    environment.mainQueue = ImmediateScheduler()
     environment.temporaryDirectory = { .init(fileURLWithPath: "/tmp") }
     environment.uuid = { UUID(uuidString: "DEADBEEF-DEAD-BEEF-DEAD-BEEFDEADBEEF")! }
 
@@ -144,14 +142,13 @@ class VoiceMemosTests: XCTestCase {
   }
 
   func testPlayMemoHappyPath() {
-    let scheduler = DispatchQueue.test
+    let scheduler = TestScheduler()
     var environment = VoiceMemosEnvironment.failing
     environment.audioPlayer.play = { _, _ in
       Effect(value: .didFinishPlaying(successfully: true))
-        .delay(for: 1, scheduler: scheduler)
-        .eraseToEffect()
+        .delay(1, on: scheduler)
     }
-    environment.mainQueue = scheduler.eraseToAnyScheduler()
+    environment.mainQueue = scheduler
 
     let url = URL(string: "https://www.pointfree.co/functions")!
     let store = TestStore(
@@ -195,7 +192,7 @@ class VoiceMemosTests: XCTestCase {
   func testPlayMemoFailure() {
     var environment = VoiceMemosEnvironment.failing
     environment.audioPlayer.play = { _, _ in Effect(error: .decodeErrorDidOccur) }
-    environment.mainQueue = .immediate
+    environment.mainQueue = ImmediateScheduler()
 
     let url = URL(string: "https://www.pointfree.co/functions")!
     let store = TestStore(
@@ -285,7 +282,7 @@ class VoiceMemosTests: XCTestCase {
     var environment = VoiceMemosEnvironment.failing
     environment.audioPlayer.play = { _, _ in .none }
     environment.audioPlayer.stop = { _ in .none }
-    environment.mainQueue = .immediate
+    environment.mainQueue = ImmediateScheduler()
 
     let store = TestStore(
       initialState: VoiceMemosState(
@@ -320,7 +317,7 @@ extension VoiceMemosEnvironment {
       XCTFail("VoiceMemosEnvironment.date is unimplemented")
       return Date()
     },
-    mainQueue: .failing,
+    mainQueue: FailingScheduler(),
     openSettings: .failing("VoiceMemosEnvironment.openSettings"),
     temporaryDirectory: {
       XCTFail("VoiceMemosEnvironment.temporaryDirectory is unimplemented")

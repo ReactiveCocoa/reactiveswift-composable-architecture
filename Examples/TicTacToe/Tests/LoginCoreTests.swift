@@ -65,7 +65,7 @@ class LoginCoreTests: XCTestCase {
     authenticationClient.twoFactor = { _ in
       Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: false))
     }
-    let scheduler = DispatchQueue.test
+    let scheduler = TestScheduler()
 
     let store = TestStore(
       initialState: LoginState(),

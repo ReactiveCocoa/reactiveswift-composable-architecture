@@ -10,8 +10,8 @@ class WebSocketTests: XCTestCase {
     let receiveSubject = Signal<WebSocketClient.Message, NSError>.pipe()
 
     var webSocket = WebSocketClient.failing
-    webSocket.open = { _, _, _ in socketSubject.eraseToEffect() }
-    webSocket.receive = { _ in receiveSubject.eraseToEffect() }
+    webSocket.open = { _, _, _ in socketSubject.output.producer }
+    webSocket.receive = { _ in receiveSubject.output.producer }
     webSocket.send = { _, _ in Effect(value: nil) }
     webSocket.sendPing = { _ in .none }
 
@@ -59,8 +59,8 @@ class WebSocketTests: XCTestCase {
     let receiveSubject = Signal<WebSocketClient.Message, NSError>.pipe()
 
     var webSocket = WebSocketClient.failing
-    webSocket.open = { _, _, _ in socketSubject.eraseToEffect() }
-    webSocket.receive = { _ in receiveSubject.eraseToEffect() }
+    webSocket.open = { _, _, _ in socketSubject.output.producer }
+    webSocket.receive = { _ in receiveSubject.output.producer }
     webSocket.send = { _, _ in Effect(value: NSError(domain: "", code: 1)) }
     webSocket.sendPing = { _ in .none }
 
@@ -104,11 +104,11 @@ class WebSocketTests: XCTestCase {
     let pingSubject = Signal<NSError?, Never>.pipe()
 
     var webSocket = WebSocketClient.failing
-    webSocket.open = { _, _, _ in socketSubject.eraseToEffect() }
+    webSocket.open = { _, _, _ in socketSubject.output.producer }
     webSocket.receive = { _ in .none }
-    webSocket.sendPing = { _ in pingSubject.eraseToEffect() }
+    webSocket.sendPing = { _ in pingSubject.output.producer }
 
-    let scheduler = DispatchQueue.test
+    let scheduler = TestScheduler()
     let store = TestStore(
       initialState: .init(),
       reducer: webSocketReducer,
@@ -142,8 +142,8 @@ class WebSocketTests: XCTestCase {
     let socketSubject = Signal<WebSocketClient.Action, Never>.pipe()
 
     var webSocket = WebSocketClient.failing
-    webSocket.cancel = { _, _, _ in .fireAndForget { socketSubject.send(completion: .finished) } }
-    webSocket.open = { _, _, _ in socketSubject.eraseToEffect() }
+    webSocket.cancel = { _, _, _ in .fireAndForget { socketSubject.input.sendCompleted() } }
+    webSocket.open = { _, _, _ in socketSubject.output.producer }
     webSocket.receive = { _ in .none }
     webSocket.sendPing = { _ in .none }
 
