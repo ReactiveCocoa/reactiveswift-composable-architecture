@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 import ReactiveSwift
 import XCTestDynamicOverlay
@@ -45,3 +46,4 @@ public final class FailingScheduler: DateScheduler {
     return nil
   }
 }
+#endif
