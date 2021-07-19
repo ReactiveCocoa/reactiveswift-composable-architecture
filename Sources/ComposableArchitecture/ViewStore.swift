@@ -57,31 +57,14 @@ import SwiftUI
 /// made.
 @dynamicMemberLookup
 public final class ViewStore<State, Action> {
-  /// A producer of state.
-  public let produced: Produced<State>
-
-  @available(
-    *, deprecated,
-    message:
-      """
-    Consider using `.produced` instead, this property exists for backwards compatibility and will be removed in the next major release.
-    """
-  )
-  public var producer: StoreProducer<State> { produced }
-
-  @available(
-    *, deprecated,
-    message:
-      """
-    Consider using `.produced` instead, this property exists for backwards compatibility and will be removed in the next major release.
-    """
-  )
-  public var publisher: StoreProducer<State> { produced }
-  internal var viewDisposable: Disposable?
+  #if canImport(Combine)
+    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
+    public private(set) lazy var objectWillChange = ObservableObjectPublisher()
+  #endif
 
   private let _send: (Action) -> Void
-  private let _state: CurrentValueSubject<State, Never>
-  private var viewCancellable: AnyCancellable?
+  fileprivate let _state: MutableProperty<State>
+  private var viewDisposable: Disposable?
 
   /// Initializes a view store from a store.
   ///
@@ -93,34 +76,31 @@ public final class ViewStore<State, Action> {
     _ store: Store<State, Action>,
     removeDuplicates isDuplicate: @escaping (State, State) -> Bool
   ) {
-    let produced = Produced(by: store.$state.producer, isEqual: isDuplicate)
-    self.produced = produced
-    self.state = store.state
+    self._state = MutableProperty(store.$state.value)
     self._send = store.send
-    self.viewDisposable = produced.producer.startWithValues { [weak self] state in
-      self?.state = state
-    }
 
-    self.publisher = StorePublisher(self._state)
-    self.viewCancellable = store.state
-      .removeDuplicates(by: isDuplicate)
-      .sink { [weak self] in
+    self.viewDisposable = store.$state.producer
+      .skipRepeats(isDuplicate)
+      .startWithValues { [weak self] in
         guard let self = self else { return }
-      #if canImport(Combine)
-        if #available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *) {
-      self.objectWillChange.send()
-        self._state.send($0)
-    }
-      #endif
-    }
+        #if canImport(Combine)
+          if #available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *) {
+            self.objectWillChange.send()
+            self._state.value = $0
+          }
+        #endif
+      }
   }
 
-  #if canImport(Combine)
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-    public lazy var objectWillChange = ObservableObjectPublisher()
-  #endif
+  /// A producer of state.
+  public var produced: StoreProducer<State> {
+    StoreProducer(viewStore: self)
+  }
 
-  let _send: (Action) -> Void
+  /// The current state.
+  public var state: State {
+    self._state.value
+  }
 
   /// Returns the resulting value of a given key path.
   public subscript<LocalState>(dynamicMember keyPath: KeyPath<State, LocalState>) -> LocalState {
@@ -303,3 +283,42 @@ extension ViewStore where State == Void {
   extension ViewStore: ObservableObject {
   }
 #endif
+
+@dynamicMemberLookup
+public struct StoreProducer<State>: SignalProducerConvertible {
+  public let upstream: Effect<State, Never>
+  public let viewStore: Any
+
+  public var producer: Effect<State, Never> {
+    upstream
+  }
+
+  fileprivate init<Action>(viewStore: ViewStore<State, Action>) {
+    self.viewStore = viewStore
+    self.upstream = viewStore._state.producer
+  }
+
+  private init(
+    upstream: Effect<State, Never>,
+    viewStore: Any
+  ) {
+    self.upstream = upstream
+    self.viewStore = viewStore
+  }
+
+  /// Returns the resulting `StoreProducer` of a given key path.
+  public subscript<LocalState>(
+    dynamicMember keyPath: KeyPath<State, LocalState>
+  ) -> StoreProducer<LocalState>
+    where LocalState: Equatable
+  {
+    .init(upstream: self.upstream.map(keyPath).skipRepeats(), viewStore: self.viewStore)
+  }
+
+  /// Returns the resulting `SignalProducer` of a given key path.
+  public subscript<LocalValue>(
+    dynamicMember keyPath: KeyPath<Value, LocalValue>
+  ) -> Effect<LocalValue, Never> where LocalValue: Equatable {
+    self.upstream.map(keyPath).skipRepeats()
+  }
+}

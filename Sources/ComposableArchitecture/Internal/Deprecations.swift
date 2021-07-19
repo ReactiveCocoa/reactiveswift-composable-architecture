@@ -3,8 +3,7 @@ import CasePaths
 
 import SwiftUI
 
-// NB: Deprecated after 0.20.0:
-
+// NB: Deprecated after 0.21.0:
 extension Reducer {
   @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead")
   public func forEach<GlobalState, GlobalAction, GlobalEnvironment>(
@@ -62,6 +61,7 @@ extension Reducer {
   }
 }
 
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 extension ForEachStore {
   @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead")
   public init<EachContent>(
@@ -76,7 +76,7 @@ extension ForEachStore {
       [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
     >
   {
-    let data = store.state.value
+    let data = store.$state.value
     self.data = data
     self.content = {
       WithViewStore(store.scope(state: { $0.map { $0[keyPath: id] } })) { viewStore in

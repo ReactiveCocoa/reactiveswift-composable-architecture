@@ -1,8 +1,14 @@
+#if canImport(Combine)
+import Combine
+#endif
 import ComposableArchitecture
 import ReactiveSwift
 import XCTest
 
+
 final class ViewStoreTests: XCTestCase {
+  var cancellables: Set<AnyCancellable> = []
+
   override func setUp() {
     super.setUp()
     equalityChecks = 0
@@ -84,9 +90,8 @@ final class ViewStoreTests: XCTestCase {
 
     var results: [Int] = []
 
-    viewStore.publisher
-      .sink { _ in results.append(viewStore.state) }
-      .store(in: &self.cancellables)
+    viewStore.produced.producer
+      .startWithValues { _ in results.append(viewStore.state) }
 
     viewStore.send(())
     viewStore.send(())
@@ -95,6 +100,7 @@ final class ViewStoreTests: XCTestCase {
     XCTAssertEqual([0, 1, 2, 3], results)
   }
 
+  #if canImport(Combine)
   func testWillSet() {
     let reducer = Reducer<Int, Void, Void> { count, _, _ in
       count += 1
@@ -116,6 +122,7 @@ final class ViewStoreTests: XCTestCase {
 
     XCTAssertEqual([0, 1, 2], results)
   }
+  #endif
 }
 
 private struct State: Equatable {

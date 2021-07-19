@@ -293,12 +293,14 @@ public final class Store<State, Action> {
       },
       environment: ()
     )
-    localStore.parentCancellable = self.state
-      .dropFirst()
-      .sink { [weak localStore] newValue in
+
+    localStore.parentDisposable = self.$state.producer
+      .skip(first: 1)
+      .startWithValues { [weak localStore] newValue in
         guard !isSending else { return }
-        localStore?.state.value = toLocalState(newValue)
-    }
+        localStore?.$state.value = toLocalState(newValue)
+      }
+    
     return localStore
   }
 
@@ -364,13 +366,13 @@ public final class Store<State, Action> {
   }
 
   func send(_ action: Action) {
-      self.bufferedActions.append(action)
+    self.bufferedActions.append(action)
     guard !self.isSending else { return }
 
-      self.isSending = true
-    var currentState = self.state.value
+    self.isSending = true
+    var currentState = self.$state.value
     defer {
-      self.state.value = currentState
+      self.$state.value = currentState
       self.isSending = false
     }
 
@@ -380,18 +382,25 @@ public final class Store<State, Action> {
 
       var didComplete = false
       let uuid = UUID()
-      let effectCancellable = effect.sink(
-        receiveCompletion: { [weak self] _ in
-          didComplete = true
-          self?.effectCancellables[uuid] = nil
+
+      let observer = Signal<Action, Never>.Observer(
+        value: { [weak self] action in
+          self?.send(action)
         },
-        receiveValue: { [weak self] action in
-            self?.send(action)
-          }
+        completed: { [weak self] in
+          didComplete = true
+          self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
+        },
+        interrupted: { [weak self] in
+          didComplete = true
+          self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
+        }
       )
 
+      let effectDisposable = effect.start(observer)
+
       if !didComplete {
-        self.effectDisposables[effectID] = effectDisposable
+        self.effectDisposables[uuid] = effectDisposable
       } else {
         effectDisposable.dispose()
       }
@@ -413,52 +422,6 @@ public final class Store<State, Action> {
     self.parentDisposable?.dispose()
     self.effectDisposables.keys.forEach { id in
       self.effectDisposables.removeValue(forKey: id)?.dispose()
-}
+    }
   }
 }
-
-/// A producer of store state.
-@dynamicMemberLookup
-public struct Produced<Value>: SignalProducerConvertible {
-  private let _producer: Effect<Value, Never>
-  private let comparator: (Value, Value) -> Bool
-
-  public var producer: Effect<Value, Never> {
-    _producer.skipRepeats(comparator)
-  }
-
-  init(
-    by upstream: Effect<Value, Never>,
-    isEqual: @escaping (Value, Value) -> Bool
-  ) {
-    self._producer = upstream
-    self.comparator = isEqual
-  }
-
-  init(by upstream: Effect<Value, Never>) where Value: Equatable {
-    self.init(by: upstream, isEqual: ==)
-  }
-
-  /// Returns the resulting producer of a given key path.
-  public subscript<LocalValue>(
-    dynamicMember keyPath: KeyPath<Value, LocalValue>
-  ) -> Effect<LocalValue, Never> where LocalValue: Equatable {
-    self.producer.map(keyPath).skipRepeats()
-  }
-
-  /// Returns the resulting producer of a given key path.
-  public subscript<LocalValue>(
-    dynamicMember keyPath: KeyPath<Value, LocalValue>
-  ) -> Produced<LocalValue> where LocalValue: Equatable {
-    Produced<LocalValue>(by: self.producer.map(keyPath).skipRepeats())
-  }
-}
-
-@available(
-  *, deprecated,
-  message:
-    """
-Consider using `Produced<State>` instead, this typealias is added for backward compatibility and will be removed in the next major release.
-"""
-)
-public typealias StoreProducer<State> = Produced<State>
