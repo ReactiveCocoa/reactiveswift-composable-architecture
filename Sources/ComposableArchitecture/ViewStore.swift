@@ -86,9 +86,9 @@ public final class ViewStore<State, Action> {
         #if canImport(Combine)
           if #available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *) {
             self.objectWillChange.send()
-            self._state.value = $0
           }
         #endif
+        self._state.value = $0
       }
   }
 
