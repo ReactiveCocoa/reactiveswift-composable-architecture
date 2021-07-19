@@ -35,7 +35,7 @@ class EffectsCancellationTests: XCTestCase {
       initialState: .init(),
       reducer: effectsCancellationReducer,
       environment: .init(
-        fact: .init(fetch: { _ in Fail(error: FactClient.Error()).eraseToEffect() }),
+        fact: .init(fetch: { _ in Effect(error: FactClient.Error()) }),
         mainQueue: ImmediateScheduler()
       )
     )
