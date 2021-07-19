@@ -72,7 +72,7 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
         .delay(0.1, on: environment.mainQueue)
 
     case .sortCompletedTodos:
-      state.todos.sortCompleted()
+      state.todos.sort { $1.isComplete && !$0.isComplete }
       return .none
 
     case .todo(id: _, action: .checkBoxToggled):
