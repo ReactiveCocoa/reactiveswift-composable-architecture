@@ -300,7 +300,7 @@ public final class Store<State, Action> {
         guard !isSending else { return }
         localStore?.$state.value = toLocalState(newValue)
       }
-    
+
     return localStore
   }
 
@@ -346,9 +346,9 @@ public final class Store<State, Action> {
         )
         localStore.parentDisposable = self.$state.producer.startWithValues {
           [weak localStore] state in
-            guard let localStore = localStore else { return }
+          guard let localStore = localStore else { return }
           localStore.state = extractLocalState(state) ?? localStore.state
-          }
+        }
         return localStore
       }
   }

@@ -214,5 +214,5 @@ extension DownloadClient {
   static let failing = Self(
     cancel: { _ in .failing("DownloadClient.cancel") },
     download: { _, _ in .failing("DownloadClient.download") }
-    )
-  }
+  )
+}

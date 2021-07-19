@@ -1,6 +1,5 @@
-
 #if canImport(SwiftUI)
-import SwiftUI
+  import SwiftUI
 #endif
 
 /// An action that describes simple mutations to some root state at a writable key path.
@@ -232,36 +231,36 @@ extension Reducer {
 }
 
 #if canImport(SwiftUI)
-extension ViewStore {
-  /// Derives a binding from the store that mutates state at the given writable key path by wrapping
-  /// a ``BindingAction`` with the store's action type.
-  ///
-  /// For example, a text field binding can be created like this:
-  ///
-  /// ```swift
-  /// struct State { var text = "" }
-  /// enum Action { case binding(BindingAction<State>) }
-  ///
-  /// TextField(
-  ///   "Enter text",
-  ///   text: viewStore.binding(keyPath: \.text, Action.binding)
-  /// )
-  /// ```
-  ///
-  /// - Parameters:
-  ///   - keyPath: A writable key path from the view store's state to a mutable field
-  ///   - action: A function that wraps a binding action in the view store's action type.
-  /// - Returns: A binding.
+  extension ViewStore {
+    /// Derives a binding from the store that mutates state at the given writable key path by wrapping
+    /// a ``BindingAction`` with the store's action type.
+    ///
+    /// For example, a text field binding can be created like this:
+    ///
+    /// ```swift
+    /// struct State { var text = "" }
+    /// enum Action { case binding(BindingAction<State>) }
+    ///
+    /// TextField(
+    ///   "Enter text",
+    ///   text: viewStore.binding(keyPath: \.text, Action.binding)
+    /// )
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - keyPath: A writable key path from the view store's state to a mutable field
+    ///   - action: A function that wraps a binding action in the view store's action type.
+    /// - Returns: A binding.
     @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-  public func binding<LocalState>(
-    keyPath: WritableKeyPath<State, LocalState>,
-    send action: @escaping (BindingAction<State>) -> Action
-  ) -> Binding<LocalState>
-  where LocalState: Equatable {
-    self.binding(
-      get: { $0[keyPath: keyPath] },
-      send: { action(.set(keyPath, $0)) }
-    )
+    public func binding<LocalState>(
+      keyPath: WritableKeyPath<State, LocalState>,
+      send action: @escaping (BindingAction<State>) -> Action
+    ) -> Binding<LocalState>
+    where LocalState: Equatable {
+      self.binding(
+        get: { $0[keyPath: keyPath] },
+        send: { action(.set(keyPath, $0)) }
+      )
+    }
   }
-}
 #endif

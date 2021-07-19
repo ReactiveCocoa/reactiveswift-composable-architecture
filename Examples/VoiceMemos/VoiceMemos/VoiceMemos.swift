@@ -76,7 +76,7 @@ let voiceMemosReducer = Reducer<VoiceMemosState, VoiceMemosAction, VoiceMemosEnv
           id: RecorderTimerId(), every: .seconds(1), tolerance: .seconds(0),
           on: environment.mainQueue
         )
-          .map { _ in .currentRecordingTimerUpdated }
+        .map { _ in .currentRecordingTimerUpdated }
       )
     }
 

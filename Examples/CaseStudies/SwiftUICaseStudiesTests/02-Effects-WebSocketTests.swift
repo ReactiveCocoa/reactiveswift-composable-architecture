@@ -115,8 +115,8 @@ class WebSocketTests: XCTestCase {
       environment: WebSocketEnvironment(
         mainQueue: scheduler,
         webSocket: webSocket
-        )
       )
+    )
 
     store.send(.connectButtonTapped) {
       $0.connectivityState = .connecting
@@ -174,5 +174,5 @@ extension WebSocketClient {
     receive: { _ in .failing("WebSocketClient.receive") },
     send: { _, _ in .failing("WebSocketClient.send") },
     sendPing: { _ in .failing("WebSocketClient.sendPing") }
-    )
-  }
+  )
+}

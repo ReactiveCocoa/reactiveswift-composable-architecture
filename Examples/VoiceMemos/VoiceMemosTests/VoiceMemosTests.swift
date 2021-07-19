@@ -1,5 +1,5 @@
-import Foundation
 import ComposableArchitecture
+import Foundation
 import ReactiveSwift
 import XCTest
 
@@ -19,11 +19,11 @@ class VoiceMemosTests: XCTestCase {
       audioRecorderSubject.output.producer
     }
     environment.audioRecorder.stopRecording = { _ in
-            .fireAndForget {
-              audioRecorderSubject.input.send(value: .didFinishRecording(successfully: true))
-              audioRecorderSubject.input.sendCompleted()
-            }
-          }
+      .fireAndForget {
+        audioRecorderSubject.input.send(value: .didFinishRecording(successfully: true))
+        audioRecorderSubject.input.sendCompleted()
+      }
+    }
     environment.date = { Date(timeIntervalSinceReferenceDate: 0) }
     environment.mainQueue = scheduler
     environment.temporaryDirectory = { URL(fileURLWithPath: "/tmp") }
@@ -33,7 +33,7 @@ class VoiceMemosTests: XCTestCase {
       initialState: VoiceMemosState(),
       reducer: voiceMemosReducer,
       environment: environment
-      )
+    )
 
     store.send(.recordButtonTapped)
     scheduler.advance()
@@ -209,13 +209,12 @@ class VoiceMemosTests: XCTestCase {
       ),
       reducer: voiceMemosReducer,
       environment: environment
-      )
+    )
 
     store.send(.voiceMemo(id: url, action: .playButtonTapped)) {
       $0.voiceMemos[id: url]?.mode = .playing(progress: 0)
     }
-    store.receive(.voiceMemo(id: url, action: .audioPlayerClient(.failure(.decodeErrorDidOccur))))
-    {
+    store.receive(.voiceMemo(id: url, action: .audioPlayerClient(.failure(.decodeErrorDidOccur)))) {
       $0.alert = .init(title: .init("Voice memo playback failed."))
       $0.voiceMemos[id: url]?.mode = .notPlaying
     }
@@ -269,7 +268,7 @@ class VoiceMemosTests: XCTestCase {
       ),
       reducer: voiceMemosReducer,
       environment: environment
-      )
+    )
 
     store.send(.voiceMemo(id: url, action: .delete)) {
       $0.voiceMemos = []
@@ -298,7 +297,7 @@ class VoiceMemosTests: XCTestCase {
       ),
       reducer: voiceMemosReducer,
       environment: environment
-      )
+    )
 
     store.send(.voiceMemo(id: url, action: .playButtonTapped)) {
       $0.voiceMemos[id: url]?.mode = .playing(progress: 0)
@@ -327,5 +326,5 @@ extension VoiceMemosEnvironment {
       XCTFail("VoiceMemosEnvironment.uuid is unimplemented")
       return UUID()
     }
-    )
-  }
+  )
+}
