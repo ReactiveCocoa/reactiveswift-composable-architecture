@@ -447,12 +447,11 @@ final class StoreTests: XCTestCase {
 
     viewStore.send(0)
 
-    XCTAssertEqual(emissions, [0, 3])
+    XCTAssertEqual(emissions, [0, 1, 2, 3])
   }
 
-// This test commented out as it falls foul of ReactiveSwift's
-// `Signal` not allowing nested sends 😢
-
+  // This test commented out as it falls foul of ReactiveSwift's
+  // `Signal` not allowing nested sends 😢
   func disabled_testBufferedActionProcessing() {
     struct ChildState: Equatable {
       var count: Int?
