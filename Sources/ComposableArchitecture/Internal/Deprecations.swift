@@ -76,7 +76,7 @@
         [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
       >
     {
-      let data = store.$state.value
+      let data = store.state
       self.data = data
       self.content = {
         WithViewStore(store.scope(state: { $0.map { $0[keyPath: id] } })) { viewStore in
