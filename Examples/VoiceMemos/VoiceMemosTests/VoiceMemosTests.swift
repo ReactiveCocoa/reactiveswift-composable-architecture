@@ -146,7 +146,7 @@ class VoiceMemosTests: XCTestCase {
     var environment = VoiceMemosEnvironment.failing
     environment.audioPlayer.play = { _, _ in
       Effect(value: .didFinishPlaying(successfully: true))
-        .delay(1, on: scheduler)
+        .delay(1.1, on: scheduler)
     }
     environment.mainQueue = scheduler
 
@@ -214,6 +214,7 @@ class VoiceMemosTests: XCTestCase {
     store.send(.voiceMemo(id: url, action: .playButtonTapped)) {
       $0.voiceMemos[id: url]?.mode = .playing(progress: 0)
     }
+    store.receive(.voiceMemo(id: url, action: .timerUpdated(0)))
     store.receive(.voiceMemo(id: url, action: .audioPlayerClient(.failure(.decodeErrorDidOccur)))) {
       $0.alert = .init(title: .init("Voice memo playback failed."))
       $0.voiceMemos[id: url]?.mode = .notPlaying
@@ -302,6 +303,7 @@ class VoiceMemosTests: XCTestCase {
     store.send(.voiceMemo(id: url, action: .playButtonTapped)) {
       $0.voiceMemos[id: url]?.mode = .playing(progress: 0)
     }
+    store.receive(.voiceMemo(id: url, action: .timerUpdated(0)))
     store.send(.voiceMemo(id: url, action: .delete)) {
       $0.voiceMemos = []
     }
