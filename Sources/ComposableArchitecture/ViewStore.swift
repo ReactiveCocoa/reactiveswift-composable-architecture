@@ -297,7 +297,8 @@ public struct StoreProducer<State>: SignalProducerConvertible {
 
   fileprivate init<Action>(viewStore: ViewStore<State, Action>) {
     self.viewStore = viewStore
-    self.upstream = Property<State>(initial: viewStore.state, then: viewStore.statePipe.output).producer
+    self.upstream =
+      Property<State>(initial: viewStore.state, then: viewStore.statePipe.output).producer
   }
 
   private init(
