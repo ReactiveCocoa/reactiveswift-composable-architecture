@@ -80,7 +80,7 @@ final class StoreTests: XCTestCase {
     let childStore = parentStore.scope(state: String.init)
 
     var values: [String] = []
-    childStore.$state.producer
+    childStore.producer
       .startWithValues { values.append($0) }
 
     XCTAssertEqual(values, ["0"])
@@ -101,7 +101,7 @@ final class StoreTests: XCTestCase {
     let childViewStore = ViewStore(childStore)
 
     var values: [Int] = []
-    parentStore.$state.producer
+    parentStore.producer
       .startWithValues { values.append($0) }
 
     XCTAssertEqual(values, [0])
@@ -123,7 +123,7 @@ final class StoreTests: XCTestCase {
     parentStore
       .producerScope(state: { $0.map { "\($0)" }.skipRepeats() })
       .startWithValues { childStore in
-        childStore.$state.producer
+        childStore.producer
           .startWithValues { outputs.append($0) }
       }
 
@@ -282,7 +282,7 @@ final class StoreTests: XCTestCase {
 
     parentStore
       .producerScope { $0.skipRepeats() }
-      .startWithValues { outputs.append($0.$state.value) }
+      .startWithValues { outputs.append($0.state) }
 
     XCTAssertEqual(outputs, [0])
 
@@ -451,73 +451,73 @@ final class StoreTests: XCTestCase {
   }
 
 // This test commented out as it falls foul of ReactiveSwift's
-// `MutableProperty` not allowing nested modifications 😢
+// `Signal` not allowing nested sends 😢
 
-//  func testBufferedActionProcessing() {
-//    struct ChildState: Equatable {
-//      var count: Int?
-//    }
-//
-//    let childReducer = Reducer<ChildState, Int?, Void> { state, action, _ in
-//      state.count = action
-//      return .none
-//    }
-//
-//    struct ParentState: Equatable {
-//      var count: Int?
-//      var child: ChildState?
-//    }
-//
-//    enum ParentAction: Equatable {
-//      case button
-//      case child(Int?)
-//    }
-//
-//    var handledActions: [ParentAction] = []
-//    let parentReducer = Reducer.combine([
-//      childReducer
-//        .optional()
-//        .pullback(
-//          state: \.child,
-//          action: /ParentAction.child,
-//          environment: {}
-//        ),
-//      Reducer<ParentState, ParentAction, Void> { state, action, _ in
-//        handledActions.append(action)
-//
-//        switch action {
-//        case .button:
-//          state.child = .init(count: nil)
-//          return .none
-//
-//        case .child(let childCount):
-//          state.count = childCount
-//          return .none
-//        }
-//      },
-//    ])
-//
-//    let parentStore = Store(
-//      initialState: .init(),
-//      reducer: parentReducer,
-//      environment: ()
-//    )
-//
-//    parentStore
-//      .scope(
-//        state: \.child,
-//        action: ParentAction.child
-//      )
-//      .ifLet { childStore in
-//        ViewStore(childStore).send(2)
-//      }
-//
-//    XCTAssertEqual(handledActions, [])
-//
-//    parentStore.send(.button)
-//    XCTAssertEqual(handledActions, [
-//      .button,
-//      .child(2)
-//    ])
-//  }
+  func disabled_testBufferedActionProcessing() {
+    struct ChildState: Equatable {
+      var count: Int?
+    }
+
+    let childReducer = Reducer<ChildState, Int?, Void> { state, action, _ in
+      state.count = action
+      return .none
+    }
+
+    struct ParentState: Equatable {
+      var count: Int?
+      var child: ChildState?
+    }
+
+    enum ParentAction: Equatable {
+      case button
+      case child(Int?)
+    }
+
+    var handledActions: [ParentAction] = []
+    let parentReducer = Reducer.combine([
+      childReducer
+        .optional()
+        .pullback(
+          state: \.child,
+          action: /ParentAction.child,
+          environment: {}
+        ),
+      Reducer<ParentState, ParentAction, Void> { state, action, _ in
+        handledActions.append(action)
+
+        switch action {
+        case .button:
+          state.child = .init(count: nil)
+          return .none
+
+        case .child(let childCount):
+          state.count = childCount
+          return .none
+        }
+      },
+    ])
+
+    let parentStore = Store(
+      initialState: .init(),
+      reducer: parentReducer,
+      environment: ()
+    )
+
+    parentStore
+      .scope(
+        state: \.child,
+        action: ParentAction.child
+      )
+      .ifLet { childStore in
+        ViewStore(childStore).send(2)
+      }
+
+    XCTAssertEqual(handledActions, [])
+
+    parentStore.send(.button)
+    XCTAssertEqual(handledActions, [
+      .button,
+      .child(2)
+    ])
+  }
 }

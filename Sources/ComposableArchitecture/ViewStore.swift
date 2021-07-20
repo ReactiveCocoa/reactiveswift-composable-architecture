@@ -64,7 +64,7 @@ public final class ViewStore<State, Action> {
 
   private let _send: (Action) -> Void
   private var _state: State
-  fileprivate let _stateSubject = Signal<State, Never>.pipe()
+  fileprivate let statePipe = Signal<State, Never>.pipe()
   private var viewDisposable: Disposable?
 
   /// Initializes a view store from a store.
@@ -77,10 +77,10 @@ public final class ViewStore<State, Action> {
     _ store: Store<State, Action>,
     removeDuplicates isDuplicate: @escaping (State, State) -> Bool
   ) {
-    self._state = store.$state.value
+    self._state = store.state
     self._send = store.send
 
-    self.viewDisposable = store.$state.producer
+    self.viewDisposable = store.producer
       .skipRepeats(isDuplicate)
       .startWithValues { [weak self] in
         guard let self = self else { return }
@@ -90,7 +90,7 @@ public final class ViewStore<State, Action> {
           }
         #endif
         self._state = $0
-        self._stateSubject.input.send(value: $0)
+        self.statePipe.input.send(value: $0)
       }
   }
 
@@ -297,7 +297,7 @@ public struct StoreProducer<State>: SignalProducerConvertible {
 
   fileprivate init<Action>(viewStore: ViewStore<State, Action>) {
     self.viewStore = viewStore
-    self.upstream = Property<State>(initial: viewStore.state, then: viewStore._stateSubject.output).producer
+    self.upstream = Property<State>(initial: viewStore.state, then: viewStore.statePipe.output).producer
 //      .on(completed: { [viewStore = self.viewStore] in
 //        _ = viewStore
 //      })

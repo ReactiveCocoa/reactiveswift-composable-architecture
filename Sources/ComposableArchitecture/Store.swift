@@ -114,8 +114,15 @@ import ReactiveSwift
 /// See also: ``ViewStore`` to understand how one observes changes to the state in a ``Store`` and
 /// sends user actions.
 public final class Store<State, Action> {
-  @MutableProperty
-  private(set) var state: State
+  private(set) var state: State {
+    didSet {
+      statePipe.input.send(value: state)
+    }
+  }
+  private let statePipe = Signal<State, Never>.pipe()
+  internal var producer: Effect<State, Never> {
+    Property<State>(initial: self.state, then: self.statePipe.output.producer).producer
+  }
 
   private var isSending = false
   private let reducer: (inout State, Action) -> Effect<Action, Never>
@@ -294,11 +301,11 @@ public final class Store<State, Action> {
       environment: ()
     )
 
-    localStore.parentDisposable = self.$state.producer
+    localStore.parentDisposable = self.producer
       .skip(first: 1)
       .startWithValues { [weak localStore] newValue in
         guard !isSending else { return }
-        localStore?.$state.value = toLocalState(newValue)
+        localStore?.state = toLocalState(newValue)
       }
 
     return localStore
@@ -333,7 +340,7 @@ public final class Store<State, Action> {
       return localState
     }
 
-    return toLocalState(self.$state.producer)
+    return toLocalState(self.producer)
       .map { localState in
         let localStore = Store<LocalState, LocalAction>(
           initialState: localState,
@@ -344,7 +351,7 @@ public final class Store<State, Action> {
           },
           environment: ()
         )
-        localStore.parentDisposable = self.$state.producer.startWithValues {
+        localStore.parentDisposable = self.producer.startWithValues {
           [weak localStore] state in
           guard let localStore = localStore else { return }
           localStore.state = extractLocalState(state) ?? localStore.state
@@ -370,10 +377,10 @@ public final class Store<State, Action> {
     guard !self.isSending else { return }
 
     self.isSending = true
-    var currentState = self.$state.value
+    var currentState = self.state
     defer {
       self.isSending = false
-      self.$state.value = currentState
+      self.state = currentState
     }
 
     while !self.bufferedActions.isEmpty {
