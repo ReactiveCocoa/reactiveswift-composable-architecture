@@ -63,7 +63,8 @@ public final class ViewStore<State, Action> {
   #endif
 
   private let _send: (Action) -> Void
-  fileprivate let _state: MutableProperty<State>
+  private var _state: State
+  fileprivate let _stateSubject = Signal<State, Never>.pipe()
   private var viewDisposable: Disposable?
 
   /// Initializes a view store from a store.
@@ -76,7 +77,7 @@ public final class ViewStore<State, Action> {
     _ store: Store<State, Action>,
     removeDuplicates isDuplicate: @escaping (State, State) -> Bool
   ) {
-    self._state = MutableProperty(store.$state.value)
+    self._state = store.$state.value
     self._send = store.send
 
     self.viewDisposable = store.$state.producer
@@ -88,7 +89,8 @@ public final class ViewStore<State, Action> {
             self.objectWillChange.send()
           }
         #endif
-        self._state.value = $0
+        self._state = $0
+        self._stateSubject.input.send(value: $0)
       }
   }
 
@@ -99,12 +101,12 @@ public final class ViewStore<State, Action> {
 
   /// The current state.
   public var state: State {
-    self._state.value
+    self._state
   }
 
   /// Returns the resulting value of a given key path.
   public subscript<LocalState>(dynamicMember keyPath: KeyPath<State, LocalState>) -> LocalState {
-    self._state.value[keyPath: keyPath]
+    self._state[keyPath: keyPath]
   }
 
   /// Sends an action to the store.
@@ -155,7 +157,7 @@ public final class ViewStore<State, Action> {
       send localStateToViewAction: @escaping (LocalState) -> Action
     ) -> Binding<LocalState> {
       Binding(
-        get: { get(self._state.value) },
+        get: { get(self._state) },
         set: { newLocalState, transaction in
           if transaction.animation != nil {
             withTransaction(transaction) {
@@ -295,7 +297,10 @@ public struct StoreProducer<State>: SignalProducerConvertible {
 
   fileprivate init<Action>(viewStore: ViewStore<State, Action>) {
     self.viewStore = viewStore
-    self.upstream = viewStore._state.producer
+    self.upstream = Property<State>(initial: viewStore.state, then: viewStore._stateSubject.output).producer
+//      .on(completed: { [viewStore = self.viewStore] in
+//        _ = viewStore
+//      })
   }
 
   private init(
