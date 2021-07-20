@@ -125,21 +125,24 @@ final class ViewStoreTests: XCTestCase {
     }
   #endif
 
-//  func testPublisherOwnsViewStore() {
-//    let reducer = Reducer<Int, Void, Void> { count, _, _ in
-//      count += 1
-//      return .none
-//    }
-//    let store = Store(initialState: 0, reducer: reducer, environment: ())
-//
-//    var results: [Int] = []
-//    ViewStore(store)
-//      .produced.producer.logEvents(identifier: "test")
-//      .startWithValues { results.append($0) }
-//
-//    ViewStore(store).send(())
-//    XCTAssertEqual(results, [0, 1])
-//  }
+  // disabled as the fix for this would be onerous with
+  // ReactiveSwift, forcing explicit disposable of any use of
+  // `ViewStore.produced.producer`
+  func disabled_testPublisherOwnsViewStore() {
+    let reducer = Reducer<Int, Void, Void> { count, _, _ in
+      count += 1
+      return .none
+    }
+    let store = Store(initialState: 0, reducer: reducer, environment: ())
+
+    var results: [Int] = []
+    ViewStore(store)
+      .produced.producer
+      .startWithValues { results.append($0) }
+
+    ViewStore(store).send(())
+    XCTAssertEqual(results, [0, 1])
+  }
 }
 
 private struct State: Equatable {

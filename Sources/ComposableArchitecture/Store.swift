@@ -114,18 +114,15 @@ import ReactiveSwift
 /// See also: ``ViewStore`` to understand how one observes changes to the state in a ``Store`` and
 /// sends user actions.
 public final class Store<State, Action> {
-  private(set) var state: State {
-    didSet {
-      statePipe.input.send(value: state)
-    }
-  }
-  private let statePipe = Signal<State, Never>.pipe()
+  @MutableProperty
+  private(set) var state: State
   internal var producer: Effect<State, Never> {
-    Property<State>(initial: self.state, then: self.statePipe.output.producer).producer
+    self.$state.producer
   }
 
   private var isSending = false
   private let reducer: (inout State, Action) -> Effect<Action, Never>
+  private var synchronousActionsToSend: [Action] = []
   private var bufferedActions: [Action] = []
   internal var effectDisposables: [UUID: Disposable] = [:]
   internal var parentDisposable: Disposable?
@@ -373,41 +370,50 @@ public final class Store<State, Action> {
   }
 
   func send(_ action: Action) {
-    self.bufferedActions.append(action)
-    guard !self.isSending else { return }
-
-    self.isSending = true
-    var currentState = self.state
-    defer {
-      self.isSending = false
-      self.state = currentState
+    if !self.isSending {
+      self.synchronousActionsToSend.append(action)
+    } else {
+      self.bufferedActions.append(action)
+      return
     }
 
-    while !self.bufferedActions.isEmpty {
-      let action = self.bufferedActions.removeFirst()
-      let effect = self.reducer(&currentState, action)
+    while !self.synchronousActionsToSend.isEmpty || !self.bufferedActions.isEmpty {
+      let action =
+        !self.synchronousActionsToSend.isEmpty
+        ? self.synchronousActionsToSend.removeFirst()
+        : self.bufferedActions.removeFirst()
+
+      self.isSending = true
+      let effect = self.reducer(&self.state, action)
+      self.isSending = false
 
       var didComplete = false
-      let uuid = UUID()
+      let effectID = UUID()
 
+      var isProcessingEffects = true
       let observer = Signal<Action, Never>.Observer(
         value: { [weak self] action in
-          self?.send(action)
+          if isProcessingEffects {
+            self?.synchronousActionsToSend.append(action)
+          } else {
+            self?.send(action)
+          }
         },
+        failed: .none,
         completed: { [weak self] in
           didComplete = true
-          self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
+          self?.effectDisposables.removeValue(forKey: effectID)?.dispose()
         },
         interrupted: { [weak self] in
           didComplete = true
-          self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
+          self?.effectDisposables.removeValue(forKey: effectID)?.dispose()
         }
       )
-
       let effectDisposable = effect.start(observer)
+      isProcessingEffects = false
 
       if !didComplete {
-        self.effectDisposables[uuid] = effectDisposable
+        self.effectDisposables[effectID] = effectDisposable
       } else {
         effectDisposable.dispose()
       }
