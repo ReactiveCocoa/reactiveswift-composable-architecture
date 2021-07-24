@@ -18,7 +18,7 @@ let package = Package(
   ],
   dependencies: [
     .package(name: "Benchmark", url: "https://github.com/google/swift-benchmark", from: "0.1.0"),
-    .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift", from: "6.6.0"),
+    .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift", from: "6.7.0-rc1"),
     .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "0.4.0"),
     .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "0.1.0"),
   ],
