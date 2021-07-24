@@ -23,30 +23,34 @@ final class EffectThrottleTests: XCTestCase {
 
     runThrottledEffect(value: 1)
 
+    scheduler.advance()
+
     // A value emits right away.
     XCTAssertEqual(values, [1])
 
     runThrottledEffect(value: 2)
 
+    scheduler.advance()
+
     // A second value is throttled.
     XCTAssertEqual(values, [1])
 
-    scheduler.advance(by: .milliseconds(250))
+    scheduler.advance(by: 0.25)
 
     runThrottledEffect(value: 3)
 
-    scheduler.advance(by: .milliseconds(250))
+    scheduler.advance(by: 0.25)
 
     runThrottledEffect(value: 4)
 
-    scheduler.advance(by: .milliseconds(250))
+    scheduler.advance(by: 0.25)
 
     runThrottledEffect(value: 5)
 
     // A third value is throttled.
     XCTAssertEqual(values, [1])
 
-    scheduler.advance(by: .milliseconds(250))
+    scheduler.advance(by: 0.25)
 
     // The latest value emits.
     XCTAssertEqual(values, [1, 5])
@@ -69,30 +73,34 @@ final class EffectThrottleTests: XCTestCase {
 
     runThrottledEffect(value: 1)
 
+    scheduler.advance()
+
     // A value emits right away.
     XCTAssertEqual(values, [1])
 
     runThrottledEffect(value: 2)
 
+    scheduler.advance()
+
     // A second value is throttled.
     XCTAssertEqual(values, [1])
 
-    scheduler.advance(by: .milliseconds(250))
+    scheduler.advance(by: 0.25)
 
     runThrottledEffect(value: 3)
 
-    scheduler.advance(by: .milliseconds(250))
+    scheduler.advance(by: 0.25)
 
     runThrottledEffect(value: 4)
 
-    scheduler.advance(by: .milliseconds(250))
+    scheduler.advance(by: 0.25)
 
     runThrottledEffect(value: 5)
 
     // A third value is throttled.
     XCTAssertEqual(values, [1])
 
-    scheduler.advance(by: .milliseconds(250))
+    scheduler.advance(by: 0.25)
 
     // The first throttled value emits.
     XCTAssertEqual(values, [1, 2])
@@ -115,12 +123,16 @@ final class EffectThrottleTests: XCTestCase {
 
     runThrottledEffect(value: 1)
 
+    scheduler.advance()
+
     // A value emits right away.
     XCTAssertEqual(values, [1])
 
-    scheduler.advance(by: .seconds(2))
+    scheduler.advance(by: 2)
 
     runThrottledEffect(value: 2)
+
+    scheduler.advance()
 
     // A second value is emitted right away.
     XCTAssertEqual(values, [1, 2])
@@ -145,14 +157,16 @@ final class EffectThrottleTests: XCTestCase {
 
     runThrottledEffect(value: 1)
 
+    scheduler.advance()
+
     // A value emits right away.
     XCTAssertEqual(values, [1])
 
-    scheduler.advance(by: .milliseconds(500))
+    scheduler.advance(by: 0.5)
 
     runThrottledEffect(value: 2)
 
-    scheduler.advance(by: .milliseconds(500))
+    scheduler.advance(by: 0.5)
 
     runThrottledEffect(value: 3)
 
