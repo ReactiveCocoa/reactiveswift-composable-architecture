@@ -35,7 +35,8 @@ extension Effect {
         throttleValues[id] = value
 
         guard
-          scheduler.currentDate.timeIntervalSince1970 - throttleTime.timeIntervalSince1970 < interval
+          scheduler.currentDate.timeIntervalSince1970 - throttleTime.timeIntervalSince1970
+            < interval
         else {
           throttleTimes[id] = scheduler.currentDate
           throttleValues[id] = nil
