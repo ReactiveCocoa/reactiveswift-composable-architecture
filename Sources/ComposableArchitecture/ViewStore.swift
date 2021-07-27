@@ -55,6 +55,14 @@ import ReactiveSwift
 /// The ``ViewStore`` class is not thread-safe, and all interactions with it must happen on the main
 /// thread. See the documentation of the ``Store`` class for more information why this decision was
 /// made.
+///
+/// ### ViewStore object lifetime
+///
+/// You must always keep a strong reference to any ``ViewStore`` that you create to prevent it from
+/// being immediately deallocated, and thereby preventing its ``produced`` ``StoreProducer`` from
+/// emiting any more state updates. This is primarly an issue when using UIKit, as the SwiftUI
+/// ``WithViewStore`` helper ensures that the ``ViewStore`` is retained.
+///
 @dynamicMemberLookup
 public final class ViewStore<State, Action> {
   #if canImport(Combine)
