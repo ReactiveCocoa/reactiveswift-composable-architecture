@@ -40,14 +40,14 @@ final class ComposableArchitectureTests: XCTestCase {
     )
 
     store.send(.incrAndSquareLater)
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     store.receive(.squareNow) { $0 = 4 }
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     store.receive(.incrNow) { $0 = 5 }
     store.receive(.squareNow) { $0 = 25 }
 
     store.send(.incrAndSquareLater)
-    scheduler.advance(by: .seconds(2))
+    scheduler.advance(by: 2)
     store.receive(.squareNow) { $0 = 625 }
     store.receive(.incrNow) { $0 = 626 }
     store.receive(.squareNow) { $0 = 391876 }
@@ -63,7 +63,7 @@ final class ComposableArchitectureTests: XCTestCase {
     XCTAssertEqual(values, [])
     testScheduler.advance()
     XCTAssertEqual(values, [1, 42])
-    testScheduler.advance(by: .seconds(2))
+    testScheduler.advance(by: 2)
     XCTAssertEqual(values, [1, 42, 1, 42, 1])
   }
 

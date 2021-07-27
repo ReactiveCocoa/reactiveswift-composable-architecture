@@ -45,7 +45,7 @@ class TestStoreTests: XCTestCase {
 
     store.send(.a)
 
-    testScheduler.advance(by: .seconds(1))
+    testScheduler.advance(by: 1)
 
     store.receive(.b1)
     store.receive(.b2)

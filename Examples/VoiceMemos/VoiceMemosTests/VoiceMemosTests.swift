@@ -45,15 +45,15 @@ class VoiceMemosTests: XCTestCase {
         url: URL(string: "file:///tmp/DEADBEEF-DEAD-BEEF-DEAD-BEEFDEADBEEF.m4a")!
       )
     }
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     store.receive(.currentRecordingTimerUpdated) {
       $0.currentRecording!.duration = 1
     }
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     store.receive(.currentRecordingTimerUpdated) {
       $0.currentRecording!.duration = 2
     }
-    scheduler.advance(by: .milliseconds(500))
+    scheduler.advance(by: 0.5)
     store.send(.recordButtonTapped) {
       $0.currentRecording!.mode = .encoding
     }
@@ -170,15 +170,15 @@ class VoiceMemosTests: XCTestCase {
     store.send(.voiceMemo(id: url, action: .playButtonTapped)) {
       $0.voiceMemos[id: url]?.mode = VoiceMemo.Mode.playing(progress: 0)
     }
-    scheduler.advance(by: .milliseconds(500))
+    scheduler.advance(by: 0.5)
     store.receive(VoiceMemosAction.voiceMemo(id: url, action: VoiceMemoAction.timerUpdated(0.5))) {
       $0.voiceMemos[id: url]?.mode = .playing(progress: 0.5)
     }
-    scheduler.advance(by: .milliseconds(500))
+    scheduler.advance(by: 0.5)
     store.receive(VoiceMemosAction.voiceMemo(id: url, action: VoiceMemoAction.timerUpdated(1))) {
       $0.voiceMemos[id: url]?.mode = .playing(progress: 1)
     }
-    scheduler.advance(by: .milliseconds(100))
+    scheduler.advance(by: 0.1)
     store.receive(
       .voiceMemo(
         id: url,

@@ -45,7 +45,7 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
     }
 
     self.downloadSubject.input.send(value: .response(Data()))
-    self.scheduler.advance(by: .seconds(1))
+    self.scheduler.advance(by: 1)
     store.receive(.downloadClient(.success(.response(Data())))) {
       $0.mode = .downloaded
     }
@@ -81,10 +81,10 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
     }
 
     self.downloadSubject.input.send(value: .updateProgress(0.6))
-    self.scheduler.advance(by: .milliseconds(500))
+    self.scheduler.advance(by: 0.5)
 
     self.downloadSubject.input.send(value: .updateProgress(0.7))
-    self.scheduler.advance(by: .milliseconds(500))
+    self.scheduler.advance(by: 0.5)
     store.receive(.downloadClient(.success(.updateProgress(0.7)))) {
       $0.mode = .downloading(progress: 0.7)
     }
@@ -166,7 +166,7 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
     }
 
     self.downloadSubject.input.send(value: .response(Data()))
-    self.scheduler.advance(by: .seconds(1))
+    self.scheduler.advance(by: 1)
     store.receive(.downloadClient(.success(.response(Data())))) {
       $0.alert = nil
       $0.mode = .downloaded

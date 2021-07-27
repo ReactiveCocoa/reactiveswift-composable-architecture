@@ -82,7 +82,7 @@ class TodosTests: XCTestCase {
     store.send(.todo(id: state.todos[0].id, action: .checkBoxToggled)) {
       $0.todos[id: state.todos[0].id]?.isComplete = true
     }
-    self.scheduler.advance(by: .seconds(1))
+    self.scheduler.advance(by: 1)
     store.receive(.sortCompletedTodos) {
       $0.todos = [
         $0.todos[1],
@@ -118,11 +118,11 @@ class TodosTests: XCTestCase {
     store.send(.todo(id: state.todos[0].id, action: .checkBoxToggled)) {
       $0.todos[id: state.todos[0].id]?.isComplete = true
     }
-    self.scheduler.advance(by: .milliseconds(500))
+    self.scheduler.advance(by: 0.5)
     store.send(.todo(id: state.todos[0].id, action: .checkBoxToggled)) {
       $0.todos[id: state.todos[0].id]?.isComplete = false
     }
-    self.scheduler.advance(by: .seconds(1))
+    self.scheduler.advance(by: 1)
     store.receive(.sortCompletedTodos)
   }
 
@@ -233,7 +233,7 @@ class TodosTests: XCTestCase {
         $0.todos[2],
       ]
     }
-    self.scheduler.advance(by: .milliseconds(100))
+    self.scheduler.advance(by: 0.1)
     store.receive(.sortCompletedTodos)
   }
 

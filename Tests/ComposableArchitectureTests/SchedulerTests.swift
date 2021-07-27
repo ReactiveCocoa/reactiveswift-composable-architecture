@@ -13,19 +13,19 @@ final class SchedulerTests: XCTestCase {
 
     XCTAssertEqual(value, nil)
 
-    scheduler.advance(by: .milliseconds(250))
+    scheduler.advance(by: 0.25)
 
     XCTAssertEqual(value, nil)
 
-    scheduler.advance(by: .milliseconds(250))
+    scheduler.advance(by: 0.25)
 
     XCTAssertEqual(value, nil)
 
-    scheduler.advance(by: .milliseconds(250))
+    scheduler.advance(by: 0.25)
 
     XCTAssertEqual(value, nil)
 
-    scheduler.advance(by: .milliseconds(250))
+    scheduler.advance(by: 0.25)
 
     XCTAssertEqual(value, 1)
   }
@@ -106,7 +106,7 @@ final class SchedulerTests: XCTestCase {
     XCTAssertEqual(values, [])
     testScheduler.advance()
     XCTAssertEqual(values, [1, 42])
-    testScheduler.advance(by: .seconds(2))
+    testScheduler.advance(by: 2)
     XCTAssertEqual(values, [1, 42, 42, 1, 42])
   }
 
@@ -126,10 +126,10 @@ final class SchedulerTests: XCTestCase {
     subject.input.send(value: ())
     XCTAssertEqual(count, 0)
 
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     XCTAssertEqual(count, 1)
 
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     XCTAssertEqual(count, 1)
 
     scheduler.run()
