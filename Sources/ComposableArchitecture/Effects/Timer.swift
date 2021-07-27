@@ -57,10 +57,10 @@ extension Effect where Value == Date, Error == Never {
   ///
   ///       store.send(.startButtonTapped)
   ///
-  ///       scheduler.advance(by: .seconds(1))
+  ///       scheduler.advance(by: 1)
   ///       store.receive(.timerTicked) { $0.count = 1 }
   ///
-  ///       scheduler.advance(by: .seconds(5))
+  ///       scheduler.advance(by: 5)
   ///       store.receive(.timerTicked) { $0.count = 2 }
   ///       store.receive(.timerTicked) { $0.count = 3 }
   ///       store.receive(.timerTicked) { $0.count = 4 }

@@ -11,16 +11,16 @@ final class TimerTests: XCTestCase {
     Effect.timer(id: 1, every: .seconds(1), on: scheduler)
       .startWithValues { _ in count += 1 }
 
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     XCTAssertEqual(count, 1)
 
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     XCTAssertEqual(count, 2)
 
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     XCTAssertEqual(count, 3)
 
-    scheduler.advance(by: .seconds(3))
+    scheduler.advance(by: 3)
     XCTAssertEqual(count, 6)
   }
 
@@ -38,16 +38,16 @@ final class TimerTests: XCTestCase {
     )
     .start()
 
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     XCTAssertEqual(count2, 0)
     XCTAssertEqual(count3, 0)
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     XCTAssertEqual(count2, 1)
     XCTAssertEqual(count3, 0)
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     XCTAssertEqual(count2, 1)
     XCTAssertEqual(count3, 1)
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     XCTAssertEqual(count2, 2)
     XCTAssertEqual(count3, 1)
   }
@@ -64,11 +64,11 @@ final class TimerTests: XCTestCase {
       .on(value: { _ in firstCount += 1 })
       .start()
 
-    scheduler.advance(by: .seconds(2))
+    scheduler.advance(by: 2)
 
     XCTAssertEqual(firstCount, 1)
 
-    scheduler.advance(by: .seconds(2))
+    scheduler.advance(by: 2)
 
     XCTAssertEqual(firstCount, 2)
 
@@ -76,12 +76,12 @@ final class TimerTests: XCTestCase {
       .on(value: { _ in secondCount += 1 })
       .startWithValues { _ in }
 
-    scheduler.advance(by: .seconds(2))
+    scheduler.advance(by: 2)
 
     XCTAssertEqual(firstCount, 2)
     XCTAssertEqual(secondCount, 1)
 
-    scheduler.advance(by: .seconds(2))
+    scheduler.advance(by: 2)
 
     XCTAssertEqual(firstCount, 2)
     XCTAssertEqual(secondCount, 2)
@@ -96,13 +96,13 @@ final class TimerTests: XCTestCase {
       .take(first: 3)
       .startWithValues { _ in count += 1 }
 
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     XCTAssertEqual(count, 1)
 
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     XCTAssertEqual(count, 2)
 
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     XCTAssertEqual(count, 3)
 
     scheduler.run()

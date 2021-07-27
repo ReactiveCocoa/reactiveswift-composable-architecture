@@ -21,7 +21,7 @@ class SearchTests: XCTestCase {
     store.send(.searchQueryChanged("S")) {
       $0.searchQuery = "S"
     }
-    self.scheduler.advance(by: .milliseconds(300))
+    self.scheduler.advance(by: 0.3)
     store.receive(.locationsResponse(.success(mockLocations))) {
       $0.locations = mockLocations
     }
@@ -45,7 +45,7 @@ class SearchTests: XCTestCase {
     store.send(.searchQueryChanged("S")) {
       $0.searchQuery = "S"
     }
-    self.scheduler.advance(by: .milliseconds(300))
+    self.scheduler.advance(by: 0.3)
     store.receive(.locationsResponse(.failure(.init())))
   }
 
@@ -65,7 +65,7 @@ class SearchTests: XCTestCase {
     store.send(.searchQueryChanged("S")) {
       $0.searchQuery = "S"
     }
-    self.scheduler.advance(by: .milliseconds(200))
+    self.scheduler.advance(by: 0.2)
     store.send(.searchQueryChanged("")) {
       $0.searchQuery = ""
     }

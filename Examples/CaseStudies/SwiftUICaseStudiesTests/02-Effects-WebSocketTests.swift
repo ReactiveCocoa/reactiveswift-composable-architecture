@@ -129,8 +129,8 @@ class WebSocketTests: XCTestCase {
     }
 
     pingSubject.input.send(value: nil)
-    scheduler.advance(by: .seconds(5))
-    scheduler.advance(by: .seconds(5))
+    scheduler.advance(by: 5)
+    scheduler.advance(by: 5)
     store.receive(.pingResponse(nil))
 
     store.send(.connectButtonTapped) {

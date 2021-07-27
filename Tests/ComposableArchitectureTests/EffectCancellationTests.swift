@@ -88,7 +88,7 @@ final class EffectCancellationTests: XCTestCase {
 
     XCTAssertEqual(value, nil)
 
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     Effect<Never, Never>.cancel(id: CancelToken())
       .start()
 
@@ -240,9 +240,9 @@ final class EffectCancellationTests: XCTestCase {
       .startWithValues { expectedOutput.append($0) }
 
     XCTAssertEqual(expectedOutput, [])
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     XCTAssertEqual(expectedOutput, [1])
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     XCTAssertEqual(expectedOutput, [1, 2])
   }
 
@@ -259,7 +259,7 @@ final class EffectCancellationTests: XCTestCase {
     disposable.dispose()
 
     XCTAssertEqual(expectedOutput, [])
-    scheduler.advance(by: .seconds(1))
+    scheduler.advance(by: 1)
     XCTAssertEqual(expectedOutput, [])
   }
 }

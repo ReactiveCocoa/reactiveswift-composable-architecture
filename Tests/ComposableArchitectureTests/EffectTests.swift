@@ -32,13 +32,13 @@ final class EffectTests: XCTestCase {
 
     XCTAssertEqual(values, [])
 
-    self.scheduler.advance(by: .seconds(1))
+    self.scheduler.advance(by: 1)
     XCTAssertEqual(values, [1])
 
-    self.scheduler.advance(by: .seconds(2))
+    self.scheduler.advance(by: 2)
     XCTAssertEqual(values, [1, 2])
 
-    self.scheduler.advance(by: .seconds(3))
+    self.scheduler.advance(by: 3)
     XCTAssertEqual(values, [1, 2, 3])
 
     self.scheduler.run()
@@ -56,7 +56,7 @@ final class EffectTests: XCTestCase {
 
     XCTAssertEqual(values, [])
 
-    self.scheduler.advance(by: .seconds(1))
+    self.scheduler.advance(by: 1)
     XCTAssertEqual(values, [1])
 
     self.scheduler.run()
@@ -75,13 +75,13 @@ final class EffectTests: XCTestCase {
 
     XCTAssertEqual(values, [])
 
-    self.scheduler.advance(by: .seconds(1))
+    self.scheduler.advance(by: 1)
     XCTAssertEqual(values, [1])
 
-    self.scheduler.advance(by: .seconds(1))
+    self.scheduler.advance(by: 1)
     XCTAssertEqual(values, [1, 2])
 
-    self.scheduler.advance(by: .seconds(1))
+    self.scheduler.advance(by: 1)
     XCTAssertEqual(values, [1, 2, 3])
   }
 
@@ -107,12 +107,12 @@ final class EffectTests: XCTestCase {
     XCTAssertEqual(values, [1, 2])
     XCTAssertEqual(isComplete, false)
 
-    self.scheduler.advance(by: .seconds(1))
+    self.scheduler.advance(by: 1)
 
     XCTAssertEqual(values, [1, 2, 3])
     XCTAssertEqual(isComplete, false)
 
-    self.scheduler.advance(by: .seconds(1))
+    self.scheduler.advance(by: 1)
 
     XCTAssertEqual(values, [1, 2, 3, 4])
     XCTAssertEqual(isComplete, true)
@@ -141,7 +141,7 @@ final class EffectTests: XCTestCase {
     Effect<Void, Never>.cancel(id: CancelId())
       .startWithValues { _ in }
 
-    self.scheduler.advance(by: .seconds(1))
+    self.scheduler.advance(by: 1)
 
     XCTAssertEqual(values, [1])
     XCTAssertEqual(isComplete, true)

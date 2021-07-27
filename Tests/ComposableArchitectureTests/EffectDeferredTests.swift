@@ -19,25 +19,25 @@ final class EffectDeferredTests: XCTestCase {
     XCTAssertEqual(values, [])
 
     // Waiting half the time also emits nothing
-    scheduler.advance(by: .milliseconds(500))
+    scheduler.advance(by: 0.5)
     XCTAssertEqual(values, [])
 
     // Run another deferred effect.
     runDeferredEffect(value: 2)
 
     // Waiting half the time emits first deferred effect received.
-    scheduler.advance(by: .milliseconds(500))
+    scheduler.advance(by: 0.5)
     XCTAssertEqual(values, [1])
 
     // Run another deferred effect.
     runDeferredEffect(value: 3)
 
     // Waiting half the time emits second deferred effect received.
-    scheduler.advance(by: .milliseconds(500))
+    scheduler.advance(by: 0.5)
     XCTAssertEqual(values, [1, 2])
 
     // Waiting the rest of the time emits the final effect value.
-    scheduler.advance(by: .milliseconds(500))
+    scheduler.advance(by: 0.5)
     XCTAssertEqual(values, [1, 2, 3])
 
     // Running out the scheduler
@@ -64,12 +64,12 @@ final class EffectDeferredTests: XCTestCase {
     XCTAssertEqual(values, [])
     XCTAssertEqual(effectRuns, 0)
 
-    scheduler.advance(by: .milliseconds(500))
+    scheduler.advance(by: 0.5)
 
     XCTAssertEqual(values, [])
     XCTAssertEqual(effectRuns, 0)
 
-    scheduler.advance(by: .milliseconds(500))
+    scheduler.advance(by: 0.5)
 
     XCTAssertEqual(values, [1])
     XCTAssertEqual(effectRuns, 1)
