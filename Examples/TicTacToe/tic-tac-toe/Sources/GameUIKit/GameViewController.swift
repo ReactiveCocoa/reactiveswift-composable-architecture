@@ -8,7 +8,7 @@ public final class GameViewController: UIViewController {
   let viewStore: ViewStore<ViewState, GameAction>
 
   struct ViewState: Equatable {
-    let board: [[String]]
+    let board: Three<Three<String>>
     let isGameEnabled: Bool
     let isPlayAgainButtonHidden: Bool
     let title: String?
