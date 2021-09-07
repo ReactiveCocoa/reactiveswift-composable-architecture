@@ -1,4 +1,4 @@
-import Combine
+import ReactiveSwift
 import SwiftUI
 
 #if compiler(>=5.5)
@@ -111,9 +111,9 @@ extension ViewStore {
   /// - Parameter predicate: A predicate on `State` that determines for how long this method should
   /// suspend.
   public func suspend(while predicate: @escaping (State) -> Bool) async {
-    var cancellable: Cancellable?
+    var cancellable: Disposable?
     try? await withTaskCancellationHandler(
-      handler: { [cancellable] in cancellable?.cancel() },
+      handler: { [cancellable] in cancellable?.dispose() },
       operation: {
         try Task.checkCancellation()
         try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
@@ -121,10 +121,10 @@ extension ViewStore {
             continuation.resume(throwing: CancellationError())
             return
           }
-          cancellable = self.publisher
+          cancellable = self.produced.producer
             .filter { !predicate($0) }
-            .prefix(1)
-            .sink { _ in
+            .take(first: 1)
+            .startWithValues { _ in
               continuation.resume()
               _ = cancellable
             }
