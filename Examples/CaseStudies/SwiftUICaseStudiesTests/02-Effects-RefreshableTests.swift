@@ -1,3 +1,4 @@
+import ReactiveSwift
 import ComposableArchitecture
 import XCTest
 
@@ -10,7 +11,7 @@ class RefreshableTests: XCTestCase {
       reducer: refreshableReducer,
       environment: .init(
         fact: .init { .init(value: "\($0) is a good number.") },
-        mainQueue: .immediate
+        mainQueue: ImmediateScheduler()
       )
     )
 
@@ -32,7 +33,7 @@ class RefreshableTests: XCTestCase {
       reducer: refreshableReducer,
       environment: .init(
         fact: .init { _ in .init(error: .init()) },
-        mainQueue: .immediate
+        mainQueue: ImmediateScheduler()
       )
     )
 
@@ -48,14 +49,14 @@ class RefreshableTests: XCTestCase {
   }
 
   func testCancellation() {
-    let mainQueue = DispatchQueue.test
+    let mainQueue = TestScheduler()
 
     let store = TestStore(
       initialState: .init(),
       reducer: refreshableReducer,
       environment: .init(
         fact: .init { .init(value: "\($0) is a good number.") },
-        mainQueue: mainQueue.eraseToAnyScheduler()
+        mainQueue: mainQueue
       )
     )
 
