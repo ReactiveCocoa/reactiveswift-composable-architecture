@@ -38,14 +38,18 @@ extension Effect where Error == Never {
 }
 
 struct AnimationsState: Equatable {
-  var circleCenter = CGPoint.zero
+  var alert: AlertState<AnimationsAction>? = nil
+  var circleCenter = CGPoint(x: 50, y: 50)
   var circleColor = Color.white
   var isCircleScaled = false
 }
 
 enum AnimationsAction: Equatable {
   case circleScaleToggleChanged(Bool)
+  case dismissAlert
   case rainbowButtonTapped
+  case resetButtonTapped
+  case resetConfirmationButtonTapped
   case setColor(Color)
   case tapped(CGPoint)
 }
@@ -61,6 +65,10 @@ let animationsReducer = Reducer<AnimationsState, AnimationsAction, AnimationsEnv
   case let .circleScaleToggleChanged(isScaled):
     state.isCircleScaled = isScaled
     return .none
+    
+  case .dismissAlert:
+    state.alert = nil
+    return .none
 
   case .rainbowButtonTapped:
     return .keyFrames(
@@ -68,6 +76,22 @@ let animationsReducer = Reducer<AnimationsState, AnimationsAction, AnimationsEnv
         .map { (output: .setColor($0), duration: 1) },
       scheduler: environment.mainQueue.animation(.linear)
     )
+    
+  case .resetButtonTapped:
+    state.alert = .init(
+      title: .init("Reset state?"),
+      primaryButton: .destructive(
+        .init("Reset"),
+        send: .resetConfirmationButtonTapped,
+        animation: .default
+      ),
+      secondaryButton: .cancel()
+    )
+    return .none
+    
+  case .resetConfirmationButtonTapped:
+    state = .init()
+    return .none
 
   case let .setColor(color):
     state.circleColor = color
@@ -121,7 +145,10 @@ struct AnimationsView: View {
           .padding()
           Button("Rainbow") { viewStore.send(.rainbowButtonTapped, animation: .linear) }
             .padding([.leading, .trailing, .bottom])
+          Button("Reset") { viewStore.send(.resetButtonTapped) }
+            .padding([.leading, .trailing, .bottom])
         }
+        .alert(self.store.scope(state: \.alert), dismiss: .dismissAlert)
       }
     }
   }
@@ -133,7 +160,7 @@ struct AnimationsView_Previews: PreviewProvider {
       NavigationView {
         AnimationsView(
           store: Store(
-            initialState: AnimationsState(circleCenter: CGPoint(x: 50, y: 50)),
+            initialState: .init(),
             reducer: animationsReducer,
             environment: AnimationsEnvironment(
               mainQueue: QueueScheduler.main
@@ -145,7 +172,7 @@ struct AnimationsView_Previews: PreviewProvider {
       NavigationView {
         AnimationsView(
           store: Store(
-            initialState: AnimationsState(circleCenter: CGPoint(x: 50, y: 50)),
+            initialState: .init(),
             reducer: animationsReducer,
             environment: AnimationsEnvironment(
               mainQueue: QueueScheduler.main
