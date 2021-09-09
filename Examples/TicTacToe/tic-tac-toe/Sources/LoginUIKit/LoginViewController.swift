@@ -1,10 +1,6 @@
 import ComposableArchitecture
 import LoginCore
-<<<<<<< ours:Examples/TicTacToe/Sources/Views-UIKit/LoginViewController.swift
 import ReactiveSwift
-import TicTacToeCommon
-=======
->>>>>>> theirs:Examples/TicTacToe/tic-tac-toe/Sources/LoginUIKit/LoginViewController.swift
 import TwoFactorCore
 import TwoFactorUIKit
 import UIKit

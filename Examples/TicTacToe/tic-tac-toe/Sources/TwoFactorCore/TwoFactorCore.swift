@@ -1,11 +1,7 @@
 import AuthenticationClient
 import ComposableArchitecture
 import Dispatch
-<<<<<<< ours:Examples/TicTacToe/Sources/Core/TwoFactorCore.swift
 import ReactiveSwift
-import TicTacToeCommon
-=======
->>>>>>> theirs:Examples/TicTacToe/tic-tac-toe/Sources/TwoFactorCore/TwoFactorCore.swift
 
 public struct TwoFactorState: Equatable {
   public var alert: AlertState<TwoFactorAction>?

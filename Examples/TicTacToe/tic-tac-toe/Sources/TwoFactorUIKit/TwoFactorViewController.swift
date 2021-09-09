@@ -1,9 +1,5 @@
 import ComposableArchitecture
-<<<<<<< ours:Examples/TicTacToe/Sources/Views-UIKit/TwoFactorViewController.swift
 import ReactiveSwift
-import TicTacToeCommon
-=======
->>>>>>> theirs:Examples/TicTacToe/tic-tac-toe/Sources/TwoFactorUIKit/TwoFactorViewController.swift
 import TwoFactorCore
 import UIKit
 
