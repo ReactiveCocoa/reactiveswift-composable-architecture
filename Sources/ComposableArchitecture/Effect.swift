@@ -152,12 +152,14 @@ extension Effect {
   /// ```
   ///
   /// - Parameters:
-  ///   - f: A mapping function that converts `Result<Output,Failure>` to another type.
+  ///   - transform: A mapping function that converts `Result<Value,Error>` to another type.
   /// - Returns: An effect that wraps `self`.
-  public func catchToEffect<T>(_ f: @escaping (Result<Value, Error>) -> T) -> Effect<T,Never> {
+  public func catchToEffect<T>(
+    _ transform: @escaping (Result<Value, Error>) -> T
+  ) -> Effect<T,Never> {
     self
-      .catchToEffect()
-      .map(f)
+      .map { transform(.success($0)) }
+      .flatMapError { Effect<T, Never>(value: transform(.failure($0))) }
   }
 
   /// Turns any publisher into an ``Effect`` for any output and failure type by ignoring all output
