@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import ReactiveSwift
 import SwiftUI
 
 private var readMe = """
@@ -27,7 +28,7 @@ enum RefreshableAction: Equatable {
 
 struct RefreshableEnvironment {
   var fact: FactClient
-  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 
 let refreshableReducer = Reducer<
@@ -65,7 +66,7 @@ let refreshableReducer = Reducer<
     state.fact = nil
     state.isLoading = true
     return environment.fact.fetch(state.count)
-      .delay(for: .seconds(2), scheduler: environment.mainQueue.animation())
+      .delay(2, on: environment.mainQueue.animation())
       .catchToEffect()
       .map(RefreshableAction.factResponse)
       .cancellable(id: CancelId())
@@ -113,7 +114,7 @@ let refreshableReducer = Reducer<
           reducer: refreshableReducer,
           environment: .init(
             fact: .live,
-            mainQueue: .main
+            mainQueue: QueueScheduler.main
           )
         )
       )
