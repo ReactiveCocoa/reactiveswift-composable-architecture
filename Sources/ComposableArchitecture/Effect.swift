@@ -87,14 +87,14 @@ extension Effect {
   /// Note that you can only deliver a single value to the `callback`. If you send more they will be
   /// discarded:
   ///
-  ///    ```swift
+  /// ```swift
   /// Effect<Int, Never>.future { callback in
   ///   DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
   ///     callback(.success(42))
   ///     callback(.success(1729)) // Will not be emitted by the effect
   ///   }
-  ///     }
-  ///    ```
+  /// }
+  /// ```
   ///
   /// - Parameter attemptToFulfill: A closure that takes a `callback` as an argument which can be
   ///   used to feed it `Result<Output, Failure>` values.
@@ -114,18 +114,18 @@ extension Effect {
     }
   }
 
-  /// Turns any publisher into an ``Effect`` that cannot fail by wrapping its output and failure in
+  /// Turns any `SignalProducer` into an ``Effect`` that cannot fail by wrapping its output and failure in
   /// a result.
   ///
   /// This can be useful when you are working with a failing API but want to deliver its data to an
   /// action that handles both success and failure.
   ///
-  ///    ```swift
-  ///     case .buttonTapped:
-  ///       return fetchUser(id: 1)
-  ///         .catchToEffect()
-  ///         .map(ProfileAction.userResponse)
-  ///    ```
+  /// ```swift
+  /// case .buttonTapped:
+  ///   return fetchUser(id: 1)
+  ///     .catchToEffect()
+  ///     .map(ProfileAction.userResponse)
+  /// ```
   ///
   /// - Returns: An effect that wraps `self`.
   public func catchToEffect() -> Effect<Result<Value, Error>, Never> {
@@ -133,17 +133,44 @@ extension Effect {
       .flatMapError { Effect<Result<Value, Error>, Never>(value: Result.failure($0)) }
   }
 
-  /// Turns any `SignalProducer` into an ``Effect`` for any output and failure type by ignoring all output
+  /// Turns any `SignalProducer` into an ``Effect`` that cannot fail by wrapping its output and failure into
+  /// result and then applying passed in function to it.
+  ///
+  /// This is a convenience operator for writing `catchToEffect()` followed by a `map()` .
+  ///
+  /// ```swift
+  /// case .buttonTapped:
+  ///   return fetchUser(id: 1)
+  ///     .catchToEffect {
+  ///       switch $0 {
+  ///       case let .success(response):
+  ///         return ProfileAction.updatedUser(response)
+  ///       case let .failure(error):
+  ///         return ProfileAction.failedUserUpdate(error)
+  ///       }
+  ///     }
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - f: A mapping function that converts `Result<Output,Failure>` to another type.
+  /// - Returns: An effect that wraps `self`.
+  public func catchToEffect<T>(_ f: @escaping (Result<Value, Error>) -> T) -> Effect<T,Never> {
+    self
+      .catchToEffect()
+      .map(f)
+  }
+
+  /// Turns any publisher into an ``Effect`` for any output and failure type by ignoring all output
   /// and any failure.
   ///
   /// This is useful for times you want to fire off an effect but don't want to feed any data back
   /// into the system. It can automatically promote an effect to your reducer's domain.
   ///
-  ///    ```swift
-  ///     case .buttonTapped:
-  ///       return analyticsClient.track("Button Tapped")
-  ///         .fireAndForget()
-  ///    ```
+  /// ```swift
+  /// case .buttonTapped:
+  ///   return analyticsClient.track("Button Tapped")
+  ///     .fireAndForget()
+  /// ```
   ///
   /// - Parameters:
   ///   - outputType: An output type.
