@@ -51,6 +51,16 @@ extension Effect {
           ).on(
             value: { _ in throttleLock.sync { throttleTimes[id] = scheduler.currentDate } }
           )
+          .handleEvents(
+            receiveOutput: { _ in 
+              throttleLock.sync { 
+                throttleTimes[id] = scheduler.now 
+                throttleValues[id] = nil
+              }
+            }
+          )
+          .setFailureType(to: Failure.self)
+          .eraseToAnyPublisher()
       }
       .cancellable(id: id, cancelInFlight: true)
   }
