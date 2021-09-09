@@ -64,10 +64,10 @@ let voiceMemoReducer = Reducer<VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment>
     switch memo.mode {
     case .notPlaying:
       memo.mode = .playing(progress: 0)
-      let start = environment.mainRunLoop.now
+      let start = environment.mainRunLoop.currentDate
       return .merge(
-        Effect.timer(id: TimerId(), every: 0.5, on: environment.mainRunLoop)
-          .map { .timerUpdated($0.date.timeIntervalSince1970 - start.date.timeIntervalSince1970) },
+        Effect.timer(id: TimerId(), every: .milliseconds(500), on: environment.mainRunLoop)
+          .map { .timerUpdated($0.timeIntervalSince1970 - start.timeIntervalSince1970) },
 
         environment.audioPlayerClient
           .play(PlayerId(), memo.url)
