@@ -9,6 +9,7 @@ struct LazyNavigationState: Equatable {
 }
 
 enum LazyNavigationAction: Equatable {
+  case onDisappear
   case optionalCounter(CounterAction)
   case setNavigation(isActive: Bool)
   case setNavigationIsActiveDelayCompleted
@@ -30,11 +31,15 @@ let lazyNavigationReducer =
     with: Reducer<
       LazyNavigationState, LazyNavigationAction, LazyNavigationEnvironment
     > { state, action, environment in
+      struct CancelId: Hashable {}
       switch action {
+      case .onDisappear:
+        return .cancel(id: CancelId())
       case .setNavigation(isActive: true):
         state.isActivityIndicatorHidden = false
         return Effect(value: .setNavigationIsActiveDelayCompleted)
           .delay(1, on: environment.mainQueue)
+          .cancellable(id: CancelId()
       case .setNavigation(isActive: false):
         state.optionalCounter = nil
         return .none
@@ -115,6 +120,11 @@ class LazyNavigationViewController: UIViewController {
 
   @objc private func loadOptionalCounterTapped() {
     self.viewStore.send(.setNavigation(isActive: true))
+  }
+
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    self.viewStore.send(.onDisappear)
   }
 }
 

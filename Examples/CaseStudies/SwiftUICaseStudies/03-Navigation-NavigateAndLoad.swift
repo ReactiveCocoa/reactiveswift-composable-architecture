@@ -38,16 +38,18 @@ let navigateAndLoadReducer =
     with: Reducer<
       NavigateAndLoadState, NavigateAndLoadAction, NavigateAndLoadEnvironment
     > { state, action, environment in
+      struct CancelId: Hashable {}
       switch action {
       case .setNavigation(isActive: true):
         state.isNavigationActive = true
         return Effect(value: .setNavigationIsActiveDelayCompleted)
           .delay(1, on: environment.mainQueue)
+          .cancellable(id: CancelId())
 
       case .setNavigation(isActive: false):
         state.isNavigationActive = false
         state.optionalCounter = nil
-        return .none
+        return .cancel(id: CancelId())
 
       case .setNavigationIsActiveDelayCompleted:
         state.optionalCounter = CounterState()
