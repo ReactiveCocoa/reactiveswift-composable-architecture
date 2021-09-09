@@ -26,8 +26,7 @@ extension FactClient {
             return "\(number) is a good number Brent"
           }
         }
-        .setFailureType(to: Error.self)
-        .eraseToEffect()
+        .promoteError(Error.self)
       }
     )
   #else

@@ -179,8 +179,7 @@ final class EffectTests: XCTestCase {
         expectation.fulfill()
         return 42
       }
-      .sink(receiveValue: { result = $0 })
-      .store(in: &self.cancellables)
+      .startWithValues { result = $0 }
       self.wait(for: [expectation], timeout: 0)
       XCTAssertEqual(result, 42)
     }
@@ -191,24 +190,23 @@ final class EffectTests: XCTestCase {
     let expectation = self.expectation(description: "Complete")
     struct MyError: Error {}
     var result: Error?
-    Effect<Int, Error>.task {
+    let disposable = Effect<Int, Error>.task {
       expectation.fulfill()
       throw MyError()
     }
-    .sink(
-      receiveCompletion: {
-        switch $0 {
-        case .finished:
-          XCTFail()
-        case let .failure(error):
-          result = error
-        }
+    .on(
+      failed: { error in
+        result = error
       },
-      receiveValue: { _ in XCTFail() }
-    )
-    .store(in: &self.cancellables)
+      value: { _ in
+        XCTFail()
+      }
+    ).logEvents()
+    .start()
+
     self.wait(for: [expectation], timeout: 0)
     XCTAssertNotNil(result)
+    disposable.dispose()
   }
 
   func testCancellingTask() {
@@ -228,12 +226,11 @@ final class EffectTests: XCTestCase {
     let expectation = self.expectation(description: "Complete")
     Effect<Int, Error>.task {
       try await work()
-    }
-    .sink(
-      receiveCompletion: { _ in expectation.fulfill() },
-      receiveValue: { _ in XCTFail() }
-    )
-    .store(in: &self.cancellables)
+    }.on(
+      completed: { expectation.fulfill() },
+      value: { _ in XCTFail() }
+    ).start()
+
     self.wait(for: [expectation], timeout: 0.2)
   }
   #endif

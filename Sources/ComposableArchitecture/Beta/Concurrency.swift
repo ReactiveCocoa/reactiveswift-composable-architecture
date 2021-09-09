@@ -37,8 +37,8 @@ import SwiftUI
     /// - Returns: An effect wrapping the given asynchronous work.
     public static func task(
       priority: TaskPriority? = nil,
-      operation: @escaping @Sendable () async -> Output
-    ) -> Self where Failure == Never {
+      operation: @escaping @Sendable () async -> Value
+    ) -> Self where Error == Never {
       var task: Task<Void, Never>?
       return .future { callback in
         task = Task(priority: priority) {
@@ -48,8 +48,7 @@ import SwiftUI
           callback(.success(output))
         }
       }
-      .handleEvents(receiveCancel: { task?.cancel() })
-      .eraseToEffect()
+      .on(disposed: { task?.cancel() })
     }
 
     /// Wraps an asynchronous unit of work in an effect.
@@ -82,26 +81,27 @@ import SwiftUI
     /// - Returns: An effect wrapping the given asynchronous work.
     public static func task(
       priority: TaskPriority? = nil,
-      operation: @escaping @Sendable () async throws -> Output
-    ) -> Self where Failure == Error {
-      Deferred<Publishers.HandleEvents<PassthroughSubject<Output, Failure>>> {
-        let subject = PassthroughSubject<Output, Failure>()
+      operation: @escaping @Sendable () async throws -> Value
+    ) -> Self where Error == Swift.Error {
+      deferred {
+        let subject = Signal<Value, Error>.pipe()
         let task = Task(priority: priority) {
           do {
             try Task.checkCancellation()
             let output = try await operation()
             try Task.checkCancellation()
-            subject.send(output)
-            subject.send(completion: .finished)
+            subject.input.send(value: output)
+            subject.input.sendCompleted()
           } catch is CancellationError {
-            subject.send(completion: .finished)
+            subject.input.sendCompleted()
           } catch {
-            subject.send(completion: .failure(error))
+            subject.input.send(error: error)
           }
         }
-        return subject.handleEvents(receiveCancel: task.cancel)
+
+        return subject.output.producer
+          .on(disposed: task.cancel)
       }
-      .eraseToEffect()
     }
   }
 
