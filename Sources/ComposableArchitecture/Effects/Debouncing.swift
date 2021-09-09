@@ -10,30 +10,30 @@ extension Effect {
   /// protection against typos by defining a new type that conforms to `Hashable`, such as an empty
   /// struct:
   ///
-  ///    ```swift
-  ///     case let .textChanged(text):
-  ///       struct SearchId: Hashable {}
+  /// ```swift
+  /// case let .textChanged(text):
+  ///   struct SearchId: Hashable {}
   ///
-  ///       return environment.search(text)
-  ///         .map(Action.searchResponse)
-  ///         .debounce(id: SearchId(), for: 0.5, scheduler: environment.mainQueue)
-  ///    ```
+  ///   return environment.search(text)
+  ///     .debounce(id: SearchId(), for: 0.5, scheduler: environment.mainQueue)
+  ///     .map(Action.searchResponse)
+  /// ```
   ///
   /// - Parameters:
   ///   - id: The effect's identifier.
-  ///   - for: The duration you want to debounce for.
+  ///   - dueTime: The duration you want to debounce for.
   ///   - scheduler: The scheduler you want to deliver the debounced output to.
   ///   - options: Scheduler options that customize the effect's delivery of elements.
   /// - Returns: An effect that publishes events only after a specified time elapses.
   public func debounce(
     id: AnyHashable,
-    for interval: TimeInterval,
+    for dueTime: TimeInterval,
     scheduler: DateScheduler
   ) -> Effect<Value, Error> {
     Effect<Void, Never>.init(value: ())
       .promoteError(Error.self)
-      .delay(interval, on: scheduler)
-      .flatMap(.latest) { self }
+      .delay(dueTime, on: scheduler)
+      .flatMap(.latest) { self.observe(on: scheduler) }
       .cancellable(id: id, cancelInFlight: true)
   }
 }
