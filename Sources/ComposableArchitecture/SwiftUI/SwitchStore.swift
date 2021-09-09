@@ -48,11 +48,10 @@ import SwiftUI
 /// }
 /// ```
 ///
-/// - See also: ``Reducer/pullback(state:action:environment:breakpointOnNil:_:_:)``, a method that
-/// aids in transforming reducers that operate on each case of an enum into reducers that operate
-/// on the entire enum.
-///
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
+/// - See also: ``Reducer/pullback(state:action:environment:breakpointOnNil:file:line:)``, a method
+///   that aids in transforming reducers that operate on each case of an enum into reducers that
+///   operate on the entire enum.
+@available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
 public struct SwitchStore<State, Action, Content>: View where Content: View {
   public let store: Store<State, Action>
   public let content: () -> Content
