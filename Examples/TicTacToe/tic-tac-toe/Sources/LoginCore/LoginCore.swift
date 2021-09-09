@@ -1,11 +1,7 @@
 import AuthenticationClient
 import ComposableArchitecture
 import Dispatch
-<<<<<<< ours:Examples/TicTacToe/Sources/Core/LoginCore.swift
 import ReactiveSwift
-import TicTacToeCommon
-=======
->>>>>>> theirs:Examples/TicTacToe/tic-tac-toe/Sources/LoginCore/LoginCore.swift
 import TwoFactorCore
 
 public struct LoginState: Equatable {

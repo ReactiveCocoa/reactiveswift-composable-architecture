@@ -27,7 +27,7 @@ let package = Package(
     .library(name: "TwoFactorUIKit", targets: ["TwoFactorUIKit"]),
   ],
   dependencies: [
-    .package(name: "swift-composable-architecture", path: "../../.."),
+    .package(name: "reactiveswift-composable-architecture", path: "../../.."),
   ],
   targets: [
     .target(
@@ -36,7 +36,7 @@ let package = Package(
         "AuthenticationClient",
         "LoginCore",
         "NewGameCore",
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        .product(name: "ComposableArchitecture", package: "reactiveswift-composable-architecture"),
       ]
     ),
     .testTarget(
@@ -63,7 +63,7 @@ let package = Package(
     .target(
       name: "AuthenticationClient",
       dependencies: [
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        .product(name: "ComposableArchitecture", package: "reactiveswift-composable-architecture"),
       ]
     ),
     .target(
@@ -74,7 +74,7 @@ let package = Package(
     .target(
       name: "GameCore",
       dependencies: [
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        .product(name: "ComposableArchitecture", package: "reactiveswift-composable-architecture"),
       ]
     ),
     .testTarget(
@@ -99,7 +99,7 @@ let package = Package(
       dependencies: [
         "AuthenticationClient",
         "TwoFactorCore",
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        .product(name: "ComposableArchitecture", package: "reactiveswift-composable-architecture"),
       ]
     ),
     .testTarget(
@@ -129,7 +129,7 @@ let package = Package(
       name: "NewGameCore",
       dependencies: [
         "GameCore",
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        .product(name: "ComposableArchitecture", package: "reactiveswift-composable-architecture"),
       ]
     ),
     .testTarget(
@@ -159,7 +159,7 @@ let package = Package(
       name: "TwoFactorCore",
       dependencies: [
         "AuthenticationClient",
-        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+        .product(name: "ComposableArchitecture", package: "reactiveswift-composable-architecture"),
       ]
     ),
     .testTarget(
