@@ -180,7 +180,7 @@ final class EffectTests: XCTestCase {
         return 42
       }
       .startWithValues { result = $0 }
-      self.wait(for: [expectation], timeout: 0)
+      self.wait(for: [expectation], timeout: 1)
       XCTAssertEqual(result, 42)
     }
 
@@ -199,12 +199,12 @@ final class EffectTests: XCTestCase {
         result = error
       },
       value: { _ in
-        XCTFail()
-      }
+          XCTFail()
+        }
     ).logEvents()
     .start()
 
-    self.wait(for: [expectation], timeout: 0)
+      self.wait(for: [expectation], timeout: 0)
     XCTAssertNotNil(result)
     disposable.dispose()
   }
@@ -231,7 +231,7 @@ final class EffectTests: XCTestCase {
       value: { _ in XCTFail() }
     ).start()
 
-    self.wait(for: [expectation], timeout: 0.2)
+      self.wait(for: [expectation], timeout: 1)
   }
   #endif
 }
