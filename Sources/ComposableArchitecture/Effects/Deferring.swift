@@ -7,8 +7,8 @@ extension Effect {
   /// ```swift
   /// case let .textChanged(text):
   ///   return environment.search(text)
-  ///     .map(Action.searchResponse)
   ///     .deferred(for: 0.5, scheduler: environment.mainQueue)
+  ///     .map(Action.searchResponse)
   /// ```
   ///
   /// - Parameters:
@@ -23,6 +23,6 @@ extension Effect {
   ) -> Effect<Value, Error> {
     SignalProducer<Void, Never>(value: ())
       .delay(dueTime, on: scheduler)
-      .flatMap(.latest) { self }
+      .flatMap(.latest) { self.observe(on: scheduler) }
   }
 }
