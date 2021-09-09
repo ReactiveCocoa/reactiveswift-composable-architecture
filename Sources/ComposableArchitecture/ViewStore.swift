@@ -85,8 +85,8 @@ public final class ViewStore<State, Action> {
     _ store: Store<State, Action>,
     removeDuplicates isDuplicate: @escaping (State, State) -> Bool
   ) {
+    self._send =  { store.send($0) }
     self._state = store.state
-    self._send = store.send
 
     self.viewDisposable = store.producer
       .skipRepeats(isDuplicate)
@@ -100,7 +100,7 @@ public final class ViewStore<State, Action> {
         #endif
         self._state = $0
         self.statePipe.input.send(value: $0)
-  }
+      }
   }
 
   /// A `SignalProducerConvertible` that emits when state changes.
@@ -295,7 +295,7 @@ public final class ViewStore<State, Action> {
 
   deinit {
     viewDisposable?.dispose()
-  }
+}
 }
 
 extension ViewStore where State: Equatable {
