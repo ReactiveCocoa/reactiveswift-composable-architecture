@@ -1,5 +1,7 @@
 import ReactiveSwift
+#if canImport(SwiftUI)
 import SwiftUI
+#endif
 
 #if compiler(>=5.5)
   @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
@@ -195,6 +197,7 @@ import SwiftUI
       await self.suspend(while: predicate)
     }
 
+    #if canImport(SwiftUI)
     /// Sends an action into the store and then suspends while a piece of state is `true`.
     ///
     /// See the documentation of ``send(_:while:)`` for more information.
@@ -212,6 +215,7 @@ import SwiftUI
       withAnimation(animation) { self.send(action) }
       await self.suspend(while: predicate)
     }
+    #endif
 
     /// Suspends while a predicate on state is `true`.
     ///
