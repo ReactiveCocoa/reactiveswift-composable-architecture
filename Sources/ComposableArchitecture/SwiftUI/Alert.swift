@@ -244,12 +244,19 @@ extension AlertState: Hashable where Action: Hashable {
   @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState: Identifiable {}
 
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState.ButtonAction: Equatable where Action: Equatable {}
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState.ButtonAction.ActionType: Equatable where Action: Equatable {}
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState.ButtonType: Equatable {}
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState.Button: Equatable where Action: Equatable {}
 
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState.ButtonAction: Hashable where Action: Hashable {}
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState.ButtonAction.ActionType: Hashable where Action: Hashable {
   func hash(into hasher: inout Hasher) {
     switch self {
@@ -258,7 +265,9 @@ extension AlertState.ButtonAction.ActionType: Hashable where Action: Hashable {
     }
   }
 }
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState.ButtonType: Hashable {}
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState.Button: Hashable where Action: Hashable {
   public func hash(into hasher: inout Hasher) {
     hasher.combine(self.action)

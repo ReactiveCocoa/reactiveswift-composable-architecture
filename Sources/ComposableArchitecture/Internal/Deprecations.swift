@@ -5,6 +5,7 @@ import SwiftUI
 
 // NB: Deprecated after 0.26.0:
 
+@available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
 extension AlertState.Button {
   @available(*, deprecated, renamed: "cancel(_:action:)")
   public static func cancel(
