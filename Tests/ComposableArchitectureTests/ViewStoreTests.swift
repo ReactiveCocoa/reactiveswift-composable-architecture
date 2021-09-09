@@ -162,7 +162,6 @@ final class ViewStoreTests: XCTestCase {
         case .tapped:
           state = true
           return Effect(value: .response)
-          .start(on: QueueScheduler.main)
           .observe(on: QueueScheduler.main)
         }
       }
@@ -195,7 +194,6 @@ final class ViewStoreTests: XCTestCase {
         case .tapped:
           state = true
           return Effect(value: .response)
-          .start(on: QueueScheduler.main)
           .observe(on: QueueScheduler.main)
         }
       }
