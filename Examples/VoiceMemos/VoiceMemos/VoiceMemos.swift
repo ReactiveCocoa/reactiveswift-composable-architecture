@@ -64,13 +64,13 @@ let voiceMemosReducer = Reducer<VoiceMemosState, VoiceMemosAction, VoiceMemosEnv
         .appendingPathComponent(environment.uuid().uuidString)
         .appendingPathExtension("m4a")
       state.currentRecording = .init(
-        date: environment.mainRunLoop.now.date,
+        date: environment.mainRunLoop.currentDate,
         url: url
       )
       return .merge(
         environment.audioRecorder.startRecording(RecorderId(), url)
           .catchToEffect(VoiceMemosAction.audioRecorder),
-        Effect.timer(id: RecorderTimerId(), every: 1, tolerance: .zero, on: environment.mainRunLoop)
+        Effect.timer(id: RecorderTimerId(), every: .seconds(1), on: environment.mainRunLoop)
           .map { _ in .currentRecordingTimerUpdated }
       )
     }

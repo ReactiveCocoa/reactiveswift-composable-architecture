@@ -6,13 +6,12 @@ import XCTest
 @testable import VoiceMemos
 
 class VoiceMemosTests: XCTestCase {
-  let mainRunLoop = RunLoop.test
+  let mainRunLoop = TestScheduler()
 
   func testRecordMemoHappyPath() {
     let audioRecorderSubject = Signal<
       AudioRecorderClient.Action, AudioRecorderClient.Failure
     >.pipe()
-    let scheduler = TestScheduler()
 
     var environment = VoiceMemosEnvironment.failing
     environment.audioRecorder.currentTime = { _ in Effect(value: 2.5) }
@@ -26,7 +25,7 @@ class VoiceMemosTests: XCTestCase {
         audioRecorderSubject.input.sendCompleted()
       }
     }
-    environment.mainQueue = scheduler
+    environment.mainRunLoop = mainRunLoop
     environment.temporaryDirectory = { URL(fileURLWithPath: "/tmp") }
     environment.uuid = { UUID(uuidString: "DEADBEEF-DEAD-BEEF-DEAD-BEEFDEADBEEF")! }
 
@@ -41,7 +40,7 @@ class VoiceMemosTests: XCTestCase {
     store.receive(.recordPermissionResponse(true)) {
       $0.audioRecorderPermission = .allowed
       $0.currentRecording = .init(
-        date: Date(timeIntervalSince1970: 0),
+        date: Date(timeIntervalSinceReferenceDate: 0),
         mode: .recording,
         url: URL(string: "file:///tmp/DEADBEEF-DEAD-BEEF-DEAD-BEEFDEADBEEF.m4a")!
       )
@@ -65,7 +64,7 @@ class VoiceMemosTests: XCTestCase {
       $0.currentRecording = nil
       $0.voiceMemos = [
         VoiceMemo(
-          date: Date(timeIntervalSince1970: 0),
+          date: Date(timeIntervalSinceReferenceDate: 0),
           duration: 2.5,
           mode: .notPlaying,
           title: "",
@@ -142,13 +141,12 @@ class VoiceMemosTests: XCTestCase {
   }
 
   func testPlayMemoHappyPath() {
-    let scheduler = TestScheduler()
     var environment = VoiceMemosEnvironment.failing
     environment.audioPlayer.play = { _, _ in
       Effect(value: .didFinishPlaying(successfully: true))
-        .delay(1.1, on: scheduler)
+        .delay(1.1, on: self.mainRunLoop)
     }
-    environment.mainQueue = scheduler
+    environment.mainRunLoop = mainRunLoop
 
     let url = URL(string: "https://www.pointfree.co/functions")!
     let store = TestStore(
@@ -170,15 +168,15 @@ class VoiceMemosTests: XCTestCase {
     store.send(.voiceMemo(id: url, action: .playButtonTapped)) {
       $0.voiceMemos[id: url]?.mode = VoiceMemo.Mode.playing(progress: 0)
     }
-    self.mainRunLoop.advance(by: 0.5)
+    mainRunLoop.advance(by: 0.5)
     store.receive(VoiceMemosAction.voiceMemo(id: url, action: VoiceMemoAction.timerUpdated(0.5))) {
       $0.voiceMemos[id: url]?.mode = .playing(progress: 0.5)
     }
-    self.mainRunLoop.advance(by: 0.5)
+    mainRunLoop.advance(by: 0.5)
     store.receive(VoiceMemosAction.voiceMemo(id: url, action: VoiceMemoAction.timerUpdated(1))) {
       $0.voiceMemos[id: url]?.mode = .playing(progress: 1)
     }
-    scheduler.advance(by: 0.1)
+    mainRunLoop.advance(by: 0.1)
     store.receive(
       .voiceMemo(
         id: url,
