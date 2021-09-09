@@ -49,18 +49,13 @@ extension Effect {
               - scheduler.currentDate.timeIntervalSince1970,
             on: scheduler
           ).on(
-            value: { _ in throttleLock.sync { throttleTimes[id] = scheduler.currentDate } }
-          )
-          .handleEvents(
-            receiveOutput: { _ in 
-              throttleLock.sync { 
-                throttleTimes[id] = scheduler.now 
+            value: { _ in
+              throttleLock.sync {
+                throttleTimes[id] = scheduler.currentDate
                 throttleValues[id] = nil
               }
             }
           )
-          .setFailureType(to: Failure.self)
-          .eraseToAnyPublisher()
       }
       .cancellable(id: id, cancelInFlight: true)
   }
