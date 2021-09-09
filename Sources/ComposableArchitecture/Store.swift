@@ -129,6 +129,9 @@ public final class Store<State, Action> {
   private var parentDisposable: Disposable?
   private let reducer: (inout State, Action) -> Effect<Action, Never>
   private var bufferedActions: [Action] = []
+  #if DEBUG
+  private var initialThread = Thread.current
+  #endif
 
   /// Initializes a store from an initial state, a reducer, and an environment.
   ///
@@ -372,7 +375,9 @@ public final class Store<State, Action> {
     self.producerScope(state: toLocalState, action: { $0 })
   }
 
-  func send(_ action: Action) {
+  func send(_ action: Action, isFromViewStore: Bool = true) {
+    self.threadCheck(status: .send(action, isFromViewStore: isFromViewStore))
+
     self.bufferedActions.append(action)
     guard !self.isSending else { return }
 
@@ -389,43 +394,12 @@ public final class Store<State, Action> {
 
       var didComplete = false
       let uuid = UUID()
-
-      #if DEBUG
-      let initalThread = Thread.current
-      initalThread.threadDictionary[uuid] = true
-      #endif
-
       let observer = Signal<Action, Never>.Observer(
         value: { [weak self] action in
-          self?.send(action)
+          self?.send(action, isFromViewStore: false)
         },
         completed: { [weak self] in
-          #if DEBUG
-          if Thread.current.threadDictionary[uuid] == nil {
-            breakpoint(
-            """
-            ---
-            Warning: Store.send
-
-            The Store class is not thread-safe, and so all interactions with an instance of Store
-            (including all of its scopes and derived ViewStores) must be done on the same thread.
-
-            \(debugCaseOutput(action)) has produced an Effect that was completed on a different thread \
-            from the one it was executed on.
-              
-            Starting thread: \(initalThread)
-            Final thread: \(Thread.current)
-              
-            Possible fixes for this are:
-
-            * Add a .receive(on:) to the Effect to ensure it completes on this Stores correct thread.
-            """
-            )
-          }
-
-          Thread.current.threadDictionary[uuid] = nil
-          #endif
-
+          self?.threadCheck(status: .effectCompletion(action))
           didComplete = true
           self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
         },
@@ -458,5 +432,60 @@ public final class Store<State, Action> {
     self.effectDisposables.keys.forEach { id in
       self.effectDisposables.removeValue(forKey: id)?.dispose()
     }
+  }
+
+  private enum ThreadCheckStatus {
+    case effectCompletion(Action)
+    case send(Action, isFromViewStore: Bool)
+  }
+
+  @inline(__always)
+  private func threadCheck(status: ThreadCheckStatus) {
+    #if DEBUG
+    guard self.initialThread != Thread.current
+    else { return }
+
+    let message: String
+    switch status {
+    case let .effectCompletion(action):
+      message = """
+        An effect returned from the action "\(debugCaseOutput(action))" completed on the \
+        wrong thread. Make sure to use ".receive(on:)" on any effects that execute on background \
+        threads to receive their output on the initial thread.
+        """
+
+    case let .send(action, isFromViewStore: true):
+      message = """
+        "ViewStore.send(\(debugCaseOutput(action)))" was called on the wrong thread. Make \
+        sure that "ViewStore.send" is always called on the initial thread.
+        """
+
+    case let .send(action, isFromViewStore: false):
+      message = """
+        An effect emitted the action "\(debugCaseOutput(action))" from the wrong thread. Make sure \
+        to use ".receive(on:)" on any effects that execute on background threads to receive their \
+        output on the initial thread.
+        """
+    }
+
+    breakpoint(
+      """
+      ---
+      Warning:
+
+      The store was interacted with on a thread that is different from the thread the store was \
+      created on:
+
+      \(message)
+
+        Initial thread: \(self.initialThread)
+        Current thread: \(Thread.current)
+
+      The "Store" class is not thread-safe, and so all interactions with an instance of "Store" \
+      (including all of its scopes and derived view stores) must be done on the same thread.
+      ---
+      """
+    )
+    #endif
   }
 }
