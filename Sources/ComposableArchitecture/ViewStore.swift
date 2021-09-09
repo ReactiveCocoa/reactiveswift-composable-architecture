@@ -102,31 +102,27 @@ public final class ViewStore<State, Action> {
       }
   }
 
-  /// A publisher that emits when state changes.
+  /// A `SignalProducerConvertible` that emits when state changes.
   ///
-  /// This publisher supports dynamic member lookup so that you can pluck out a specific field in
+  /// This producer supports dynamic member lookup so that you can pluck out a specific field in
   /// the state:
   ///
   /// ```swift
-  /// viewStore.publisher.alert
-  ///   .sink { ... }
+  /// viewStore.produced.alert
+  ///   .startWithValues { ... }
   /// ```
   ///
   /// When the emission happens the ``ViewStore``'s state has been updated, and so the following
   /// precondition will pass:
   ///
   /// ```swift
-  /// viewStore.publisher
-  ///   .sink { precondition($0 == viewStore.state) }
+  /// viewStore.produced.producer
+  ///   .startWithValues { precondition($0 == viewStore.state) }
   /// ```
   ///
   /// This means you can either use the value passed to the closure or you can reach into
   /// `viewStore.state` directly.
   ///
-  /// - Note: Due to a bug in Combine (or feature?), the order you `.sink` on a publisher has no
-  ///   bearing on the order the `.sink` closures are called. This means the work performed inside
-  ///   `viewStore.publisher.sink` closures should be completely independent of each other.
-  ///   Later closures cannot assume that earlier ones have already run.
    public var produced: StoreProducer<State> {
     StoreProducer(viewStore: self)
   }
