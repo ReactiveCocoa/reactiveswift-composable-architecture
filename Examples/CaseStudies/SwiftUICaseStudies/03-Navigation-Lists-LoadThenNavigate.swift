@@ -27,6 +27,7 @@ struct LoadThenNavigateListState: Equatable {
 
 enum LoadThenNavigateListAction: Equatable {
   case counter(CounterAction)
+  case onDisappear
   case setNavigation(selection: UUID?)
   case setNavigationSelectionDelayCompleted(UUID)
 }
@@ -58,12 +59,15 @@ let loadThenNavigateListReducer =
       case .counter:
         return .none
 
-      case let .setNavigation(selection: .some(id)):
-        for index in state.rows.indices {
-          state.rows[index].isActivityIndicatorVisible = state.rows[index].id == id
+      case .onDisappear:
+        return .cancel(id: CancelId())
+
+      case let .setNavigation(selection: .some(navigatedId)):
+        for row in state.rows {
+          state.rows[id: row.id]?.isActivityIndicatorVisible = row.id == navigatedId
         }
 
-        return Effect(value: .setNavigationSelectionDelayCompleted(id))
+        return Effect(value: .setNavigationSelectionDelayCompleted(navigatedId))
           .delay(1, on: environment.mainQueue)
           .cancellable(id: CancelId(), cancelInFlight: true)
 
@@ -119,6 +123,7 @@ struct LoadThenNavigateListView: View {
         }
       }
       .navigationBarTitle("Load then navigate")
+      .onDisappear { viewStore.send(.onDisappear) }
     }
   }
 }
