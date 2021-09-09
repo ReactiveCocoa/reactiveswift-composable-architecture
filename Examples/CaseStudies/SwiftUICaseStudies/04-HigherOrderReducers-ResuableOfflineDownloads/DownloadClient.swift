@@ -4,8 +4,7 @@ import Foundation
 import ReactiveSwift
 
 struct DownloadClient {
-  var cancel: (AnyHashable) -> Effect<Never, Never>
-  var download: (AnyHashable, URL) -> Effect<Action, Error>
+  var download: (URL) -> Effect<Action, Error>
 
   struct Error: Swift.Error, Equatable {}
 
@@ -17,14 +16,7 @@ struct DownloadClient {
 
 extension DownloadClient {
   static let live = DownloadClient(
-    cancel: { id in
-      .fireAndForget {
-        dependencies[id]?.observation.invalidate()
-        dependencies[id]?.task.cancel()
-        dependencies[id] = nil
-      }
-    },
-    download: { id, url in
+    download: { url in
       .init { subscriber, lifetime in
         let task = URLSession.shared.dataTask(with: url) { data, _, error in
           switch (data, error) {
@@ -42,25 +34,12 @@ extension DownloadClient {
           subscriber.send(value: .updateProgress(progress.fractionCompleted))
         }
 
-        dependencies[id] = Dependencies(
-          observation: observation,
-          task: task
-        )
-
         lifetime += AnyDisposable {
           observation.invalidate()
           task.cancel()
-          dependencies[id] = nil
         }
         task.resume()
       }
     }
   )
 }
-
-private struct Dependencies {
-  let observation: NSKeyValueObservation
-  let task: URLSessionDataTask
-}
-
-private var dependencies: [AnyHashable: Dependencies] = [:]
