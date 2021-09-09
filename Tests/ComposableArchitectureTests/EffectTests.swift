@@ -17,6 +17,28 @@ final class EffectTests: XCTestCase {
 
     SignalProducer<Int, Never>(result: .success(42))
       .startWithResult { XCTAssertEqual($0, .success(42)) }
+
+    SignalProducer<Int, Never>(result: .success(42))
+        .catchToEffect {
+            switch $0 {
+            case let .success(val):
+                return val
+            case .failure:
+                return -1
+            }
+        }
+        .startWithValues { XCTAssertEqual($0, 42) }
+
+    SignalProducer<Int, Error>(result: .failure(Error()))
+        .catchToEffect {
+            switch $0 {
+            case let .success(val):
+                return val
+            case .failure:
+                return -1
+            }
+        }
+        .startWithValues { XCTAssertEqual($0, -1) }
   }
 
   func testConcatenate() {
