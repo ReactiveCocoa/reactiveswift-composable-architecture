@@ -67,8 +67,7 @@ let refreshableReducer = Reducer<
     state.isLoading = true
     return environment.fact.fetch(state.count)
       .delay(2, on: environment.mainQueue.animation())
-      .catchToEffect()
-      .map(RefreshableAction.factResponse)
+      .catchToEffect(RefreshableAction.factResponse)
       .cancellable(id: CancelId())
   }
 }
@@ -100,7 +99,7 @@ let refreshableReducer = Reducer<
           }
         }
         .refreshable {
-        await viewStore.send(.refresh, while: \.isLoading)
+          await viewStore.send(.refresh, while: \.isLoading)
         }
       }
     }
