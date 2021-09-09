@@ -463,7 +463,7 @@ public struct Reducer<State, Action, Environment> {
     action toLocalAction: CasePath<GlobalAction, Action>,
     environment toLocalEnvironment: @escaping (GlobalEnvironment) -> Environment,
     breakpointOnNil: Bool = true,
-    _ file: StaticString = #file,
+    _ file: StaticString = #fileID,
     _ line: UInt = #line
   ) -> Reducer<GlobalState, GlobalAction, GlobalEnvironment> {
     .init { globalState, globalAction, globalEnvironment in
@@ -672,7 +672,7 @@ public struct Reducer<State, Action, Environment> {
   /// - Returns: A reducer that works on optional state.
   public func optional(
     breakpointOnNil: Bool = true,
-    _ file: StaticString = #file,
+    _ file: StaticString = #fileID,
     _ line: UInt = #line
   ) -> Reducer<
     State?, Action, Environment
@@ -758,7 +758,7 @@ public struct Reducer<State, Action, Environment> {
     action toLocalAction: CasePath<GlobalAction, (ID, Action)>,
     environment toLocalEnvironment: @escaping (GlobalEnvironment) -> Environment,
     breakpointOnNil: Bool = true,
-    _ file: StaticString = #file,
+    _ file: StaticString = #fileID,
     _ line: UInt = #line
 
   ) -> Reducer<GlobalState, GlobalAction, GlobalEnvironment> {
@@ -830,7 +830,7 @@ public struct Reducer<State, Action, Environment> {
     action toLocalAction: CasePath<GlobalAction, (Key, Action)>,
     environment toLocalEnvironment: @escaping (GlobalEnvironment) -> Environment,
     breakpointOnNil: Bool = true,
-    _ file: StaticString = #file,
+    _ file: StaticString = #fileID,
     _ line: UInt = #line
   ) -> Reducer<GlobalState, GlobalAction, GlobalEnvironment> {
     .init { globalState, globalAction, globalEnvironment in
