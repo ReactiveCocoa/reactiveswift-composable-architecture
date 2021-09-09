@@ -100,29 +100,29 @@ final class ViewStoreTests: XCTestCase {
 
   #if canImport(Combine)
     @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-    func testWillSet() {
+  func testWillSet() {
       var cancellables: Set<AnyCancellable> = []
 
-      let reducer = Reducer<Int, Void, Void> { count, _, _ in
-        count += 1
-        return .none
-      }
+    let reducer = Reducer<Int, Void, Void> { count, _, _ in
+      count += 1
+      return .none
+    }
 
-      let store = Store(initialState: 0, reducer: reducer, environment: ())
-      let viewStore = ViewStore(store)
+    let store = Store(initialState: 0, reducer: reducer, environment: ())
+    let viewStore = ViewStore(store)
 
-      var results: [Int] = []
+    var results: [Int] = []
 
-      viewStore.objectWillChange
-        .sink { _ in results.append(viewStore.state) }
+    viewStore.objectWillChange
+      .sink { _ in results.append(viewStore.state) }
         .store(in: &cancellables)
 
-      viewStore.send(())
-      viewStore.send(())
-      viewStore.send(())
+    viewStore.send(())
+    viewStore.send(())
+    viewStore.send(())
 
-      XCTAssertEqual([0, 1, 2], results)
-    }
+    XCTAssertEqual([0, 1, 2], results)
+  }
   #endif
 
   // disabled as the fix for this would be onerous with
@@ -145,61 +145,73 @@ final class ViewStoreTests: XCTestCase {
   }
 
   #if compiler(>=5.5)
-  @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
-  func testSendWhile() async {
-    enum Action {
-      case response
-      case tapped
-    }
-    let reducer = Reducer<Bool, Action, Void> { state, action, environment in
-      switch action {
-      case .response:
-        state = false
-        return .none
-      case .tapped:
-        state = true
-        return Effect(value: .response)
+    func testSendWhile() {
+      guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
+
+      let expectation = self.expectation(description: "await")
+      Task { @MainActor in
+      enum Action {
+        case response
+        case tapped
+      }
+      let reducer = Reducer<Bool, Action, Void> { state, action, environment in
+        switch action {
+        case .response:
+          state = false
+          return .none
+        case .tapped:
+          state = true
+          return Effect(value: .response)
           .start(on: QueueScheduler.main)
           .observe(on: QueueScheduler.main)
+        }
       }
+
+      let store = Store(initialState: false, reducer: reducer, environment: ())
+      let viewStore = ViewStore(store)
+
+      XCTAssertEqual(viewStore.state, false)
+      await viewStore.send(.tapped, while: { $0 })
+      XCTAssertEqual(viewStore.state, false)
+        expectation.fulfill()
+      }
+      self.wait(for: [expectation], timeout: 1)
     }
 
-    let store = Store(initialState: false, reducer: reducer, environment: ())
-    let viewStore = ViewStore(store)
+    func testSuspend() {
+      guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
 
-    XCTAssertEqual(viewStore.state, false)
-    await viewStore.send(.tapped, while: { $0 })
-    XCTAssertEqual(viewStore.state, false)
-  }
-
-  @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
-  func testSuspend() async {
-    enum Action {
-      case response
-      case tapped
-    }
-    let reducer = Reducer<Bool, Action, Void> { state, action, environment in
-      switch action {
-      case .response:
-        state = false
-        return .none
-      case .tapped:
-        state = true
-        return Effect(value: .response)
+      let expectation = self.expectation(description: "await")
+      Task { @MainActor in
+      enum Action {
+        case response
+        case tapped
+      }
+      let reducer = Reducer<Bool, Action, Void> { state, action, environment in
+        switch action {
+        case .response:
+          state = false
+          return .none
+        case .tapped:
+          state = true
+          return Effect(value: .response)
           .start(on: QueueScheduler.main)
           .observe(on: QueueScheduler.main)
+        }
       }
+
+      let store = Store(initialState: false, reducer: reducer, environment: ())
+      let viewStore = ViewStore(store)
+
+      XCTAssertEqual(viewStore.state, false)
+      viewStore.send(.tapped)
+      XCTAssertEqual(viewStore.state, true)
+      await viewStore.suspend(while: { $0 })
+      XCTAssertEqual(viewStore.state, false)
+        expectation.fulfill()
+      }
+      self.wait(for: [expectation], timeout: 1)
     }
-
-    let store = Store(initialState: false, reducer: reducer, environment: ())
-    let viewStore = ViewStore(store)
-
-    XCTAssertEqual(viewStore.state, false)
-    viewStore.send(.tapped)
-    XCTAssertEqual(viewStore.state, true)
-    await viewStore.suspend(while: { $0 })
-    XCTAssertEqual(viewStore.state, false)
-  }
   #endif
 }
 
