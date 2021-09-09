@@ -74,8 +74,7 @@ extension Reducer {
           return environment.request(state.id, state.isFavorite)
             .observe(on: environment.mainQueue)
             .mapError { FavoriteError(error: $0 as NSError) }
-            .catchToEffect()
-            .map(FavoriteAction.response)
+            .catchToEffect(FavoriteAction.response)
             .cancellable(id: FavoriteCancelId(id: state.id), cancelInFlight: true)
 
         case let .response(.failure(error)):
