@@ -1,5 +1,6 @@
 import AuthenticationClient
 import ComposableArchitecture
+import ReactiveSwift
 import TwoFactorCore
 import XCTest
 
@@ -10,7 +11,7 @@ class TwoFactorCoreTests: XCTestCase {
       reducer: twoFactorReducer,
       environment: TwoFactorEnvironment(
         authenticationClient: .failing,
-        mainQueue: .immediate
+        mainQueue: ImmediateScheduler()
       )
     )
 
@@ -46,7 +47,7 @@ class TwoFactorCoreTests: XCTestCase {
       reducer: twoFactorReducer,
       environment: TwoFactorEnvironment(
         authenticationClient: .failing,
-        mainQueue: .immediate
+        mainQueue: ImmediateScheduler()
       )
     )
 

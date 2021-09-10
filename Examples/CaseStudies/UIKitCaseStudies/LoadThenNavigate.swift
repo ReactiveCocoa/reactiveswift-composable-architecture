@@ -39,7 +39,7 @@ let lazyNavigationReducer =
         state.isActivityIndicatorHidden = false
         return Effect(value: .setNavigationIsActiveDelayCompleted)
           .delay(1, on: environment.mainQueue)
-          .cancellable(id: CancelId()
+          .cancellable(id: CancelId())
       case .setNavigation(isActive: false):
         state.optionalCounter = nil
         return .none

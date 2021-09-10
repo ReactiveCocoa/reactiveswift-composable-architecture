@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import ReactiveSwift
 import AppCore
 import AuthenticationClient
 import XCTest
@@ -14,7 +15,7 @@ class AppCoreTests: XCTestCase {
       reducer: appReducer,
       environment: .init(
         authenticationClient: authenticationClient,
-        mainQueue: .immediate
+        mainQueue: ImmediateScheduler()
       )
     )
 
@@ -62,7 +63,7 @@ class AppCoreTests: XCTestCase {
       reducer: appReducer,
       environment: .init(
         authenticationClient: authenticationClient,
-        mainQueue: .immediate
+        mainQueue: ImmediateScheduler()
       )
     )
 
