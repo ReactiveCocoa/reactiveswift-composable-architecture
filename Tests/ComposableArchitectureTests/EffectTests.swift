@@ -201,10 +201,10 @@ final class EffectTests: XCTestCase {
       value: { _ in
           XCTFail()
         }
-    ).logEvents()
+    )
     .start()
 
-      self.wait(for: [expectation], timeout: 0)
+    self.wait(for: [expectation], timeout: 0)
     XCTAssertNotNil(result)
     disposable.dispose()
   }
