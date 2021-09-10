@@ -83,7 +83,7 @@
   /// to match the state after the action was sent. In this case the `count` field changes to `1`.
   ///
   /// For a more complex example, consider the following bare-bones search feature that uses the
-  /// ``Effect/debounce(id:for:scheduler:options:)`` operator to wait for the user to stop typing
+  /// ``Effect/debounce(id:for:scheduler:)`` operator to wait for the user to stop typing
   /// before making a network request:
   ///
   /// ```swift
@@ -111,7 +111,7 @@
   ///     case let .queryChanged(query):
   ///       state.query = query
   ///       return environment.request(self.query)
-  ///             .debounce(id: SearchId(), interval: 0.5, scheduler: environment.mainQueue)
+  ///             .debounce(id: SearchId(), for: 0.5, scheduler: environment.mainQueue)
   ///
   ///     case let .response(results):
   ///       state.results = results
