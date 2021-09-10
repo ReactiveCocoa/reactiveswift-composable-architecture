@@ -1,6 +1,7 @@
 import ReactiveSwift
+
 #if canImport(SwiftUI)
-import SwiftUI
+  import SwiftUI
 #endif
 
 #if compiler(>=5.5)
@@ -199,23 +200,23 @@ import SwiftUI
     }
 
     #if canImport(SwiftUI)
-    /// Sends an action into the store and then suspends while a piece of state is `true`.
-    ///
-    /// See the documentation of ``send(_:while:)`` for more information.
-    ///
-    /// - Parameters:
-    ///   - action: An action.
-    ///   - animation: The animation to perform when the action is sent.
-    ///   - predicate: A predicate on `State` that determines for how long this method should
-    ///     suspend.
-    public func send(
-      _ action: Action,
-      animation: Animation?,
-      while predicate: @escaping (State) -> Bool
-    ) async {
-      withAnimation(animation) { self.send(action) }
-      await self.suspend(while: predicate)
-    }
+      /// Sends an action into the store and then suspends while a piece of state is `true`.
+      ///
+      /// See the documentation of ``send(_:while:)`` for more information.
+      ///
+      /// - Parameters:
+      ///   - action: An action.
+      ///   - animation: The animation to perform when the action is sent.
+      ///   - predicate: A predicate on `State` that determines for how long this method should
+      ///     suspend.
+      public func send(
+        _ action: Action,
+        animation: Animation?,
+        while predicate: @escaping (State) -> Bool
+      ) async {
+        withAnimation(animation) { self.send(action) }
+        await self.suspend(while: predicate)
+      }
     #endif
 
     /// Suspends while a predicate on state is `true`.
@@ -228,15 +229,16 @@ import SwiftUI
         handler: { cancellable.wrappedValue?.dispose() },
         operation: {
           try Task.checkCancellation()
-        try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
+          try await withUnsafeThrowingContinuation {
+            (continuation: UnsafeContinuation<Void, Error>) in
             guard !Task.isCancelled else {
               continuation.resume(throwing: CancellationError())
               return
             }
             cancellable.wrappedValue = self.produced.producer
               .filter { !predicate($0) }
-            .take(first: 1)
-            .startWithValues { _ in
+              .take(first: 1)
+              .startWithValues { _ in
                 continuation.resume()
                 _ = cancellable
               }

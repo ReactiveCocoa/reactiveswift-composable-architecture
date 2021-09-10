@@ -82,15 +82,15 @@ struct RootView: View {
             )
 
             #if compiler(>=5.5)
-            NavigationLink(
-              "Focus State",
-              destination: FocusDemoView(
-                store: self.store.scope(
-                  state: \.focusDemo,
-                  action: RootAction.focusDemo
+              NavigationLink(
+                "Focus State",
+                destination: FocusDemoView(
+                  store: self.store.scope(
+                    state: \.focusDemo,
+                    action: RootAction.focusDemo
+                  )
                 )
               )
-            )
             #endif
 
             NavigationLink(
@@ -135,15 +135,15 @@ struct RootView: View {
             )
 
             #if compiler(>=5.5)
-            NavigationLink(
-              "Refreshable",
-              destination: RefreshableView(
-                store: self.store.scope(
-                  state: \.refreshable,
-                  action: RootAction.refreshable
+              NavigationLink(
+                "Refreshable",
+                destination: RefreshableView(
+                  store: self.store.scope(
+                    state: \.refreshable,
+                    action: RootAction.refreshable
+                  )
                 )
               )
-            )
             #endif
 
             NavigationLink(

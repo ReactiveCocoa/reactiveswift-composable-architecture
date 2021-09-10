@@ -248,86 +248,86 @@ final class DebugTests: XCTestCase {
   }
 
   #if compiler(<5.5)
-  func testNestedDump() {
-    struct User {
-      var id: UUID
-      var name: String
-      var createdAt: Date
-      var favoritePrimes: [Int]
-      var friends: [User]
-    }
+    func testNestedDump() {
+      struct User {
+        var id: UUID
+        var name: String
+        var createdAt: Date
+        var favoritePrimes: [Int]
+        var friends: [User]
+      }
 
-    enum AppState {
-      case loggedOut(login: String, password: String)
-      case loggedIn(User)
-    }
+      enum AppState {
+        case loggedOut(login: String, password: String)
+        case loggedIn(User)
+      }
 
-    XCTAssertEqual(
-      debugOutput(
+      XCTAssertEqual(
+        debugOutput(
+          AppState.loggedIn(
+            User(
+              id: UUID(uuidString: "DEADBEEF-DEAD-BEEF-DEAD-BEEFDEADBEEF")!,
+              name: "Blob",
+              createdAt: Date(timeIntervalSinceReferenceDate: 0),
+              favoritePrimes: [7, 11],
+              friends: [
+                User(
+                  id: UUID(uuidString: "CAFEBEEF-CAFE-BEEF-CAFE-BEEFCAFEBEEF")!,
+                  name: "Blob Jr.",
+                  createdAt: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 365),
+                  favoritePrimes: [2, 3, 5],
+                  friends: []
+                ),
+                User(
+                  id: UUID(uuidString: "D00DBEEF-D00D-BEEF-D00D-BEEFD00DBEEF")!,
+                  name: "Blob Sr.",
+                  createdAt: Date(timeIntervalSinceReferenceDate: 60 * 60 * 48 * 365),
+                  favoritePrimes: [23],
+                  friends: []
+                ),
+              ]
+            )
+          )
+        ),
+        """
         AppState.loggedIn(
           User(
-            id: UUID(uuidString: "DEADBEEF-DEAD-BEEF-DEAD-BEEFDEADBEEF")!,
+            id: DEADBEEF-DEAD-BEEF-DEAD-BEEFDEADBEEF,
             name: "Blob",
-            createdAt: Date(timeIntervalSinceReferenceDate: 0),
-            favoritePrimes: [7, 11],
+            createdAt: 2001-01-01T00:00:00Z,
+            favoritePrimes: [
+              7,
+              11,
+            ],
             friends: [
               User(
-                id: UUID(uuidString: "CAFEBEEF-CAFE-BEEF-CAFE-BEEFCAFEBEEF")!,
+                id: CAFEBEEF-CAFE-BEEF-CAFE-BEEFCAFEBEEF,
                 name: "Blob Jr.",
-                createdAt: Date(timeIntervalSinceReferenceDate: 60 * 60 * 24 * 365),
-                favoritePrimes: [2, 3, 5],
-                friends: []
+                createdAt: 2002-01-01T00:00:00Z,
+                favoritePrimes: [
+                  2,
+                  3,
+                  5,
+                ],
+                friends: [
+                ]
               ),
               User(
-                id: UUID(uuidString: "D00DBEEF-D00D-BEEF-D00D-BEEFD00DBEEF")!,
+                id: D00DBEEF-D00D-BEEF-D00D-BEEFD00DBEEF,
                 name: "Blob Sr.",
-                createdAt: Date(timeIntervalSinceReferenceDate: 60 * 60 * 48 * 365),
-                favoritePrimes: [23],
-                friends: []
+                createdAt: 2003-01-01T00:00:00Z,
+                favoritePrimes: [
+                  23,
+                ],
+                friends: [
+                ]
               ),
             ]
           )
         )
-      ),
-      """
-      AppState.loggedIn(
-        User(
-          id: DEADBEEF-DEAD-BEEF-DEAD-BEEFDEADBEEF,
-          name: "Blob",
-          createdAt: 2001-01-01T00:00:00Z,
-          favoritePrimes: [
-            7,
-            11,
-          ],
-          friends: [
-            User(
-              id: CAFEBEEF-CAFE-BEEF-CAFE-BEEFCAFEBEEF,
-              name: "Blob Jr.",
-              createdAt: 2002-01-01T00:00:00Z,
-              favoritePrimes: [
-                2,
-                3,
-                5,
-              ],
-              friends: [
-              ]
-            ),
-            User(
-              id: D00DBEEF-D00D-BEEF-D00D-BEEFD00DBEEF,
-              name: "Blob Sr.",
-              createdAt: 2003-01-01T00:00:00Z,
-              favoritePrimes: [
-                23,
-              ],
-              friends: [
-              ]
-            ),
-          ]
-        )
+        """
       )
-      """
-    )
-  }
+    }
   #endif
 
   func testRecursiveOutput() {
@@ -348,7 +348,7 @@ final class DebugTests: XCTestCase {
 
   #if canImport(SwiftUI)
     @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
-  func testTextState() {
+    func testTextState() {
       XCTAssertEqual(
         debugOutput(
           TextState("Hello, world!")
@@ -358,12 +358,12 @@ final class DebugTests: XCTestCase {
           Hello, world!
         )
         """
-    )
+      )
 
       XCTAssertEqual(
         debugOutput(
-      TextState("Hello, ")
-        + TextState("world").bold().italic()
+          TextState("Hello, ")
+            + TextState("world").bold().italic()
             + TextState("!")
         ),
         """
@@ -371,47 +371,47 @@ final class DebugTests: XCTestCase {
           Hello, _**world**_!
         )
         """
-    )
+      )
 
       XCTAssertEqual(
         debugOutput(
-      TextState("Offset by 10.5").baselineOffset(10.5)
-        + TextState("\n") + TextState("Headline").font(.headline)
-        + TextState("\n") + TextState("No font").font(nil)
-        + TextState("\n") + TextState("Light font weight").fontWeight(.light)
-        + TextState("\n") + TextState("No font weight").fontWeight(nil)
-        + TextState("\n") + TextState("Red").foregroundColor(.red)
-        + TextState("\n") + TextState("No color").foregroundColor(nil)
-        + TextState("\n") + TextState("Italic").italic()
-        + TextState("\n") + TextState("Kerning of 2.5").kerning(2.5)
-        + TextState("\n") + TextState("Stricken").strikethrough()
-        + TextState("\n") + TextState("Stricken green").strikethrough(color: .green)
-        + TextState("\n") + TextState("Not stricken blue").strikethrough(false, color: .blue)
-        + TextState("\n") + TextState("Tracking of 5.5").tracking(5.5)
-        + TextState("\n") + TextState("Underlined").underline()
-        + TextState("\n") + TextState("Underlined pink").underline(color: .pink)
+          TextState("Offset by 10.5").baselineOffset(10.5)
+            + TextState("\n") + TextState("Headline").font(.headline)
+            + TextState("\n") + TextState("No font").font(nil)
+            + TextState("\n") + TextState("Light font weight").fontWeight(.light)
+            + TextState("\n") + TextState("No font weight").fontWeight(nil)
+            + TextState("\n") + TextState("Red").foregroundColor(.red)
+            + TextState("\n") + TextState("No color").foregroundColor(nil)
+            + TextState("\n") + TextState("Italic").italic()
+            + TextState("\n") + TextState("Kerning of 2.5").kerning(2.5)
+            + TextState("\n") + TextState("Stricken").strikethrough()
+            + TextState("\n") + TextState("Stricken green").strikethrough(color: .green)
+            + TextState("\n") + TextState("Not stricken blue").strikethrough(false, color: .blue)
+            + TextState("\n") + TextState("Tracking of 5.5").tracking(5.5)
+            + TextState("\n") + TextState("Underlined").underline()
+            + TextState("\n") + TextState("Underlined pink").underline(color: .pink)
             + TextState("\n") + TextState("Not underlined purple").underline(false, color: .pink)
         ),
-      """
-      TextState(
-        <baseline-offset=10.5>Offset by 10.5</baseline-offset>
-        Headline
-        No font
-        <font-weight=light>Light font weight</font-weight>
-        No font weight
-        <foreground-color=red>Red</foreground-color>
-        No color
-        _Italic_
-        <kerning=2.5>Kerning of 2.5</kerning>
-        ~~Stricken~~
-        <s color=green>Stricken green</s>
-        Not stricken blue
-        <tracking=5.5>Tracking of 5.5</tracking>
-        <u>Underlined</u>
-        <u color=pink>Underlined pink</u>
-        Not underlined purple
-      )
-      """
+        """
+        TextState(
+          <baseline-offset=10.5>Offset by 10.5</baseline-offset>
+          Headline
+          No font
+          <font-weight=light>Light font weight</font-weight>
+          No font weight
+          <foreground-color=red>Red</foreground-color>
+          No color
+          _Italic_
+          <kerning=2.5>Kerning of 2.5</kerning>
+          ~~Stricken~~
+          <s color=green>Stricken green</s>
+          Not stricken blue
+          <tracking=5.5>Tracking of 5.5</tracking>
+          <u>Underlined</u>
+          <u color=pink>Underlined pink</u>
+          Not underlined purple
+        )
+        """
       )
     }
   #endif

@@ -9,13 +9,13 @@ struct FactClient {
   struct Error: Swift.Error, Equatable {}
 }
 
-  // This is the "live" fact dependency that reaches into the outside world to fetch trivia.
-  // Typically this live implementation of the dependency would live in its own module so that the
-  // main feature doesn't need to compile it.
+// This is the "live" fact dependency that reaches into the outside world to fetch trivia.
+// Typically this live implementation of the dependency would live in its own module so that the
+// main feature doesn't need to compile it.
 extension FactClient {
   #if compiler(>=5.5)
-  static let live = Self(
-    fetch: { number in
+    static let live = Self(
+      fetch: { number in
         Effect.task {
           do {
             let (data, _) = try await URLSession.shared

@@ -27,7 +27,7 @@ final class EffectTests: XCTestCase {
           return -1
         }
       }
-        .startWithValues { XCTAssertEqual($0, 42) }
+      .startWithValues { XCTAssertEqual($0, 42) }
 
     SignalProducer<Int, Error>(result: .failure(Error()))
       .catchToEffect {
@@ -38,7 +38,7 @@ final class EffectTests: XCTestCase {
           return -1
         }
       }
-        .startWithValues { XCTAssertEqual($0, -1) }
+      .startWithValues { XCTAssertEqual($0, -1) }
   }
 
   func testConcatenate() {
@@ -184,54 +184,54 @@ final class EffectTests: XCTestCase {
       XCTAssertEqual(result, 42)
     }
 
-  func testThrowingTask() {
-    guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
+    func testThrowingTask() {
+      guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
 
-    let expectation = self.expectation(description: "Complete")
-    struct MyError: Error {}
-    var result: Error?
-    let disposable = Effect<Int, Error>.task {
-      expectation.fulfill()
-      throw MyError()
-    }
-    .on(
-      failed: { error in
-        result = error
-      },
-      value: { _ in
+      let expectation = self.expectation(description: "Complete")
+      struct MyError: Error {}
+      var result: Error?
+      let disposable = Effect<Int, Error>.task {
+        expectation.fulfill()
+        throw MyError()
+      }
+      .on(
+        failed: { error in
+          result = error
+        },
+        value: { _ in
           XCTFail()
         }
-    )
-    .start()
+      )
+      .start()
 
-    self.wait(for: [expectation], timeout: 0)
-    XCTAssertNotNil(result)
-    disposable.dispose()
-  }
-
-  func testCancellingTask() {
-    guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
-
-    @Sendable func work() async throws -> Int {
-      var task: Task<Int, Error>!
-      task = Task {
-        await Task.sleep(NSEC_PER_MSEC)
-        try Task.checkCancellation()
-        return 42
-      }
-      task.cancel()
-      return try await task.value
+      self.wait(for: [expectation], timeout: 0)
+      XCTAssertNotNil(result)
+      disposable.dispose()
     }
 
-    let expectation = self.expectation(description: "Complete")
-    Effect<Int, Error>.task {
-      try await work()
-    }.on(
-      completed: { expectation.fulfill() },
-      value: { _ in XCTFail() }
-    ).start()
+    func testCancellingTask() {
+      guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
+
+      @Sendable func work() async throws -> Int {
+        var task: Task<Int, Error>!
+        task = Task {
+          await Task.sleep(NSEC_PER_MSEC)
+          try Task.checkCancellation()
+          return 42
+        }
+        task.cancel()
+        return try await task.value
+      }
+
+      let expectation = self.expectation(description: "Complete")
+      Effect<Int, Error>.task {
+        try await work()
+      }.on(
+        completed: { expectation.fulfill() },
+        value: { _ in XCTFail() }
+      ).start()
 
       self.wait(for: [expectation], timeout: 1)
-  }
+    }
   #endif
 }

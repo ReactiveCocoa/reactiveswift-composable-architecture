@@ -1,7 +1,7 @@
-import ComposableArchitecture
-import ReactiveSwift
 import AppCore
 import AuthenticationClient
+import ComposableArchitecture
+import ReactiveSwift
 import XCTest
 
 class AppCoreTests: XCTestCase {

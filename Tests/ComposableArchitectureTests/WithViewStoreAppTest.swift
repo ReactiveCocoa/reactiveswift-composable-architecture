@@ -1,8 +1,8 @@
 // NB: This file gathers coverage of `WithViewStore` use as a `Scene`.
 #if canImport(SwiftUI)
 
-import ComposableArchitecture
-import SwiftUI
+  import ComposableArchitecture
+  import SwiftUI
 
   @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
   struct TestApp: App {

@@ -224,17 +224,16 @@ struct VoiceMemosView: View {
               }
             }
 
-            if
-              let duration = viewStore.currentRecording?.duration,
+            if let duration = viewStore.currentRecording?.duration,
               let formattedDuration = dateComponentsFormatter.string(from: duration)
             {
               Text(formattedDuration)
-                  .font(Font.body.monospacedDigit().bold())
-                  .foregroundColor(.white)
-                  .colorMultiply(Color(Int(duration).isMultiple(of: 2) ? .systemRed : .label))
-                  .animation(.easeInOut(duration: 0.5))
-              }
+                .font(Font.body.monospacedDigit().bold())
+                .foregroundColor(.white)
+                .colorMultiply(Color(Int(duration).isMultiple(of: 2) ? .systemRed : .label))
+                .animation(.easeInOut(duration: 0.5))
             }
+          }
           .padding()
         }
         .alert(

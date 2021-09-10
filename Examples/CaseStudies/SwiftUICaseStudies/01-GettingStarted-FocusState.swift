@@ -55,10 +55,10 @@ let focusDemoReducer = Reducer<
 
           VStack {
             TextField("Username", text: viewStore.$username)
-            .focused($focusedField, equals: .username)
+              .focused($focusedField, equals: .username)
 
             SecureField("Password", text: viewStore.$password)
-            .focused($focusedField, equals: .password)
+              .focused($focusedField, equals: .password)
 
             Button("Sign In") {
               viewStore.send(.signInButtonTapped)

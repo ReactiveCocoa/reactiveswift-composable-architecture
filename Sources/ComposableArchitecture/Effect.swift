@@ -156,7 +156,7 @@ extension Effect {
   /// - Returns: An effect that wraps `self`.
   public func catchToEffect<T>(
     _ transform: @escaping (Result<Value, Error>) -> T
-  ) -> Effect<T,Never> {
+  ) -> Effect<T, Never> {
     self
       .map { transform(.success($0)) }
       .flatMapError { Effect<T, Never>(value: transform(.failure($0))) }
