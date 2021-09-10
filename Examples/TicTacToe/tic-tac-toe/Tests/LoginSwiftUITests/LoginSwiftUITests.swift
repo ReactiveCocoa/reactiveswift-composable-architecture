@@ -1,11 +1,7 @@
 import AuthenticationClient
 import ComposableArchitecture
 import LoginCore
-<<<<<<< ours:Examples/TicTacToe/Tests/LoginSwiftUITests.swift
 import ReactiveSwift
-import TicTacToeCommon
-=======
->>>>>>> theirs:Examples/TicTacToe/tic-tac-toe/Tests/LoginSwiftUITests/LoginSwiftUITests.swift
 import XCTest
 
 @testable import LoginSwiftUI
