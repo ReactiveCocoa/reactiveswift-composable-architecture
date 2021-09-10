@@ -36,35 +36,41 @@ final class StoreTests: XCTestCase {
     XCTAssertEqual(values, [0, 1, 2, 3])
   }
 
-  func testEffectDisposablesDeinitialization() {
-    enum Action {
-      case triggerDelay
-      case delayDidComplete
-    }
-    let delayedReducer = Reducer<Void, Action, DateScheduler> { _, action, mainQueue in
-      switch action {
-      case .triggerDelay:
-        return Effect(value: .delayDidComplete).delay(1, on: mainQueue)
+  func testCancellableIsRemovedOnImmediatelyCompletingEffect() {
+    let reducer = Reducer<Void, Void, Void> { _, _, _ in .none }
+    let store = Store(initialState: (), reducer: reducer, environment: ())
 
-      case .delayDidComplete:
+    XCTAssertEqual(store.effectDisposables.count, 0)
+
+    store.send(())
+
+    XCTAssertEqual(store.effectDisposables.count, 0)
+  }
+
+  func testCancellableIsRemovedWhenEffectCompletes() {
+    let scheduler = TestScheduler()
+    let effect = Effect<Void, Never>(value: ())
+      .delay(1, on: scheduler)
+
+    enum Action { case start, end }
+
+    let reducer = Reducer<Void, Action, Void> { _, action, _ in
+      switch action {
+      case .start:
+        return effect.map { .end }
+      case .end:
         return .none
       }
     }
+    let store = Store(initialState: (), reducer: reducer, environment: ())
 
-    let store = Store(
-      initialState: (),
-      reducer: delayedReducer,
-      environment: QueueScheduler.main
-    )
+    XCTAssertEqual(store.effectDisposables.count, 0)
 
-    store.send(.triggerDelay)
-    store.send(.triggerDelay)
-    store.send(.triggerDelay)
-    store.send(.delayDidComplete)
+    store.send(.start)
 
-    XCTAssertEqual(store.effectDisposables.count, 3)
+    XCTAssertEqual(store.effectDisposables.count, 1)
 
-    XCTWaiter().wait(for: [XCTestExpectation()], timeout: 1.1)
+    scheduler.advance(by: 2)
 
     XCTAssertEqual(store.effectDisposables.count, 0)
   }
