@@ -86,23 +86,24 @@ import SwiftUI
       operation: @escaping @Sendable () async throws -> Value
     ) -> Self where Error == Swift.Error {
       deferred {
-        let subject = Signal<Value, Error>.pipe()
-        let task = Task(priority: priority) {
-          do {
-            try Task.checkCancellation()
-            let output = try await operation()
-            try Task.checkCancellation()
-            subject.input.send(value: output)
-            subject.input.sendCompleted()
-          } catch is CancellationError {
-            subject.input.sendCompleted()
-          } catch {
-            subject.input.send(error: error)
+        var task: Task<(), Never>?
+        let producer = SignalProducer { observer, lifetime in
+          task = Task(priority: priority) {
+            do {
+              try Task.checkCancellation()
+              let output = try await operation()
+              try Task.checkCancellation()
+              observer.send(value: output)
+              observer.sendCompleted()
+            } catch is CancellationError {
+              observer.sendCompleted()
+            } catch {
+              observer.send(error: error)
+            }
           }
         }
 
-        return subject.output.producer
-          .on(disposed: task.cancel)
+        return producer.on(disposed: task?.cancel)
       }
     }
   }
