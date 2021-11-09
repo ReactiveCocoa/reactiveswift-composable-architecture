@@ -169,7 +169,7 @@ final class EffectTests: XCTestCase {
     XCTAssertEqual(isComplete, true)
   }
 
-  #if compiler(>=5.5)
+  #if compiler(>=5.5) && canImport(_Concurrency)
     func testTask() {
       guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
 
