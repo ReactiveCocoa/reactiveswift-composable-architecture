@@ -124,9 +124,9 @@ public final class Store<State, Action> {
     Property<State>(initial: state, then: self.statePipe.output).producer
   }
   var effectDisposables: [UUID: Disposable] = [:]
+  var parentDisposable: Disposable?
 
   private var isSending = false
-  private var parentDisposable: Disposable?
   private let reducer: (inout State, Action) -> Effect<Action, Never>
   private var bufferedActions: [Action] = []
   #if DEBUG
@@ -323,57 +323,6 @@ public final class Store<State, Action> {
     state toLocalState: @escaping (State) -> LocalState
   ) -> Store<LocalState, Action> {
     self.scope(state: toLocalState, action: { $0 })
-  }
-
-  /// Scopes the store to a producer of stores of more local state and local actions.
-  ///
-  /// - Parameters:
-  ///   - toLocalState: A function that transforms a producer of `State` into a producer of
-  ///     `LocalState`.
-  ///   - fromLocalAction: A function that transforms `LocalAction` into `Action`.
-  /// - Returns: A producer of stores with its domain (state and action) transformed.
-  public func producerScope<LocalState, LocalAction>(
-    state toLocalState: @escaping (Effect<State, Never>) -> Effect<LocalState, Never>,
-    action fromLocalAction: @escaping (LocalAction) -> Action
-  ) -> Effect<Store<LocalState, LocalAction>, Never> {
-
-    func extractLocalState(_ state: State) -> LocalState? {
-      var localState: LocalState?
-      _ = toLocalState(Effect(value: state))
-        .startWithValues { localState = $0 }
-      return localState
-    }
-
-    return toLocalState(self.producer)
-      .map { localState in
-        let localStore = Store<LocalState, LocalAction>(
-          initialState: localState,
-          reducer: .init { localState, localAction, _ in
-            self.send(fromLocalAction(localAction))
-            localState = extractLocalState(self.state) ?? localState
-            return .none
-          },
-          environment: ()
-        )
-        localStore.parentDisposable = self.producer.startWithValues {
-          [weak localStore] state in
-          guard let localStore = localStore else { return }
-          localStore.state = extractLocalState(state) ?? localStore.state
-        }
-        return localStore
-      }
-  }
-
-  /// Scopes the store to a producer of stores of more local state and local actions.
-  ///
-  /// - Parameter toLocalState: A function that transforms a producer of `State` into a producer
-  ///   of `LocalState`.
-  /// - Returns: A producer of stores with its domain (state and action)
-  ///   transformed.
-  public func producerScope<LocalState>(
-    state toLocalState: @escaping (Effect<State, Never>) -> Effect<LocalState, Never>
-  ) -> Effect<Store<LocalState, Action>, Never> {
-    self.producerScope(state: toLocalState, action: { $0 })
   }
 
   func send(_ action: Action, isFromViewStore: Bool = true) {

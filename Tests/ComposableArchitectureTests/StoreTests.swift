@@ -117,34 +117,6 @@ final class StoreTests: XCTestCase {
     XCTAssertEqual(values, [0, 1])
   }
 
-  func testScopeWithPublisherTransform() {
-    let counterReducer = Reducer<Int, Int, Void> { state, action, _ in
-      state = action
-      return .none
-    }
-    let parentStore = Store(initialState: 0, reducer: counterReducer, environment: ())
-
-    var outputs: [String] = []
-
-    parentStore
-      .producerScope(state: { $0.map { "\($0)" }.skipRepeats() })
-      .startWithValues { childStore in
-        childStore.producer
-          .startWithValues { outputs.append($0) }
-      }
-
-    parentStore.send(0)
-    XCTAssertEqual(outputs, ["0"])
-    parentStore.send(0)
-    XCTAssertEqual(outputs, ["0"])
-    parentStore.send(1)
-    XCTAssertEqual(outputs, ["0", "1"])
-    parentStore.send(1)
-    XCTAssertEqual(outputs, ["0", "1"])
-    parentStore.send(2)
-    XCTAssertEqual(outputs, ["0", "1", "2"])
-  }
-
   func testScopeCallCount() {
     let counterReducer = Reducer<Int, Void, Void> { state, _, _ in state += 1
       return .none
@@ -274,35 +246,6 @@ final class StoreTests: XCTestCase {
     let store = Store(initialState: 0, reducer: reducer, environment: ())
     store.send(.incr)
     XCTAssertEqual(ViewStore(store).state, 100_000)
-  }
-
-  func testPublisherScope() {
-    let appReducer = Reducer<Int, Bool, Void> { state, action, _ in
-      state += action ? 1 : 0
-      return .none
-    }
-
-    let parentStore = Store(initialState: 0, reducer: appReducer, environment: ())
-
-    var outputs: [Int] = []
-
-    parentStore
-      .producerScope { $0.skipRepeats() }
-      .startWithValues { outputs.append($0.state) }
-
-    XCTAssertEqual(outputs, [0])
-
-    parentStore.send(true)
-    XCTAssertEqual(outputs, [0, 1])
-
-    parentStore.send(false)
-    XCTAssertEqual(outputs, [0, 1])
-    parentStore.send(false)
-    XCTAssertEqual(outputs, [0, 1])
-    parentStore.send(false)
-    XCTAssertEqual(outputs, [0, 1])
-    parentStore.send(false)
-    XCTAssertEqual(outputs, [0, 1])
   }
 
   func testIfLetAfterScope() {
