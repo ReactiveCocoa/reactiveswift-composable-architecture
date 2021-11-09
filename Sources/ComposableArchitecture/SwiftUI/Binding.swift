@@ -123,12 +123,11 @@
   /// .binding()
   /// ```
   ///
-  /// Binding actions are constructed and sent to the store through the projected value of the
-  /// bindable state property wrapper in a syntax that is as familiar and succinct as vanilla
-  /// SwiftUI:
+  /// Binding actions are constructed and sent to the store by calling ``ViewStore/binding(_:)``
+  /// with a key path to the bindable state:
   ///
   /// ```swift
-  /// TextField("Display name", text: viewStore.$displayName)
+  /// TextField("Display name", text: viewStore.binding(\.$displayName))
   /// ```
   ///
   /// Should you need to layer additional functionality over these bindings, your reducer can
@@ -172,13 +171,13 @@
       self.wrappedValue = wrappedValue
     }
 
-    /// A projection can be used to derive bindings from a view store via dynamic member lookup.
+    /// A projection that can be used to derive bindings from a view store.
     ///
     /// Use the projected value to derive bindings from a view store with properties annotated with
     /// `@BindableState`. To get the `projectedValue`, prefix the property with `$`:
     ///
     /// ```swift
-    /// TextField("Display name", text: viewStore.$displayName)
+    /// TextField("Display name", text: viewStore.binding(\.$displayName))
     /// ```
     ///
     /// See ``BindableState`` for more details.
@@ -275,23 +274,23 @@
     }
   }
 
-  #if canImport(SwiftUI)
-    extension ViewStore {
-      /// Returns a binding to the resulting bindable state of a given key path.
-      ///
-      /// - Parameter keyPath: A key path to a specific bindable state.
-      /// - Returns: A new binding.
-      @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-      public subscript<Value>(
-        dynamicMember keyPath: WritableKeyPath<State, BindableState<Value>>
-      ) -> Binding<Value>
-      where Action: BindableAction, Action.State == State, Value: Equatable {
-        self.binding(
-          get: { $0[keyPath: keyPath].wrappedValue },
-          send: { .binding(.set(keyPath, $0)) }
-        )
-      }
+#if canImport(SwiftUI)  
+  extension ViewStore {
+    /// Returns a binding to the resulting bindable state of a given key path.
+    ///
+    /// - Parameter keyPath: A key path to a specific bindable state.
+    /// - Returns: A new binding.
+    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
+    public func binding<Value>(
+      _ keyPath: WritableKeyPath<State, BindableState<Value>>
+    ) -> Binding<Value>
+    where Action: BindableAction, Action.State == State, Value: Equatable {
+      self.binding(
+        get: { $0[keyPath: keyPath].wrappedValue },
+        send: { .binding(.set(keyPath, $0)) }
+      )
     }
+  }
   #endif
 
   /// An action that describes simple mutations to some root state at a writable key path.
@@ -436,7 +435,7 @@
     /// WithViewStore(
     ///   self.store.scope(state: \.view, action: AppAction.view)
     /// ) { viewStore in
-    ///   Stepper("\(viewStore.count)", viewStore.$count)
+    ///   Stepper("\(viewStore.count)", viewStore.binding(\.$count))
     ///   Button("Get number fact") { viewStore.send(.factButtonTapped) }
     ///   if let fact = viewStore.fact {
     ///     Text(fact)
