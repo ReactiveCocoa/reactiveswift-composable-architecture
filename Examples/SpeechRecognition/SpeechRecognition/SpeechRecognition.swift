@@ -48,7 +48,7 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, action, e
         .observe(on: environment.mainQueue)
         .map(AppAction.speechRecognizerAuthorizationStatusResponse)
     } else {
-      return environment.speechClient.finishTask(SpeechRecognitionId())
+      return environment.speechClient.finishTask()
         .fireAndForget()
     }
 
@@ -58,7 +58,7 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, action, e
   case let .speech(.success(.taskResult(result))):
     state.transcribedText = result.bestTranscription.formattedString
     if result.isFinal {
-      return environment.speechClient.finishTask(SpeechRecognitionId())
+      return environment.speechClient.finishTask()
         .fireAndForget()
     } else {
       return .none
@@ -66,7 +66,7 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, action, e
 
   case let .speech(.failure(error)):
     state.alert = .init(title: .init("An error occured while transcribing. Please try again."))
-    return environment.speechClient.finishTask(SpeechRecognitionId())
+    return environment.speechClient.finishTask()
       .fireAndForget()
 
   case let .speechRecognizerAuthorizationStatusResponse(status):
@@ -96,7 +96,7 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, action, e
       let request = SFSpeechAudioBufferRecognitionRequest()
       request.shouldReportPartialResults = true
       request.requiresOnDeviceRecognition = false
-      return environment.speechClient.recognitionTask(SpeechRecognitionId(), request)
+      return environment.speechClient.recognitionTask(request)
         .catchToEffect(AppAction.speech)
 
     @unknown default:
