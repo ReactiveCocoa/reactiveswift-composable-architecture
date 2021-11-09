@@ -48,29 +48,16 @@ extension Store {
     then unwrap: @escaping (Store<Wrapped, Action>) -> Void,
     else: @escaping () -> Void = {}
   ) -> Disposable where State == Wrapped? {
-    let elseDisposable =
-      self
-      .producerScope(
-        state: { state -> Effect<Wrapped?, Never> in
-          state
-            .skipRepeats { ($0 != nil) == ($1 != nil) }
+    return self.producer.skipRepeats({ ($0 != nil) == ($1 != nil) })
+      .startWithValues { state in
+        if var state = state {
+          unwrap(self.scope {
+            state = $0 ?? state
+            return state
+          })
+        } else {
+          `else`()
         }
-      )
-      .startWithValues { store in
-        if store.state == nil { `else`() }
       }
-
-    let unwrapDisposable =
-      self
-      .producerScope(
-        state: { state -> Effect<Wrapped, Never> in
-          state
-            .skipRepeats { ($0 != nil) == ($1 != nil) }
-            .compactMap { $0 }
-        }
-      )
-      .startWithValues(unwrap)
-
-    return CompositeDisposable([elseDisposable, unwrapDisposable])
   }
 }
