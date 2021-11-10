@@ -144,6 +144,34 @@ final class ViewStoreTests: XCTestCase {
     XCTAssertEqual(results, [0, 1])
   }
 
+  func testStorePublisherSubscriptionOrder() {
+    let reducer = Reducer<Int, Void, Void> { count, _, _ in
+      count += 1
+      return .none
+    }
+    let store = Store(initialState: 0, reducer: reducer, environment: ())
+    let viewStore = ViewStore(store)
+
+    var results: [Int] = []
+
+    viewStore.produced.producer
+      .startWithValues { _ in results.append(0) }
+
+    viewStore.produced.producer
+      .startWithValues { _ in results.append(1) }
+
+    viewStore.produced.producer
+      .startWithValues { _ in results.append(2) }
+
+    XCTAssertEqual(results, [0, 1, 2])
+
+    for _ in 0 ..< 9 {
+      viewStore.send(())
+    }
+
+    XCTAssertEqual(results, Array(repeating: [0, 1, 2], count: 10).flatMap { $0 })
+  }
+
   #if compiler(>=5.5) && canImport(_Concurrency)
     func testSendWhile() {
       guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
