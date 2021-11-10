@@ -1,3 +1,4 @@
+#if compiler(>=5.4)
 import ComposableArchitecture
 import XCTest
 
@@ -35,3 +36,4 @@ final class BindingTests: XCTestCase {
     XCTAssertEqual(viewStore.state, .init(nested: .init(field: "Hello!")))
   }
 }
+#endif

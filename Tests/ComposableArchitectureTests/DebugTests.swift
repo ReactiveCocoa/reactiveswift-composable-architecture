@@ -364,7 +364,7 @@ final class DebugTests: XCTestCase {
         debugOutput(
           TextState("Hello, ")
             + TextState("world").bold().italic()
-            + TextState("!")
+                + TextState("!")
         ),
         """
         TextState(
@@ -390,28 +390,28 @@ final class DebugTests: XCTestCase {
             + TextState("\n") + TextState("Tracking of 5.5").tracking(5.5)
             + TextState("\n") + TextState("Underlined").underline()
             + TextState("\n") + TextState("Underlined pink").underline(color: .pink)
-            + TextState("\n") + TextState("Not underlined purple").underline(false, color: .pink)
-        ),
-        """
-        TextState(
-          <baseline-offset=10.5>Offset by 10.5</baseline-offset>
-          Headline
-          No font
-          <font-weight=light>Light font weight</font-weight>
-          No font weight
-          <foreground-color=red>Red</foreground-color>
-          No color
-          _Italic_
-          <kerning=2.5>Kerning of 2.5</kerning>
-          ~~Stricken~~
-          <s color=green>Stricken green</s>
-          Not stricken blue
-          <tracking=5.5>Tracking of 5.5</tracking>
-          <u>Underlined</u>
-          <u color=pink>Underlined pink</u>
-          Not underlined purple
-        )
-        """
+                + TextState("\n") + TextState("Not underlined purple").underline(false, color: .pink)
+            ),
+            """
+            TextState(
+              <baseline-offset=10.5>Offset by 10.5</baseline-offset>
+              Headline
+              No font
+              <font-weight=light>Light font weight</font-weight>
+              No font weight
+              <foreground-color=red>Red</foreground-color>
+              No color
+              _Italic_
+              <kerning=2.5>Kerning of 2.5</kerning>
+              ~~Stricken~~
+              <s color=green>Stricken green</s>
+              Not stricken blue
+              <tracking=5.5>Tracking of 5.5</tracking>
+              <u>Underlined</u>
+              <u color=pink>Underlined pink</u>
+              Not underlined purple
+            )
+            """
       )
     }
   #endif
@@ -961,6 +961,7 @@ final class DebugTests: XCTestCase {
     )
   }
 
+  #if compiler(>=5.4)  
   func testBindingAction() {
     struct State {
       @BindableState var width = 0
@@ -978,4 +979,5 @@ final class DebugTests: XCTestCase {
       """
     )
   }
+  #endif
 }
