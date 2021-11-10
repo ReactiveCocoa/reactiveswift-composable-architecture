@@ -151,54 +151,43 @@ public final class ViewStore<State, Action> {
     self._send(action)
   }
 
-  #if canImport(SwiftUI)
-    /// Derives a binding from the store that prevents direct writes to state and instead sends
-    /// actions to the store.
-    ///
-    /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
-    /// since the ``Store`` does not allow directly writing its state; it only allows reading state
-    /// and sending actions.
-    ///
-    /// For example, a text field binding can be created like this:
-    ///
-    /// ```swift
-    /// struct State { var name = "" }
-    /// enum Action { case nameChanged(String) }
-    ///
-    /// TextField(
-    ///   "Enter name",
-    ///   text: viewStore.binding(
-    ///     get: { $0.name },
-    ///     send: { Action.nameChanged($0) }
-    ///   )
-    /// )
-    /// ```
-    ///
-    /// - Parameters:
-    ///   - get: A function to get the state for the binding from the view
-    ///     store's full state.
-    ///   - localStateToViewAction: A function that transforms the binding's value
-    ///     into an action that can be sent to the store.
-    /// - Returns: A binding.
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-    public func binding<LocalState>(
-      get: @escaping (State) -> LocalState,
-      send localStateToViewAction: @escaping (LocalState) -> Action
-    ) -> Binding<LocalState> {
-      Binding(
-        get: { get(self._state) },
-        set: { newLocalState, transaction in
-          if transaction.animation != nil {
-            withTransaction(transaction) {
-              self.send(localStateToViewAction(newLocalState))
-            }
-          } else {
-            self.send(localStateToViewAction(newLocalState))
-          }
-        }
-      )
-    }
-
+#if canImport(SwiftUI)
+  /// Derives a binding from the store that prevents direct writes to state and instead sends
+  /// actions to the store.
+  ///
+  /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
+  /// since the ``Store`` does not allow directly writing its state; it only allows reading state
+  /// and sending actions.
+  ///
+  /// For example, a text field binding can be created like this:
+  ///
+  /// ```swift
+  /// struct State { var name = "" }
+  /// enum Action { case nameChanged(String) }
+  ///
+  /// TextField(
+  ///   "Enter name",
+  ///   text: viewStore.binding(
+  ///     get: { $0.name },
+  ///     send: { Action.nameChanged($0) }
+  ///   )
+  /// )
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - get: A function to get the state for the binding from the view
+  ///     store's full state.
+  ///   - localStateToViewAction: A function that transforms the binding's value
+  ///     into an action that can be sent to the store.
+  /// - Returns: A binding.
+  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
+  public func binding<LocalState>(
+    get: @escaping (State) -> LocalState,
+    send localStateToViewAction: @escaping (LocalState) -> Action
+  ) -> Binding<LocalState> {
+    ObservedObject(wrappedValue: self)
+      .projectedValue[get: .init(rawValue: get), send: .init(rawValue: localStateToViewAction)]
+  }
     /// Derives a binding from the store that prevents direct writes to state and instead sends
     /// actions to the store.
     ///
@@ -296,6 +285,14 @@ public final class ViewStore<State, Action> {
   deinit {
     viewDisposable?.dispose()
   }
+
+  private subscript<LocalState>(
+    get state: HashableWrapper<(State) -> LocalState>,
+    send action: HashableWrapper<(LocalState) -> Action>
+  ) -> LocalState {
+    get { state.rawValue(self.state) }
+    set { self.send(action.rawValue(newValue)) }
+  }
 }
 
 extension ViewStore where State: Equatable {
@@ -352,4 +349,10 @@ public struct StoreProducer<State>: SignalProducerConvertible {
   ) -> Effect<LocalValue, Never> where LocalValue: Equatable {
     self.upstream.map(keyPath).skipRepeats()
   }
+}
+
+private struct HashableWrapper<Value>: Hashable {
+  let rawValue: Value
+  static func == (lhs: Self, rhs: Self) -> Bool { false }
+  func hash(into hasher: inout Hasher) {}
 }
