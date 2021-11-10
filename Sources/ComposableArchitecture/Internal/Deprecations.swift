@@ -245,6 +245,7 @@ extension ViewStore {
       message:
         "For improved safety, bindable properties must now be wrapped explicitly in 'BindableState'. Bindings are now derived via 'ViewStore.binding' with a key path to that 'BindableState' (for example, 'viewStore.binding(\\.$value)'). For dynamic member lookup to be available, the view store's 'Action' type must also conform to 'BindableAction'. Upgrade to Xcode 12.5 or greater for access to 'BindableState' and 'BindableAction'."
     )
+    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
     public func binding<LocalState>(
       keyPath: WritableKeyPath<State, LocalState>,
       send action: @escaping (BindingAction<State>) -> Action

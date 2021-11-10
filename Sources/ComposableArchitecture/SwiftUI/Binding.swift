@@ -4,6 +4,7 @@ import SwiftUI
 
 // NB: `BindableAction` can produce crashes in Xcode 12.4 (Swift 5.3) and earlier due to an enum
 //     protocol witness bug: https://bugs.swift.org/browse/SR-14041
+#if compiler(>=5.4)
   /// A property wrapper type that can designate properties of app state that can be directly
   /// bindable in SwiftUI views.
   ///
@@ -291,6 +292,9 @@ import SwiftUI
     }
   }
 
+#endif
+#endif
+
   /// An action that describes simple mutations to some root state at a writable key path.
   ///
   /// Used in conjunction with ``BindableState`` and ``BindableAction`` to safely eliminate the
@@ -298,18 +302,16 @@ import SwiftUI
   ///
   /// See the documentation for ``BindableState`` for more details.
   public struct BindingAction<Root>: Equatable {
-  public let keyPath: PartialKeyPath<Root>
+    public let keyPath: PartialKeyPath<Root>
 
-  let set: (inout Root) -> Void
-  let value: Any
-  let valueIsEqualTo: (Any) -> Bool
+    let set: (inout Root) -> Void
+    let value: Any
+    let valueIsEqualTo: (Any) -> Bool
 
-  public static func == (lhs: Self, rhs: Self) -> Bool {
-    lhs.keyPath == rhs.keyPath && lhs.valueIsEqualTo(rhs.value)
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+      lhs.keyPath == rhs.keyPath && lhs.valueIsEqualTo(rhs.value)
+    }
   }
-}
-#endif
-
 
 #if compiler(>=5.4)
   extension BindingAction {
