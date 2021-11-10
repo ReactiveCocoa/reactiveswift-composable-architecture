@@ -165,7 +165,7 @@ final class ViewStoreTests: XCTestCase {
 
     XCTAssertEqual(results, [0, 1, 2])
 
-    for _ in 0 ..< 9 {
+    for _ in 0..<9 {
       viewStore.send(())
     }
 

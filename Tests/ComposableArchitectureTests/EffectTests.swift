@@ -1,11 +1,11 @@
 import ReactiveSwift
 import XCTest
 
+@testable import ComposableArchitecture
+
 #if os(Linux)
   import let CDispatch.NSEC_PER_MSEC
 #endif
-
-@testable import ComposableArchitecture
 
 final class EffectTests: XCTestCase {
   let scheduler = TestScheduler()
@@ -178,8 +178,8 @@ final class EffectTests: XCTestCase {
       guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
 
       #if os(Linux)
-      // for some reason this test fails on Linux
-      return
+        // for some reason this test fails on Linux
+        return
       #endif
 
       let expectation = self.expectation(description: "Complete")
@@ -197,8 +197,8 @@ final class EffectTests: XCTestCase {
       guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
 
       #if os(Linux)
-      // for some reason this test fails on Linux
-      return
+        // for some reason this test fails on Linux
+        return
       #endif
 
       let expectation = self.expectation(description: "Complete")

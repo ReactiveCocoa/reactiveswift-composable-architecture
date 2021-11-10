@@ -1,5 +1,5 @@
 #if canImport(SwiftUI)
-import SwiftUI
+  import SwiftUI
 #endif
 
 // NB: `BindableAction` can produce crashes in Xcode 12.4 (Swift 5.3) and earlier due to an enum
@@ -274,44 +274,44 @@ import SwiftUI
     }
   }
 
-#if canImport(SwiftUI)  
-  extension ViewStore {
-    /// Returns a binding to the resulting bindable state of a given key path.
-    ///
-    /// - Parameter keyPath: A key path to a specific bindable state.
-    /// - Returns: A new binding.
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
-    public func binding<Value>(
-      _ keyPath: WritableKeyPath<State, BindableState<Value>>
-    ) -> Binding<Value>
-    where Action: BindableAction, Action.State == State, Value: Equatable {
-      self.binding(
-        get: { $0[keyPath: keyPath].wrappedValue },
-        send: { .binding(.set(keyPath, $0)) }
-      )
+  #if canImport(SwiftUI)
+    extension ViewStore {
+      /// Returns a binding to the resulting bindable state of a given key path.
+      ///
+      /// - Parameter keyPath: A key path to a specific bindable state.
+      /// - Returns: A new binding.
+      @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
+      public func binding<Value>(
+        _ keyPath: WritableKeyPath<State, BindableState<Value>>
+      ) -> Binding<Value>
+      where Action: BindableAction, Action.State == State, Value: Equatable {
+        self.binding(
+          get: { $0[keyPath: keyPath].wrappedValue },
+          send: { .binding(.set(keyPath, $0)) }
+        )
+      }
     }
-  }
 
+  #endif
 #endif
-#endif
 
-  /// An action that describes simple mutations to some root state at a writable key path.
-  ///
-  /// Used in conjunction with ``BindableState`` and ``BindableAction`` to safely eliminate the
-  /// boilerplate typically associated with mutating multiple fields in state.
-  ///
-  /// See the documentation for ``BindableState`` for more details.
-  public struct BindingAction<Root>: Equatable {
-    public let keyPath: PartialKeyPath<Root>
+/// An action that describes simple mutations to some root state at a writable key path.
+///
+/// Used in conjunction with ``BindableState`` and ``BindableAction`` to safely eliminate the
+/// boilerplate typically associated with mutating multiple fields in state.
+///
+/// See the documentation for ``BindableState`` for more details.
+public struct BindingAction<Root>: Equatable {
+  public let keyPath: PartialKeyPath<Root>
 
-    let set: (inout Root) -> Void
-    let value: Any
-    let valueIsEqualTo: (Any) -> Bool
+  let set: (inout Root) -> Void
+  let value: Any
+  let valueIsEqualTo: (Any) -> Bool
 
-    public static func == (lhs: Self, rhs: Self) -> Bool {
-      lhs.keyPath == rhs.keyPath && lhs.valueIsEqualTo(rhs.value)
-    }
+  public static func == (lhs: Self, rhs: Self) -> Bool {
+    lhs.keyPath == rhs.keyPath && lhs.valueIsEqualTo(rhs.value)
   }
+}
 
 #if compiler(>=5.4)
   extension BindingAction {
@@ -486,7 +486,7 @@ extension BindingAction {
       valueIsEqualTo: self.valueIsEqualTo
     )
   }
-  }
+}
 
 #if compiler(>=5.4)
   extension Reducer where Action: BindableAction, State == Action.State {
