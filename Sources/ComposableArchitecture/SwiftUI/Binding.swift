@@ -1,10 +1,9 @@
 #if canImport(SwiftUI)
-  import SwiftUI
+import SwiftUI
 #endif
 
 // NB: `BindableAction` can produce crashes in Xcode 12.4 (Swift 5.3) and earlier due to an enum
 //     protocol witness bug: https://bugs.swift.org/browse/SR-14041
-#if compiler(>=5.4)
   /// A property wrapper type that can designate properties of app state that can be directly
   /// bindable in SwiftUI views.
   ///
@@ -291,7 +290,6 @@
       )
     }
   }
-  #endif
 
   /// An action that describes simple mutations to some root state at a writable key path.
   ///
@@ -306,6 +304,15 @@
     let value: Any
     let valueIsEqualTo: (Any) -> Bool
 
+  public static func == (lhs: Self, rhs: Self) -> Bool {
+    lhs.keyPath == rhs.keyPath && lhs.valueIsEqualTo(rhs.value)
+  }
+}
+#endif
+
+
+#if compiler(>=5.4)
+  extension BindingAction {
     /// Returns an action that describes simple mutations to some root state at a writable key path
     /// to bindable state.
     ///
@@ -327,6 +334,28 @@
       )
     }
 
+    /// Matches a binding action by its key path.
+    ///
+    /// Implicitly invoked when switching on a reducer's action and pattern matching on a binding
+    /// action directly to do further work:
+    ///
+    /// ```swift
+    /// case .binding(\.$displayName): // Invokes the `~=` operator.
+    ///   // Validate display name
+    ///
+    /// case .binding(\.$enableNotifications):
+    ///   // Return an authorization request effect
+    /// ```
+    public static func ~= <Value>(
+      keyPath: WritableKeyPath<Root, BindableState<Value>>,
+      bindingAction: Self
+    ) -> Bool {
+      keyPath == bindingAction.keyPath
+    }
+  }
+#endif
+
+extension BindingAction {
     /// Transforms a binding action over some root state to some other type of root state given a
     /// key path.
     ///
@@ -455,31 +484,9 @@
         valueIsEqualTo: self.valueIsEqualTo
       )
     }
-
-    public static func == (lhs: Self, rhs: Self) -> Bool {
-      lhs.keyPath == rhs.keyPath && lhs.valueIsEqualTo(rhs.value)
     }
 
-    /// Matches a binding action by its key path.
-    ///
-    /// Implicitly invoked when switching on a reducer's action and pattern matching on a binding
-    /// action directly to do further work:
-    ///
-    /// ```swift
-    /// case .binding(\.$displayName): // Invokes the `~=` operator.
-    ///   // Validate display name
-    ///
-    /// case .binding(\.$enableNotifications):
-    ///   // Return an authorization request effect
-    /// ```
-    public static func ~= <Value>(
-      keyPath: WritableKeyPath<Root, BindableState<Value>>,
-      bindingAction: Self
-    ) -> Bool {
-      keyPath == bindingAction.keyPath
-    }
-  }
-
+#if compiler(>=5.4)
   extension Reducer where Action: BindableAction, State == Action.State {
     /// Returns a reducer that applies ``BindingAction`` mutations to `State` before running this
     /// reducer's logic.

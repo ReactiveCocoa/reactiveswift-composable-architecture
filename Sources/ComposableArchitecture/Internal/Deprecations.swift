@@ -43,9 +43,9 @@ extension Store {
         )
         localStore.parentDisposable = self.producer.startWithValues {
           [weak localStore] state in
-          guard let localStore = localStore else { return }
+            guard let localStore = localStore else { return }
           localStore.state = extractLocalState(state) ?? localStore.state
-        }
+          }
         return localStore
       }
   }
@@ -69,6 +69,7 @@ extension Store {
 
 }
 
+#if compiler(>=5.4)
 extension ViewStore {
   @available(
     *, deprecated,
@@ -86,6 +87,7 @@ extension ViewStore {
     )
   }
 }
+#endif
 
 // NB: Deprecated after 0.25.0:
 
