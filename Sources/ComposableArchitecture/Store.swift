@@ -200,7 +200,7 @@ public final class Store<State, Action> {
   /// ```swift
   /// // Application state made from local states.
   /// struct AppState { var login: LoginState, ... }
-  /// struct AppAction { case login(LoginAction), ... }
+  /// enum AppAction { case login(LoginAction), ... }
   ///
   /// // A store that runs the entire application.
   /// let store = Store(
