@@ -1,4 +1,5 @@
 #if canImport(SwiftUI)
+  import OrderedCollections
   import SwiftUI
 
   /// A Composable Architecture-friendly wrapper around `ForEach` that simplifies working with
@@ -89,7 +90,9 @@
     where
       EachContent: View,
       Data == IdentifiedArray<ID, EachState>,
-      Content == WithViewStore<[ID], (ID, EachAction), ForEach<[ID], ID, EachContent>>
+      Content == WithViewStore<
+        OrderedSet<ID>, (ID, EachAction), ForEach<OrderedSet<ID>, ID, EachContent>
+      >
     {
       self.data = store.state
       self.content = {
