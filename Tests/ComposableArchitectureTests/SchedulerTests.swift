@@ -11,23 +11,23 @@ final class SchedulerTests: XCTestCase {
       .delay(1, on: scheduler)
       .startWithValues { value = $0 }
 
-    XCTAssertEqual(value, nil)
+    XCTAssertNoDifference(value, nil)
 
     scheduler.advance(by: 0.25)
 
-    XCTAssertEqual(value, nil)
+    XCTAssertNoDifference(value, nil)
 
     scheduler.advance(by: 0.25)
 
-    XCTAssertEqual(value, nil)
+    XCTAssertNoDifference(value, nil)
 
     scheduler.advance(by: 0.25)
 
-    XCTAssertEqual(value, nil)
+    XCTAssertNoDifference(value, nil)
 
     scheduler.advance(by: 0.25)
 
-    XCTAssertEqual(value, 1)
+    XCTAssertNoDifference(value, 1)
   }
 
   func testRunScheduler() {
@@ -38,15 +38,15 @@ final class SchedulerTests: XCTestCase {
       .delay(1_000_000_000, on: scheduler)
       .startWithValues { value = $0 }
 
-    XCTAssertEqual(value, nil)
+    XCTAssertNoDifference(value, nil)
 
     scheduler.advance(by: .seconds(1_000_000))
 
-    XCTAssertEqual(value, nil)
+    XCTAssertNoDifference(value, nil)
 
     scheduler.run()
 
-    XCTAssertEqual(value, 1)
+    XCTAssertNoDifference(value, 1)
   }
 
   func testDelay0Advance() {
@@ -57,11 +57,11 @@ final class SchedulerTests: XCTestCase {
       .delay(0, on: scheduler)
       .startWithValues { value = $0 }
 
-    XCTAssertEqual(value, nil)
+    XCTAssertNoDifference(value, nil)
 
     scheduler.advance()
 
-    XCTAssertEqual(value, 1)
+    XCTAssertNoDifference(value, 1)
   }
 
   func testSubscribeOnAdvance() {
@@ -72,11 +72,11 @@ final class SchedulerTests: XCTestCase {
       .start(on: scheduler)
       .startWithValues { value = $0 }
 
-    XCTAssertEqual(value, nil)
+    XCTAssertNoDifference(value, nil)
 
     scheduler.advance()
 
-    XCTAssertEqual(value, 1)
+    XCTAssertNoDifference(value, 1)
   }
 
   func testReceiveOnAdvance() {
@@ -87,11 +87,11 @@ final class SchedulerTests: XCTestCase {
       .observe(on: scheduler)
       .startWithValues { value = $0 }
 
-    XCTAssertEqual(value, nil)
+    XCTAssertNoDifference(value, nil)
 
     scheduler.advance()
 
-    XCTAssertEqual(value, 1)
+    XCTAssertNoDifference(value, 1)
   }
 
   func testTwoIntervalOrdering() {
@@ -103,11 +103,11 @@ final class SchedulerTests: XCTestCase {
 
     testScheduler.schedule(after: .seconds(0), interval: .seconds(1)) { values.append(42) }
 
-    XCTAssertEqual(values, [])
+    XCTAssertNoDifference(values, [])
     testScheduler.advance()
-    XCTAssertEqual(values, [1, 42])
+    XCTAssertNoDifference(values, [1, 42])
     testScheduler.advance(by: 2)
-    XCTAssertEqual(values, [1, 42, 42, 1, 42])
+    XCTAssertNoDifference(values, [1, 42, 42, 1, 42])
   }
 
   func testDebounceReceiveOn() {
@@ -121,18 +121,18 @@ final class SchedulerTests: XCTestCase {
       .observe(on: scheduler)
       .observeValues { count += 1 }
 
-    XCTAssertEqual(count, 0)
+    XCTAssertNoDifference(count, 0)
 
     subject.input.send(value: ())
-    XCTAssertEqual(count, 0)
+    XCTAssertNoDifference(count, 0)
 
     scheduler.advance(by: 1)
-    XCTAssertEqual(count, 1)
+    XCTAssertNoDifference(count, 1)
 
     scheduler.advance(by: 1)
-    XCTAssertEqual(count, 1)
+    XCTAssertNoDifference(count, 1)
 
     scheduler.run()
-    XCTAssertEqual(count, 1)
+    XCTAssertNoDifference(count, 1)
   }
 }

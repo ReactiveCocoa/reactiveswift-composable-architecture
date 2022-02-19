@@ -14,13 +14,13 @@ final class EffectTests: XCTestCase {
     struct Error: Swift.Error, Equatable {}
 
     SignalProducer<Int, Error>(result: .success(42))
-      .startWithResult { XCTAssertEqual($0, .success(42)) }
+      .startWithResult { XCTAssertNoDifference($0, .success(42)) }
 
     SignalProducer<Int, Error>(result: .failure(Error()))
-      .startWithResult { XCTAssertEqual($0, .failure(Error())) }
+      .startWithResult { XCTAssertNoDifference($0, .failure(Error())) }
 
     SignalProducer<Int, Never>(result: .success(42))
-      .startWithResult { XCTAssertEqual($0, .success(42)) }
+      .startWithResult { XCTAssertNoDifference($0, .success(42)) }
 
     SignalProducer<Int, Never>(result: .success(42))
       .catchToEffect {
@@ -31,7 +31,7 @@ final class EffectTests: XCTestCase {
           return -1
         }
       }
-      .startWithValues { XCTAssertEqual($0, 42) }
+      .startWithValues { XCTAssertNoDifference($0, 42) }
 
     SignalProducer<Int, Error>(result: .failure(Error()))
       .catchToEffect {
@@ -42,7 +42,7 @@ final class EffectTests: XCTestCase {
           return -1
         }
       }
-      .startWithValues { XCTAssertEqual($0, -1) }
+      .startWithValues { XCTAssertNoDifference($0, -1) }
   }
 
   func testConcatenate() {
@@ -56,19 +56,19 @@ final class EffectTests: XCTestCase {
 
     effect.startWithValues { values.append($0) }
 
-    XCTAssertEqual(values, [])
+    XCTAssertNoDifference(values, [])
 
     self.scheduler.advance(by: 1)
-    XCTAssertEqual(values, [1])
+    XCTAssertNoDifference(values, [1])
 
     self.scheduler.advance(by: 2)
-    XCTAssertEqual(values, [1, 2])
+    XCTAssertNoDifference(values, [1, 2])
 
     self.scheduler.advance(by: 3)
-    XCTAssertEqual(values, [1, 2, 3])
+    XCTAssertNoDifference(values, [1, 2, 3])
 
     self.scheduler.run()
-    XCTAssertEqual(values, [1, 2, 3])
+    XCTAssertNoDifference(values, [1, 2, 3])
   }
 
   func testConcatenateOneEffect() {
@@ -80,13 +80,13 @@ final class EffectTests: XCTestCase {
 
     effect.startWithValues { values.append($0) }
 
-    XCTAssertEqual(values, [])
+    XCTAssertNoDifference(values, [])
 
     self.scheduler.advance(by: 1)
-    XCTAssertEqual(values, [1])
+    XCTAssertNoDifference(values, [1])
 
     self.scheduler.run()
-    XCTAssertEqual(values, [1])
+    XCTAssertNoDifference(values, [1])
   }
 
   func testMerge() {
@@ -99,16 +99,16 @@ final class EffectTests: XCTestCase {
     var values: [Int] = []
     effect.startWithValues { values.append($0) }
 
-    XCTAssertEqual(values, [])
+    XCTAssertNoDifference(values, [])
 
     self.scheduler.advance(by: 1)
-    XCTAssertEqual(values, [1])
+    XCTAssertNoDifference(values, [1])
 
     self.scheduler.advance(by: 1)
-    XCTAssertEqual(values, [1, 2])
+    XCTAssertNoDifference(values, [1, 2])
 
     self.scheduler.advance(by: 1)
-    XCTAssertEqual(values, [1, 2, 3])
+    XCTAssertNoDifference(values, [1, 2, 3])
   }
 
   func testEffectSubscriberInitializer() {
@@ -130,18 +130,18 @@ final class EffectTests: XCTestCase {
       .on(completed: { isComplete = true }, value: { values.append($0) })
       .start()
 
-    XCTAssertEqual(values, [1, 2])
-    XCTAssertEqual(isComplete, false)
+    XCTAssertNoDifference(values, [1, 2])
+    XCTAssertNoDifference(isComplete, false)
 
     self.scheduler.advance(by: 1)
 
-    XCTAssertEqual(values, [1, 2, 3])
-    XCTAssertEqual(isComplete, false)
+    XCTAssertNoDifference(values, [1, 2, 3])
+    XCTAssertNoDifference(isComplete, false)
 
     self.scheduler.advance(by: 1)
 
-    XCTAssertEqual(values, [1, 2, 3, 4])
-    XCTAssertEqual(isComplete, true)
+    XCTAssertNoDifference(values, [1, 2, 3, 4])
+    XCTAssertNoDifference(isComplete, true)
   }
 
   func testEffectSubscriberInitializer_WithCancellation() {
@@ -161,16 +161,16 @@ final class EffectTests: XCTestCase {
       .on(completed: { isComplete = true })
       .startWithValues { values.append($0) }
 
-    XCTAssertEqual(values, [1])
-    XCTAssertEqual(isComplete, false)
+    XCTAssertNoDifference(values, [1])
+    XCTAssertNoDifference(isComplete, false)
 
     Effect<Void, Never>.cancel(id: CancelId())
       .startWithValues { _ in }
 
     self.scheduler.advance(by: 1)
 
-    XCTAssertEqual(values, [1])
-    XCTAssertEqual(isComplete, true)
+    XCTAssertNoDifference(values, [1])
+    XCTAssertNoDifference(isComplete, true)
   }
 
   #if compiler(>=5.5) && canImport(_Concurrency)
@@ -190,7 +190,7 @@ final class EffectTests: XCTestCase {
       }
       .startWithValues { result = $0 }
       self.wait(for: [expectation], timeout: 1)
-      XCTAssertEqual(result, 42)
+      XCTAssertNoDifference(result, 42)
     }
 
     func testThrowingTask() {

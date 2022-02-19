@@ -271,7 +271,7 @@ class VoiceMemosTests: XCTestCase {
 
     store.send(.voiceMemo(id: url, action: .delete)) {
       $0.voiceMemos = []
-      XCTAssertEqual(didStopAudioPlayerClient, true)
+      XCTAssertNoDifference(didStopAudioPlayerClient, true)
     }
   }
 
