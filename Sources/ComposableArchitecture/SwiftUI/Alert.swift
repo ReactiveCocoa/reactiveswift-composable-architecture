@@ -99,7 +99,6 @@
   /// }
   /// ```
   ///
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   public struct AlertState<Action> {
     public let id = UUID()
     public var buttons: [Button]
@@ -200,7 +199,6 @@
     }
   }
 
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension View {
     /// Displays an alert when then store's state becomes non-`nil`, and dismisses it when it becomes
     /// `nil`.
@@ -238,7 +236,6 @@
     }
   }
 
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState: CustomDebugOutputConvertible {
     public var debugOutput: String {
       let fields = (
@@ -250,7 +247,6 @@
     }
   }
 
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState: Equatable where Action: Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
       lhs.title == rhs.title
@@ -259,7 +255,6 @@
     }
   }
 
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState: Hashable where Action: Hashable {
     public func hash(into hasher: inout Hasher) {
       hasher.combine(self.title)
@@ -268,21 +263,14 @@
     }
   }
 
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState: Identifiable {}
 
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState.ButtonAction: Equatable where Action: Equatable {}
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState.ButtonAction.ActionType: Equatable where Action: Equatable {}
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState.ButtonRole: Equatable {}
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState.Button: Equatable where Action: Equatable {}
 
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState.ButtonAction: Hashable where Action: Hashable {}
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState.ButtonAction.ActionType: Hashable where Action: Hashable {
     func hash(into hasher: inout Hasher) {
       switch self {
@@ -291,9 +279,7 @@
       }
     }
   }
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState.ButtonRole: Hashable {}
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState.Button: Hashable where Action: Hashable {
     public func hash(into hasher: inout Hasher) {
       hasher.combine(self.action)
@@ -302,7 +288,6 @@
     }
   }
 
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState.Button {
     func toSwiftUIAction(send: @escaping (Action) -> Void) -> () -> Void {
       return {
@@ -342,7 +327,6 @@
     #endif
   }
 
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState {
     #if compiler(>=5.5) && canImport(_Concurrency)
       @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)

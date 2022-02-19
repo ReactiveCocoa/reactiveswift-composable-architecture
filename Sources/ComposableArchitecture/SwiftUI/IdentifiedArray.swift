@@ -43,7 +43,6 @@ import Foundation
 ///     }
 ///    ```
 ///
-@available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 public struct IdentifiedArray<ID, Element>: MutableCollection, RandomAccessCollection
 where ID: Hashable {
   /// A key path to a value that identifies an element.
@@ -227,55 +226,46 @@ where ID: Hashable {
   }
 }
 
-@available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 extension IdentifiedArray: CustomDebugStringConvertible {
   public var debugDescription: String {
     self.elements.debugDescription
   }
 }
 
-@available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 extension IdentifiedArray: CustomReflectable {
   public var customMirror: Mirror {
     Mirror(reflecting: self.elements)
   }
 }
 
-@available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 extension IdentifiedArray: CustomStringConvertible {
   public var description: String {
     self.elements.description
   }
 }
 
-@available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 extension IdentifiedArray: Decodable where Element: Decodable & Identifiable, ID == Element.ID {
   public init(from decoder: Decoder) throws {
     self.init(try [Element](from: decoder))
   }
 }
 
-@available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 extension IdentifiedArray: Encodable where Element: Encodable {
   public func encode(to encoder: Encoder) throws {
     try self.elements.encode(to: encoder)
   }
 }
 
-@available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 extension IdentifiedArray: Equatable where Element: Equatable {}
 
-@available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 extension IdentifiedArray: Hashable where Element: Hashable {}
 
-@available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 extension IdentifiedArray where Element: Comparable {
   public mutating func sort() {
     sort(by: <)
   }
 }
 
-@available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 extension IdentifiedArray: ExpressibleByArrayLiteral
 where Element: Identifiable, ID == Element.ID {
   public init(arrayLiteral elements: Element...) {
@@ -283,14 +273,12 @@ where Element: Identifiable, ID == Element.ID {
   }
 }
 
-@available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 extension IdentifiedArray where Element: Identifiable, ID == Element.ID {
   public init<S>(_ elements: S) where S: Sequence, S.Element == Element {
     self.init(elements, id: \.id)
   }
 }
 
-@available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 extension IdentifiedArray: RangeReplaceableCollection
 where Element: Identifiable, ID == Element.ID {
   public init() {
@@ -314,6 +302,5 @@ where Element: Identifiable, ID == Element.ID {
 }
 
 /// A convenience type to specify an `IdentifiedArray` by an identifiable element.
-@available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
 public typealias IdentifiedArrayOf<Element> = IdentifiedArray<Element.ID, Element>
 where Element: Identifiable

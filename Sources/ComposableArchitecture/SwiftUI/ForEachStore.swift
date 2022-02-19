@@ -71,7 +71,6 @@
   /// }
   /// ```
   ///
-  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
   public struct ForEachStore<EachState, EachAction, Data, ID, Content>: DynamicViewContent
   where Data: Collection, ID: Hashable, Content: View {
     public let data: Data

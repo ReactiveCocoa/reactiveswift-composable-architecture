@@ -53,7 +53,6 @@
   /// - Note: ``TextState`` does not support _all_ `LocalizedStringKey` permutations at this time
   ///   (interpolated `SwiftUI.Image`s, for example). ``TextState`` also uses reflection to determine
   ///   `LocalizedStringKey` equatability, so be mindful of edge cases.
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   public struct TextState: Equatable, Hashable {
     fileprivate var modifiers: [Modifier] = []
     fileprivate let storage: Storage
@@ -124,7 +123,6 @@
     }
   }
 
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   extension TextState {
     public init(verbatim content: String) {
       self.storage = .verbatim(content)
@@ -209,7 +207,6 @@
     }
   }
 
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   extension Text {
     public init(_ state: TextState) {
       let text: Text
@@ -248,14 +245,12 @@
     }
   }
 
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   extension TextState: View {
     public var body: some View {
       Text(self)
     }
   }
 
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   extension String {
     public init(state: TextState, locale: Locale? = nil) {
       switch state.storage {
@@ -276,7 +271,6 @@
     }
   }
 
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   extension LocalizedStringKey: CustomDebugOutputConvertible {
     // NB: `LocalizedStringKey` conforms to `Equatable` but returns false for equivalent format
     //     strings. To account for this we reflect on it to extract and string-format its storage.
@@ -319,7 +313,6 @@
     }
   }
 
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   extension TextState: CustomDebugOutputConvertible {
     public var debugOutput: String {
       func debugOutputHelp(_ textState: Self) -> String {

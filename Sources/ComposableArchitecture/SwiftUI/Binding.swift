@@ -280,7 +280,6 @@
       ///
       /// - Parameter keyPath: A key path to a specific bindable state.
       /// - Returns: A new binding.
-      @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
       public func binding<Value>(
         _ keyPath: WritableKeyPath<State, BindableState<Value>>
       ) -> Binding<Value>

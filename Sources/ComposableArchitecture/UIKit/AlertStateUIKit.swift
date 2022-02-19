@@ -1,10 +1,7 @@
 #if canImport(UIKit) && !os(watchOS)
   import UIKit
 
-  @available(iOS 13, *)
-  @available(macCatalyst 13, *)
   @available(macOS, unavailable)
-  @available(tvOS 13, *)
   @available(watchOS, unavailable)
   extension UIAlertController {
     /// Creates a `UIAlertController` from `AlertState`.
@@ -74,10 +71,7 @@
     }
   }
 
-  @available(iOS 13, *)
-  @available(macCatalyst 13, *)
   @available(macOS, unavailable)
-  @available(tvOS 13, *)
   @available(watchOS, unavailable)
   extension AlertState.ButtonRole {
     var toUIKit: UIAlertAction.Style {
@@ -90,10 +84,7 @@
     }
   }
 
-  @available(iOS 13, *)
-  @available(macCatalyst 13, *)
   @available(macOS, unavailable)
-  @available(tvOS 13, *)
   @available(watchOS, unavailable)
   extension AlertState.Button {
     func toUIAlertAction(send: @escaping (Action) -> Void) -> UIAlertAction {
