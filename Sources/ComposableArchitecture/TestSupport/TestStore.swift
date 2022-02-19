@@ -1,5 +1,6 @@
 #if DEBUG
   import ReactiveSwift
+  import CustomDump
   import Foundation
   import XCTestDynamicOverlay
 
@@ -231,12 +232,14 @@
 
     private func completed() {
       if !self.receivedActions.isEmpty {
+        var actions = ""
+        customDump(self.receivedActions.map(\.action), to: &actions)
         XCTFail(
           """
           The store received \(self.receivedActions.count) unexpected \
           action\(self.receivedActions.count == 1 ? "" : "s") after this one: …
 
-          Unhandled actions: \(debugOutput(self.receivedActions.map { $0.action }))
+          Unhandled actions: \(actions)
           """,
           file: self.file, line: self.line
         )
@@ -316,12 +319,14 @@
       _ update: @escaping (inout LocalState) throws -> Void = { _ in }
     ) {
       if !self.receivedActions.isEmpty {
+        var actions = ""
+        customDump(self.receivedActions.map(\.action), to: &actions)
         XCTFail(
           """
           Must handle \(self.receivedActions.count) received \
           action\(self.receivedActions.count == 1 ? "" : "s") before sending an action: …
 
-          Unhandled actions: \(debugOutput(self.receivedActions.map { $0.action }))
+          Unhandled actions: \(actions)
           """,
           file: file, line: line
         )
@@ -357,8 +362,8 @@
       line: UInt
     ) {
       if expected != actual {
-        let diff =
-          debugDiff(expected, actual)
+        let difference =
+          diff(expected, actual, format: .proportional)
           .map { "\($0.indent(by: 4))\n\n(Expected: −, Actual: +)" }
           ?? """
           Expected:
@@ -372,7 +377,7 @@
           """
           State change does not match expectation: …
 
-          \(diff)
+          \(difference)
           """,
           file: file,
           line: line
@@ -399,8 +404,8 @@
       }
       let (receivedAction, state) = self.receivedActions.removeFirst()
       if expectedAction != receivedAction {
-        let diff =
-          debugDiff(expectedAction, receivedAction)
+        let difference =
+          diff(expectedAction, receivedAction, format: .proportional)
           .map { "\($0.indent(by: 4))\n\n(Expected: −, Received: +)" }
           ?? """
           Expected:
@@ -414,7 +419,7 @@
           """
           Received unexpected action: …
 
-          \(diff)
+          \(difference)
           """,
           file: file, line: line
         )
@@ -463,12 +468,14 @@
 
         case let .environment(work):
           if !self.receivedActions.isEmpty {
+            var actions = ""
+            customDump(self.receivedActions.map(\.action), to: &actions)
             XCTFail(
               """
               Must handle \(self.receivedActions.count) received \
               action\(self.receivedActions.count == 1 ? "" : "s") before performing this work: …
 
-              Unhandled actions: \(debugOutput(self.receivedActions.map { $0.action }))
+              Unhandled actions: \(actions)
               """,
               file: step.file, line: step.line
             )
@@ -481,12 +488,14 @@
 
         case let .do(work):
           if !receivedActions.isEmpty {
+            var actions = ""
+            customDump(self.receivedActions.map(\.action), to: &actions)
             XCTFail(
               """
               Must handle \(self.receivedActions.count) received \
               action\(self.receivedActions.count == 1 ? "" : "s") before performing this work: …
 
-              Unhandled actions: \(debugOutput(self.receivedActions.map { $0.action }))
+              Unhandled actions: \(actions)
               """,
               file: step.file, line: step.line
             )

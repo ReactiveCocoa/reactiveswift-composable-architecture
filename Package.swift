@@ -20,6 +20,7 @@ let package = Package(
     .package(name: "Benchmark", url: "https://github.com/google/swift-benchmark", from: "0.1.0"),
     .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift", from: "6.7.0"),
     .package(url: "https://github.com/pointfreeco/swift-case-paths", from: "0.7.0"),
+    .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "0.3.0"),
     .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "0.3.2"),
     .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "0.2.1"),
   ],
@@ -29,6 +30,7 @@ let package = Package(
       dependencies: [
         "ReactiveSwift",
         .product(name: "CasePaths", package: "swift-case-paths"),
+        .product(name: "CustomDump", package: "swift-custom-dump"),
         .product(name: "IdentifiedCollections", package: "swift-identified-collections"),
         .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
       ]

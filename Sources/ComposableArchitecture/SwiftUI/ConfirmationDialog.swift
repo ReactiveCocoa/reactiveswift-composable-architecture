@@ -173,14 +173,17 @@
   @available(macOS 12, *)
   @available(tvOS 13, *)
   @available(watchOS 6, *)
-  extension ConfirmationDialogState: CustomDebugOutputConvertible {
-    public var debugOutput: String {
-      let fields = (
-        title: self.title,
-        message: self.message,
-        buttons: self.buttons
+  extension ConfirmationDialogState: CustomDumpReflectable {
+    public var customDumpMirror: Mirror {
+      Mirror(
+        self,
+        children: [
+          "title": self.title,
+          "message": self.message as Any,
+          "buttons": self.buttons,
+        ],
+        displayStyle: .struct
       )
-      return "\(Self.self)\(ComposableArchitecture.debugOutput(fields))"
     }
   }
 
