@@ -143,9 +143,9 @@ struct AnimationsView: View {
           )
           .padding()
           Button("Rainbow") { viewStore.send(.rainbowButtonTapped, animation: .linear) }
-            .padding([.leading, .trailing, .bottom])
+            .padding([.horizontal, .bottom])
           Button("Reset") { viewStore.send(.resetButtonTapped) }
-            .padding([.leading, .trailing, .bottom])
+            .padding([.horizontal, .bottom])
         }
         .alert(self.store.scope(state: \.alert), dismiss: .dismissAlert)
       }

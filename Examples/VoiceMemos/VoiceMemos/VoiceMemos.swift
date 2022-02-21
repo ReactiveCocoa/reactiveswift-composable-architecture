@@ -54,7 +54,8 @@ let voiceMemosReducer = Reducer<VoiceMemosState, VoiceMemosAction, VoiceMemosEnv
     action: /VoiceMemosAction.voiceMemo(id:action:),
     environment: {
       VoiceMemoEnvironment(audioPlayerClient: $0.audioPlayer, mainRunLoop: $0.mainRunLoop)
-    }),
+    }
+  ),
   .init { state, action, environment in
     struct RecorderId: Hashable {}
     struct RecorderTimerId: Hashable {}
@@ -228,7 +229,7 @@ struct VoiceMemosView: View {
               let formattedDuration = dateComponentsFormatter.string(from: duration)
             {
               Text(formattedDuration)
-                .font(Font.body.monospacedDigit().bold())
+                .font(.body.monospacedDigit().bold())
                 .foregroundColor(.white)
                 .colorMultiply(Color(Int(duration).isMultiple(of: 2) ? .systemRed : .label))
                 .animation(.easeInOut(duration: 0.5), value: duration)
@@ -242,7 +243,7 @@ struct VoiceMemosView: View {
         )
         .navigationBarTitle("Voice memos")
       }
-      .navigationViewStyle(StackNavigationViewStyle())
+      .navigationViewStyle(.stack)
     }
   }
 }

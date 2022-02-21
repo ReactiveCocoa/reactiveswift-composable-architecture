@@ -130,7 +130,8 @@ private let timerReducer = Reducer<Int, TimerAction, TimerEnvironment> {
   },
   onDisappear: { _ in
     .cancel(id: TimerId())
-  })
+  }
+)
 
 private struct TimerView: View {
   let store: Store<Int, LifecycleAction<TimerAction>>

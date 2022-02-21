@@ -41,7 +41,8 @@ extension FactClient {
             .delay(1, on: QueueScheduler.main)
         }
         .promoteError(Error.self)
-      })
+      }
+    )
   #endif
 }
 
@@ -53,6 +54,7 @@ extension FactClient {
       fetch: { _ in
         XCTFail("\(Self.self).fact is unimplemented.")
         return .none
-      })
+      }
+    )
   }
 #endif
