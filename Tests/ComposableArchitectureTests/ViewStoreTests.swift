@@ -26,13 +26,13 @@ final class ViewStoreTests: XCTestCase {
     viewStore.produced.producer
       .startWithValues { _ in emissionCount += 1 }
 
-    XCTAssertEqual(emissionCount, 1)
+    XCTAssertNoDifference(emissionCount, 1)
     viewStore.send(())
-    XCTAssertEqual(emissionCount, 1)
+    XCTAssertNoDifference(emissionCount, 1)
     viewStore.send(())
-    XCTAssertEqual(emissionCount, 1)
+    XCTAssertNoDifference(emissionCount, 1)
     viewStore.send(())
-    XCTAssertEqual(emissionCount, 1)
+    XCTAssertNoDifference(emissionCount, 1)
   }
 
   func testEqualityChecks() {
@@ -61,20 +61,20 @@ final class ViewStoreTests: XCTestCase {
     viewStore3.produced.substate.startWithValues { _ in }
     viewStore4.produced.substate.startWithValues { _ in }
 
-    XCTAssertEqual(0, equalityChecks)
-    XCTAssertEqual(0, subEqualityChecks)
+    XCTAssertNoDifference(0, equalityChecks)
+    XCTAssertNoDifference(0, subEqualityChecks)
     viewStore4.send(())
-    XCTAssertEqual(4, equalityChecks)
-    XCTAssertEqual(4, subEqualityChecks)
+    XCTAssertNoDifference(4, equalityChecks)
+    XCTAssertNoDifference(4, subEqualityChecks)
     viewStore4.send(())
-    XCTAssertEqual(8, equalityChecks)
-    XCTAssertEqual(8, subEqualityChecks)
+    XCTAssertNoDifference(8, equalityChecks)
+    XCTAssertNoDifference(8, subEqualityChecks)
     viewStore4.send(())
-    XCTAssertEqual(12, equalityChecks)
-    XCTAssertEqual(12, subEqualityChecks)
+    XCTAssertNoDifference(12, equalityChecks)
+    XCTAssertNoDifference(12, subEqualityChecks)
     viewStore4.send(())
-    XCTAssertEqual(16, equalityChecks)
-    XCTAssertEqual(16, subEqualityChecks)
+    XCTAssertNoDifference(16, equalityChecks)
+    XCTAssertNoDifference(16, subEqualityChecks)
   }
 
   func testAccessViewStoreStateInPublisherSink() {
@@ -95,11 +95,10 @@ final class ViewStoreTests: XCTestCase {
     viewStore.send(())
     viewStore.send(())
 
-    XCTAssertEqual([0, 1, 2, 3], results)
+    XCTAssertNoDifference([0, 1, 2, 3], results)
   }
 
   #if canImport(Combine)
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
     func testWillSet() {
       var cancellables: Set<AnyCancellable> = []
 
@@ -121,7 +120,7 @@ final class ViewStoreTests: XCTestCase {
       viewStore.send(())
       viewStore.send(())
 
-      XCTAssertEqual([0, 1, 2], results)
+      XCTAssertNoDifference([0, 1, 2], results)
     }
   #endif
 
@@ -141,7 +140,7 @@ final class ViewStoreTests: XCTestCase {
       .startWithValues { results.append($0) }
 
     ViewStore(store).send(())
-    XCTAssertEqual(results, [0, 1])
+    XCTAssertNoDifference(results, [0, 1])
   }
 
   func testStorePublisherSubscriptionOrder() {
@@ -163,13 +162,13 @@ final class ViewStoreTests: XCTestCase {
     viewStore.produced.producer
       .startWithValues { _ in results.append(2) }
 
-    XCTAssertEqual(results, [0, 1, 2])
+    XCTAssertNoDifference(results, [0, 1, 2])
 
     for _ in 0..<9 {
       viewStore.send(())
     }
 
-    XCTAssertEqual(results, Array(repeating: [0, 1, 2], count: 10).flatMap { $0 })
+    XCTAssertNoDifference(results, Array(repeating: [0, 1, 2], count: 10).flatMap { $0 })
   }
 
   #if compiler(>=5.5) && canImport(_Concurrency)
@@ -197,9 +196,9 @@ final class ViewStoreTests: XCTestCase {
         let store = Store(initialState: false, reducer: reducer, environment: ())
         let viewStore = ViewStore(store)
 
-        XCTAssertEqual(viewStore.state, false)
+        XCTAssertNoDifference(viewStore.state, false)
         await viewStore.send(.tapped, while: { $0 })
-        XCTAssertEqual(viewStore.state, false)
+        XCTAssertNoDifference(viewStore.state, false)
         expectation.fulfill()
       }
       self.wait(for: [expectation], timeout: 1)
@@ -229,11 +228,11 @@ final class ViewStoreTests: XCTestCase {
         let store = Store(initialState: false, reducer: reducer, environment: ())
         let viewStore = ViewStore(store)
 
-        XCTAssertEqual(viewStore.state, false)
+        XCTAssertNoDifference(viewStore.state, false)
         viewStore.send(.tapped)
-        XCTAssertEqual(viewStore.state, true)
+        XCTAssertNoDifference(viewStore.state, true)
         await viewStore.suspend(while: { $0 })
-        XCTAssertEqual(viewStore.state, false)
+        XCTAssertNoDifference(viewStore.state, false)
         expectation.fulfill()
       }
       self.wait(for: [expectation], timeout: 1)

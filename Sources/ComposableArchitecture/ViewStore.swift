@@ -66,7 +66,6 @@ import ReactiveSwift
 @dynamicMemberLookup
 public final class ViewStore<State, Action> {
   #if canImport(Combine)
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
     public private(set) lazy var objectWillChange = ObservableObjectPublisher()
   #endif
 
@@ -93,10 +92,8 @@ public final class ViewStore<State, Action> {
       .startWithValues { [weak self] in
         guard let self = self else { return }
         #if canImport(Combine)
-          if #available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *) {
-            self.objectWillChange.send()
-            self._state = $0
-          }
+          self.objectWillChange.send()
+          self._state = $0
         #endif
         self._state = $0
         self.statePipe.input.send(value: $0)
@@ -180,7 +177,6 @@ public final class ViewStore<State, Action> {
     ///   - localStateToViewAction: A function that transforms the binding's value
     ///     into an action that can be sent to the store.
     /// - Returns: A binding.
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
     public func binding<LocalState>(
       get: @escaping (State) -> LocalState,
       send localStateToViewAction: @escaping (LocalState) -> Action
@@ -213,7 +209,6 @@ public final class ViewStore<State, Action> {
     ///   - get: A function to get the state for the binding from the view store's full state.
     ///   - action: The action to send when the binding is written to.
     /// - Returns: A binding.
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
     public func binding<LocalState>(
       get: @escaping (State) -> LocalState,
       send action: Action
@@ -246,7 +241,6 @@ public final class ViewStore<State, Action> {
     ///   - localStateToViewAction: A function that transforms the binding's value
     ///     into an action that can be sent to the store.
     /// - Returns: A binding.
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
     public func binding(
       send localStateToViewAction: @escaping (State) -> Action
     ) -> Binding<State> {
@@ -276,7 +270,6 @@ public final class ViewStore<State, Action> {
     /// - Parameters:
     ///   - action: The action to send when the binding is written to.
     /// - Returns: A binding.
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
     public func binding(send action: Action) -> Binding<State> {
       self.binding(send: { _ in action })
     }

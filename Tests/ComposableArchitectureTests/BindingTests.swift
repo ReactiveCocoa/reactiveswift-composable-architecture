@@ -3,7 +3,6 @@
   import XCTest
 
   final class BindingTests: XCTestCase {
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
     func testNestedBindableState() {
       struct State: Equatable {
         @BindableState var nested = Nested()
@@ -34,7 +33,7 @@
 
       viewStore.binding(\.$nested.field).wrappedValue = "Hello"
 
-      XCTAssertEqual(viewStore.state, .init(nested: .init(field: "Hello!")))
+      XCTAssertNoDifference(viewStore.state, .init(nested: .init(field: "Hello!")))
     }
   }
 #endif

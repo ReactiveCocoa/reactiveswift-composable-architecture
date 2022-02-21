@@ -51,7 +51,6 @@
   /// - See also: ``Reducer/pullback(state:action:environment:breakpointOnNil:file:line:)``, a method
   ///   that aids in transforming reducers that operate on each case of an enum into reducers that
   ///   operate on the entire enum.
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   public struct SwitchStore<State, Action, Content>: View where Content: View {
     public let store: Store<State, Action>
     public let content: () -> Content
@@ -71,7 +70,6 @@
   }
 
   /// A view that handles a specific case of enum state in a ``SwitchStore``.
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   public struct CaseLet<GlobalState, GlobalAction, LocalState, LocalAction, Content>: View
   where Content: View {
     @EnvironmentObject private var store: StoreObservableObject<GlobalState, GlobalAction>
@@ -109,7 +107,6 @@
     }
   }
 
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   extension CaseLet where GlobalAction == LocalAction {
     /// Initializes a ``CaseLet`` view that computes content depending on if a store of enum state
     /// matches a particular case.
@@ -136,7 +133,6 @@
   /// If you wish to use ``SwitchStore`` in a non-exhaustive manner (i.e. you do not want to provide
   /// a ``CaseLet`` for each case of the enum), then you must insert a ``Default`` view at the end of
   /// the ``SwitchStore``'s body.
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   public struct Default<Content>: View where Content: View {
     private let content: () -> Content
 
@@ -154,7 +150,6 @@
     }
   }
 
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   extension SwitchStore {
     public init<State1, Action1, Content1, DefaultContent>(
       _ store: Store<State, Action>,
@@ -1171,7 +1166,6 @@
     }
   }
 
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   public struct _ExhaustivityCheckView<State, Action>: View {
     @EnvironmentObject private var store: StoreObservableObject<State, Action>
     let file: StaticString
@@ -1217,7 +1211,6 @@
     }
   }
 
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   private class StoreObservableObject<State, Action>: ObservableObject {
     let wrappedValue: Store<State, Action>
 

@@ -1,6 +1,7 @@
 #if canImport(SwiftUI)
   import SwiftUI
 #endif
+import CustomDump
 
 // NB: `BindableAction` can produce crashes in Xcode 12.4 (Swift 5.3) and earlier due to an enum
 //     protocol witness bug: https://bugs.swift.org/browse/SR-14041
@@ -280,7 +281,6 @@
       ///
       /// - Parameter keyPath: A key path to a specific bindable state.
       /// - Returns: A new binding.
-      @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
       public func binding<Value>(
         _ keyPath: WritableKeyPath<State, BindableState<Value>>
       ) -> Binding<Value>
@@ -484,6 +484,18 @@ extension BindingAction {
       set: { self.set(&$0[keyPath: keyPath]) },
       value: self.value,
       valueIsEqualTo: self.valueIsEqualTo
+    )
+  }
+}
+
+extension BindingAction: CustomDumpReflectable {
+  public var customDumpMirror: Mirror {
+    .init(
+      self,
+      children: [
+        "set": (self.keyPath, self.value)
+      ],
+      displayStyle: .enum
     )
   }
 }

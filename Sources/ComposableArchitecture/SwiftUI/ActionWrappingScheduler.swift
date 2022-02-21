@@ -7,7 +7,6 @@
     ///
     /// - Parameter animation: An animation to be performed.
     /// - Returns: A scheduler that performs an animation when a scheduled action is run.
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
     public func animation(_ animation: Animation? = .default) -> Scheduler {
       ActionWrappingScheduler(scheduler: self, wrapper: .animation(animation))
     }
@@ -16,7 +15,6 @@
     ///
     /// - Parameter transaction: A transaction.
     /// - Returns: A scheduler that wraps scheduled actions in a transaction.
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
     public func transaction(_ transaction: Transaction) -> Scheduler {
       ActionWrappingScheduler(scheduler: self, wrapper: .transaction(transaction))
     }
@@ -27,7 +25,6 @@
     ///
     /// - Parameter animation: An animation to be performed.
     /// - Returns: A scheduler that performs an animation when a scheduled action is run.
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
     public func animation(_ animation: Animation? = .default) -> DateScheduler {
       ActionWrappingDateScheduler(scheduler: self, wrapper: .animation(animation))
     }
@@ -36,19 +33,16 @@
     ///
     /// - Parameter transaction: A transaction.
     /// - Returns: A scheduler that wraps scheduled actions in a transaction.
-    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
     public func transaction(_ transaction: Transaction) -> DateScheduler {
       ActionWrappingDateScheduler(scheduler: self, wrapper: .transaction(transaction))
     }
   }
 
-  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
   private enum ActionWrapper {
     case animation(Animation?)
     case transaction(Transaction)
   }
 
-  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
   public final class ActionWrappingScheduler: Scheduler {
     private let scheduler: Scheduler
     private let wrapper: ActionWrapper
@@ -70,7 +64,6 @@
     }
   }
 
-  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
   public final class ActionWrappingDateScheduler: DateScheduler {
     public var currentDate: Date {
       scheduler.currentDate

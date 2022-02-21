@@ -5,7 +5,6 @@
 
   // NB: Deprecated after 0.27.1:
 
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState.Button {
     @available(
       *, deprecated,
@@ -23,7 +22,6 @@
   @available(*, deprecated, renamed: "ConfirmationDialogState")
   public typealias ActionSheetState = ConfirmationDialogState
 
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension View {
     @available(iOS 13, *)
     @available(macOS 12, *)
@@ -109,7 +107,6 @@
         message:
           "Dynamic member lookup is no longer supported for bindable state. Instead of dot-chaining on the view store, e.g. 'viewStore.$value', invoke the 'binding' method on view store with a key path to the value, e.g. 'viewStore.binding(\\.$value)'. For more on this change, see: https://github.com/pointfreeco/swift-composable-architecture/pull/810"
       )
-      @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
       public subscript<Value>(
         dynamicMember keyPath: WritableKeyPath<State, BindableState<Value>>
       ) -> Binding<Value>
@@ -180,7 +177,6 @@
           message:
             "For improved safety, bindable properties must now be wrapped explicitly in 'BindableState'. Bindings are now derived via 'ViewStore.binding' with a key path to that 'BindableState' (for example, 'viewStore.binding(\\.$value)'). For dynamic member lookup to be available, the view store's 'Action' type must also conform to 'BindableAction'."
         )
-        @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
         public func binding<LocalState>(
           keyPath: WritableKeyPath<State, LocalState>,
           send action: @escaping (BindingAction<State>) -> Action
@@ -248,7 +244,6 @@
         message:
           "For improved safety, bindable properties must now be wrapped explicitly in 'BindableState'. Bindings are now derived via 'ViewStore.binding' with a key path to that 'BindableState' (for example, 'viewStore.binding(\\.$value)'). For dynamic member lookup to be available, the view store's 'Action' type must also conform to 'BindableAction'. Upgrade to Xcode 12.5 or greater for access to 'BindableState' and 'BindableAction'."
       )
-      @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
       public func binding<LocalState>(
         keyPath: WritableKeyPath<State, LocalState>,
         send action: @escaping (BindingAction<State>) -> Action
@@ -264,7 +259,6 @@
 
   // NB: Deprecated after 0.23.0:
 
-  @available(iOS 13.0, macOS 10.15, macCatalyst 13, tvOS 13.0, watchOS 6.0, *)
   extension AlertState.Button {
     @available(*, deprecated, renamed: "cancel(_:action:)")
     public static func cancel(
@@ -357,7 +351,6 @@
     }
   }
 
-  @available(iOS 13, macOS 10.15, macCatalyst 13, tvOS 13, watchOS 6, *)
   extension ForEachStore {
     @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead")
     public init<EachContent>(

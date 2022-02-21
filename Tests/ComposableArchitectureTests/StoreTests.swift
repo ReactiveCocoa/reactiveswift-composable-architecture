@@ -33,18 +33,18 @@ final class StoreTests: XCTestCase {
     viewStore.send(())
     viewStore.send(())
 
-    XCTAssertEqual(values, [0, 1, 2, 3])
+    XCTAssertNoDifference(values, [0, 1, 2, 3])
   }
 
   func testCancellableIsRemovedOnImmediatelyCompletingEffect() {
     let reducer = Reducer<Void, Void, Void> { _, _, _ in .none }
     let store = Store(initialState: (), reducer: reducer, environment: ())
 
-    XCTAssertEqual(store.effectDisposables.count, 0)
+    XCTAssertNoDifference(store.effectDisposables.count, 0)
 
     store.send(())
 
-    XCTAssertEqual(store.effectDisposables.count, 0)
+    XCTAssertNoDifference(store.effectDisposables.count, 0)
   }
 
   func testCancellableIsRemovedWhenEffectCompletes() {
@@ -64,15 +64,15 @@ final class StoreTests: XCTestCase {
     }
     let store = Store(initialState: (), reducer: reducer, environment: ())
 
-    XCTAssertEqual(store.effectDisposables.count, 0)
+    XCTAssertNoDifference(store.effectDisposables.count, 0)
 
     store.send(.start)
 
-    XCTAssertEqual(store.effectDisposables.count, 1)
+    XCTAssertNoDifference(store.effectDisposables.count, 1)
 
     scheduler.advance(by: 2)
 
-    XCTAssertEqual(store.effectDisposables.count, 0)
+    XCTAssertNoDifference(store.effectDisposables.count, 0)
   }
 
   func testScopedStoreReceivesUpdatesFromParent() {
@@ -89,11 +89,11 @@ final class StoreTests: XCTestCase {
     childStore.producer
       .startWithValues { values.append($0) }
 
-    XCTAssertEqual(values, ["0"])
+    XCTAssertNoDifference(values, ["0"])
 
     parentViewStore.send(())
 
-    XCTAssertEqual(values, ["0", "1"])
+    XCTAssertNoDifference(values, ["0", "1"])
   }
 
   func testParentStoreReceivesUpdatesFromChild() {
@@ -110,11 +110,11 @@ final class StoreTests: XCTestCase {
     parentStore.producer
       .startWithValues { values.append($0) }
 
-    XCTAssertEqual(values, [0])
+    XCTAssertNoDifference(values, [0])
 
     childViewStore.send(())
 
-    XCTAssertEqual(values, [0, 1])
+    XCTAssertNoDifference(values, [0, 1])
   }
 
   func testScopeCallCount() {
@@ -129,7 +129,7 @@ final class StoreTests: XCTestCase {
         return count
       })
 
-    XCTAssertEqual(numCalls1, 1)
+    XCTAssertNoDifference(numCalls1, 1)
   }
 
   func testScopeCallCount2() {
@@ -167,33 +167,33 @@ final class StoreTests: XCTestCase {
     _ = ViewStore(store3)
     let viewStore4 = ViewStore(store4)
 
-    XCTAssertEqual(numCalls1, 1)
-    XCTAssertEqual(numCalls2, 1)
-    XCTAssertEqual(numCalls3, 1)
+    XCTAssertNoDifference(numCalls1, 1)
+    XCTAssertNoDifference(numCalls2, 1)
+    XCTAssertNoDifference(numCalls3, 1)
 
     viewStore4.send(())
 
-    XCTAssertEqual(numCalls1, 2)
-    XCTAssertEqual(numCalls2, 2)
-    XCTAssertEqual(numCalls3, 2)
+    XCTAssertNoDifference(numCalls1, 2)
+    XCTAssertNoDifference(numCalls2, 2)
+    XCTAssertNoDifference(numCalls3, 2)
 
     viewStore4.send(())
 
-    XCTAssertEqual(numCalls1, 3)
-    XCTAssertEqual(numCalls2, 3)
-    XCTAssertEqual(numCalls3, 3)
+    XCTAssertNoDifference(numCalls1, 3)
+    XCTAssertNoDifference(numCalls2, 3)
+    XCTAssertNoDifference(numCalls3, 3)
 
     viewStore4.send(())
 
-    XCTAssertEqual(numCalls1, 4)
-    XCTAssertEqual(numCalls2, 4)
-    XCTAssertEqual(numCalls3, 4)
+    XCTAssertNoDifference(numCalls1, 4)
+    XCTAssertNoDifference(numCalls2, 4)
+    XCTAssertNoDifference(numCalls3, 4)
 
     viewStore4.send(())
 
-    XCTAssertEqual(numCalls1, 5)
-    XCTAssertEqual(numCalls2, 5)
-    XCTAssertEqual(numCalls3, 5)
+    XCTAssertNoDifference(numCalls1, 5)
+    XCTAssertNoDifference(numCalls2, 5)
+    XCTAssertNoDifference(numCalls3, 5)
   }
 
   func testSynchronousEffectsSentAfterSinking() {
@@ -228,7 +228,7 @@ final class StoreTests: XCTestCase {
 
     store.send(.tap)
 
-    XCTAssertEqual(values, [1, 2, 3, 4])
+    XCTAssertNoDifference(values, [1, 2, 3, 4])
   }
 
   func testLotsOfSynchronousActions() {
@@ -245,7 +245,7 @@ final class StoreTests: XCTestCase {
 
     let store = Store(initialState: 0, reducer: reducer, environment: ())
     store.send(.incr)
-    XCTAssertEqual(ViewStore(store).state, 100_000)
+    XCTAssertNoDifference(ViewStore(store).state, 100_000)
   }
 
   func testIfLetAfterScope() {
@@ -275,25 +275,25 @@ final class StoreTests: XCTestCase {
           outputs.append(nil)
         })
 
-    XCTAssertEqual(outputs, [nil])
+    XCTAssertNoDifference(outputs, [nil])
 
     parentStore.send(1)
-    XCTAssertEqual(outputs, [nil, 1])
+    XCTAssertNoDifference(outputs, [nil, 1])
 
     parentStore.send(nil)
-    XCTAssertEqual(outputs, [nil, 1, nil])
+    XCTAssertNoDifference(outputs, [nil, 1, nil])
 
     parentStore.send(1)
-    XCTAssertEqual(outputs, [nil, 1, nil, 1])
+    XCTAssertNoDifference(outputs, [nil, 1, nil, 1])
 
     parentStore.send(nil)
-    XCTAssertEqual(outputs, [nil, 1, nil, 1, nil])
+    XCTAssertNoDifference(outputs, [nil, 1, nil, 1, nil])
 
     parentStore.send(1)
-    XCTAssertEqual(outputs, [nil, 1, nil, 1, nil, 1])
+    XCTAssertNoDifference(outputs, [nil, 1, nil, 1, nil, 1])
 
     parentStore.send(nil)
-    XCTAssertEqual(outputs, [nil, 1, nil, 1, nil, 1, nil])
+    XCTAssertNoDifference(outputs, [nil, 1, nil, 1, nil, 1, nil])
   }
 
   func testIfLetTwo() {
@@ -324,7 +324,7 @@ final class StoreTests: XCTestCase {
         _ = XCTWaiter.wait(for: [.init()], timeout: 0.1)
         vs.send(false)
         _ = XCTWaiter.wait(for: [.init()], timeout: 0.1)
-        XCTAssertEqual(vs.state, 3)
+        XCTAssertNoDifference(vs.state, 3)
       })
   }
 
@@ -392,11 +392,11 @@ final class StoreTests: XCTestCase {
     viewStore.produced.producer
       .startWithValues { emissions.append($0) }
 
-    XCTAssertEqual(emissions, [0])
+    XCTAssertNoDifference(emissions, [0])
 
     viewStore.send(0)
 
-    XCTAssertEqual(emissions, [0, 3])
+    XCTAssertNoDifference(emissions, [0, 3])
   }
 
   func testBufferedActionProcessing() {
@@ -458,10 +458,10 @@ final class StoreTests: XCTestCase {
         ViewStore(childStore).send(2)
       }
 
-    XCTAssertEqual(handledActions, [])
+    XCTAssertNoDifference(handledActions, [])
 
     parentStore.send(.button)
-    XCTAssertEqual(
+    XCTAssertNoDifference(
       handledActions,
       [
         .button,

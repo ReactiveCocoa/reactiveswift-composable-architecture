@@ -1,4 +1,5 @@
 #if canImport(SwiftUI)
+  import OrderedCollections
   import SwiftUI
 
   /// A Composable Architecture-friendly wrapper around `ForEach` that simplifies working with
@@ -71,7 +72,6 @@
   /// }
   /// ```
   ///
-  @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
   public struct ForEachStore<EachState, EachAction, Data, ID, Content>: DynamicViewContent
   where Data: Collection, ID: Hashable, Content: View {
     public let data: Data
@@ -90,7 +90,9 @@
     where
       EachContent: View,
       Data == IdentifiedArray<ID, EachState>,
-      Content == WithViewStore<[ID], (ID, EachAction), ForEach<[ID], ID, EachContent>>
+      Content == WithViewStore<
+        OrderedSet<ID>, (ID, EachAction), ForEach<OrderedSet<ID>, ID, EachContent>
+      >
     {
       self.data = store.state
       self.content = {
