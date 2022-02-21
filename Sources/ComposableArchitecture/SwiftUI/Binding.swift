@@ -1,7 +1,8 @@
+import CustomDump
+
 #if canImport(SwiftUI)
   import SwiftUI
 #endif
-import CustomDump
 
 // NB: `BindableAction` can produce crashes in Xcode 12.4 (Swift 5.3) and earlier due to an enum
 //     protocol witness bug: https://bugs.swift.org/browse/SR-14041

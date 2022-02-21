@@ -1,7 +1,7 @@
 import ComposableArchitecture
+import CustomDump
 import ReactiveSwift
 import XCTest
-import CustomDump
 
 #if canImport(os)
   import os.signpost
@@ -221,5 +221,8 @@ final class ReducerTests: XCTestCase {
   #endif
 }
 
-enum DebugAction: Equatable { case incrWithBool(Bool), incr, noop }
+enum DebugAction: Equatable {
+  case incrWithBool(Bool)
+  case incr, noop
+}
 struct DebugState: Equatable { var count = 0 }

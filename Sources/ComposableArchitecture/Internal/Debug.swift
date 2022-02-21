@@ -6,7 +6,6 @@ import Foundation
   import let CDispatch.NSEC_PER_SEC
 #endif
 
-
 extension String {
   func indent(by indent: Int) -> String {
     let indentation = String(repeating: " ", count: indent)
