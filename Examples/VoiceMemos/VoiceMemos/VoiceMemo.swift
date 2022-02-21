@@ -41,9 +41,9 @@ struct VoiceMemoEnvironment {
   var mainRunLoop: DateScheduler
 }
 
-let voiceMemoReducer = Reducer<VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment> {
-  memo, action, environment in
-  struct PlayerId: Hashable {}
+let voiceMemoReducer = Reducer<
+  VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment
+> { memo, action, environment in
   struct TimerId: Hashable {}
 
   switch action {
@@ -53,10 +53,7 @@ let voiceMemoReducer = Reducer<VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment>
 
   case .delete:
     return .merge(
-      environment.audioPlayerClient
-        .stop(PlayerId())
-        .fireAndForget(),
-      Effect.cancel(id: PlayerId()),
+      environment.audioPlayerClient.stop().fireAndForget(),
       Effect.cancel(id: TimerId())
     )
 
@@ -64,24 +61,23 @@ let voiceMemoReducer = Reducer<VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment>
     switch memo.mode {
     case .notPlaying:
       memo.mode = .playing(progress: 0)
+
       let start = environment.mainRunLoop.currentDate
       return .merge(
         Effect.timer(id: TimerId(), every: .milliseconds(500), on: environment.mainRunLoop)
           .map { .timerUpdated($0.timeIntervalSince1970 - start.timeIntervalSince1970) },
 
         environment.audioPlayerClient
-          .play(PlayerId(), memo.url)
+          .play(memo.url)
           .catchToEffect(VoiceMemoAction.audioPlayerClient)
-          .cancellable(id: PlayerId())
       )
 
     case .playing:
       memo.mode = .notPlaying
+
       return .concatenate(
         .cancel(id: TimerId()),
-        environment.audioPlayerClient
-          .stop(PlayerId())
-          .fireAndForget()
+        environment.audioPlayerClient.stop().fireAndForget()
       )
     }
 
@@ -113,42 +109,40 @@ struct VoiceMemoView: View {
   }
 
   var body: some View {
-    GeometryReader { proxy in
-      ZStack(alignment: .leading) {
-        if self.viewStore.mode.isPlaying {
-          Rectangle()
-            .foregroundColor(Color(.systemGray5))
-            .frame(width: proxy.size.width * CGFloat(self.viewStore.mode.progress ?? 0))
-            .animation(.linear(duration: 0.5), value: self.viewStore.mode.progress)
-        }
+    HStack {
+      TextField(
+        "Untitled, \(self.viewStore.date.formatted(date: .numeric, time: .shortened))",
+        text: self.viewStore.binding(
+          get: \.title, send: VoiceMemoAction.titleTextFieldChanged)
+      )
 
-        HStack {
-          TextField(
-            "Untitled, \(dateFormatter.string(from: self.viewStore.date))",
-            text: self.viewStore.binding(
-              get: \.title, send: VoiceMemoAction.titleTextFieldChanged)
-          )
+      Spacer()
 
-          Spacer()
+      dateComponentsFormatter.string(from: self.currentTime).map {
+        Text($0)
+          .font(.footnote.monospacedDigit())
+          .foregroundColor(Color(.systemGray))
+      }
 
-          dateComponentsFormatter.string(from: self.currentTime).map {
-            Text($0)
-              .font(.footnote.monospacedDigit())
-              .foregroundColor(Color(.systemGray))
-          }
-
-          Button(action: { self.viewStore.send(.playButtonTapped) }) {
-            Image(systemName: self.viewStore.mode.isPlaying ? "stop.circle" : "play.circle")
-              .font(.system(size: 22))
-          }
-        }
-        .frame(maxHeight: .infinity, alignment: .center)
-        .padding(.horizontal)
+      Button(action: { self.viewStore.send(.playButtonTapped) }) {
+        Image(systemName: self.viewStore.mode.isPlaying ? "stop.circle" : "play.circle")
+          .font(.system(size: 22))
       }
     }
     .buttonStyle(.borderless)
+    .frame(maxHeight: .infinity, alignment: .center)
+    .padding(.horizontal)
     .listRowBackground(self.viewStore.mode.isPlaying ? Color(.systemGray6) : .clear)
     .listRowInsets(EdgeInsets())
+    .background(
+      Color(.systemGray5)
+        .frame(maxWidth: self.viewStore.mode.isPlaying ? .infinity : 0)
+        .animation(
+          self.viewStore.mode.isPlaying ? .linear(duration: self.viewStore.duration) : nil,
+          value: self.viewStore.mode.isPlaying
+        ),
+      alignment: .leading
+    )
   }
 
   var currentTime: TimeInterval {
