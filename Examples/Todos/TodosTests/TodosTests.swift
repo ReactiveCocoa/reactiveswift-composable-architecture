@@ -266,7 +266,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
+        mainQueue: self.scheduler,
         uuid: UUID.incrementing
       )
     )
