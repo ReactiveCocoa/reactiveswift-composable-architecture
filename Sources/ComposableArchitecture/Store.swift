@@ -1,7 +1,7 @@
 import Foundation
 import ReactiveSwift
 
-#if DEBUG
+#if DEBUG && canImport(os)
   import os
 #endif
 
