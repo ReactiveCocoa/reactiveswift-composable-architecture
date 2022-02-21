@@ -173,6 +173,17 @@ final class EffectTests: XCTestCase {
     XCTAssertNoDifference(isComplete, true)
   }
 
+  func testDoubleCancelInFlight() {
+    var result: Int?
+
+    _ = Effect(value: 42)
+      .cancellable(id: "id", cancelInFlight: true)
+      .cancellable(id: "id", cancelInFlight: true)
+      .startWithValues { result = $0 }
+
+    XCTAssertEqual(result, 42)
+  }
+
   #if canImport(_Concurrency) && compiler(>=5.5.2)
     func testTask() {
       #if os(Linux)
