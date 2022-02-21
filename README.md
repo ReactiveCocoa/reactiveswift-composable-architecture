@@ -149,8 +149,7 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, action, e
   case .numberFactButtonTapped:
     return environment.numberFact(state.count)
       .observe(on: environment.mainQueue)
-      .catchToEffect()
-      .map(AppAction.numberFactResponse)
+      .catchToEffect(AppAction.numberFactResponse)
 
   case let .numberFactResponse(.success(fact)):
     state.numberFactAlert = fact
@@ -228,7 +227,7 @@ It is also straightforward to have a UIKit controller driven off of this store. 
       // Omitted: Add subviews and set up constraints...
 
       self.viewStore.produced
-        .map(String.init)
+        .map { "\($0.count)" }
         .assign(to: \.text, on: countLabel)
 
       self.viewStore.produced.numberFactAlert
@@ -268,7 +267,7 @@ let appView = AppView(
     initialState: AppState(),
     reducer: appReducer,
     environment: AppEnvironment(
-      mainQueue: QueueScheduler.main,
+      mainQueue: .main,
       numberFact: { number in Effect(value: "\(number) is a good number Brent") }
     )
   )
@@ -332,9 +331,7 @@ The Composable Architecture comes with a number of tools to aid in debugging.
 
     ``` diff
     received action:
-      AppAction.todoCheckboxTapped(
-        index: 0
-      )
+      AppAction.todoCheckboxTapped(id: UUID(5834811A-83B4-4E5E-BCD3-8A38F6BDCA90))
       AppState(
         todos: [
           Todo(
@@ -343,16 +340,7 @@ The Composable Architecture comes with a number of tools to aid in debugging.
             description: "Milk",
             id: 5834811A-83B4-4E5E-BCD3-8A38F6BDCA90
           ),
-          Todo(
-            isComplete: false,
-            description: "Eggs",
-            id: AB3C7921-8262-4412-AA93-9DC5575C1107
-          ),
-          Todo(
-            isComplete: true,
-            description: "Hand Soap",
-            id: 06E94D88-D726-42EF-BA8B-7B4478179D19
-          ),
+          … (2 unchanged)
         ]
       )
     ```
@@ -416,11 +404,11 @@ This fork of The Composable Architecture uses the ReactiveSwift framework, it cu
 
 You can add ComposableArchitecture to an Xcode project by adding it as a package dependency.
 
-  1. From the **File** menu, select **Swift Packages › Add Package Dependency…**
+  1. From the **File** menu, select **Add Packages...**
   2. Enter "https://github.com/trading-point/reactiveswift-composable-architecture" into the package repository URL text field
   3. Depending on how your project is structured:
       - If you have a single application target that needs access to the library, then add **ComposableArchitecture** directly to your application.
-      - If you want to use this library from multiple Xcode targets, or mixing Xcode targets and SPM targets, you must create a shared framework that depends on **ComposableArchitecture** and then depend on that framework in all of your targets. For an example of this, check out the [Tic-Tac-Toe](./Examples/TicTacToe) demo application, which splits lots of features into modules and consumes the static library in this fashion using the **TicTacToeCommon** framework.
+      - If you want to use this library from multiple Xcode targets, or mixing Xcode targets and SPM targets, you must create a shared framework that depends on **ComposableArchitecture** and then depend on that framework in all of your targets. For an example of this, check out the [Tic-Tac-Toe](./Examples/TicTacToe) demo application, which splits lots of features into modules and consumes the static library in this fashion using the **tic-tac-toe** Swift package.
 
 ## Documentation
 
