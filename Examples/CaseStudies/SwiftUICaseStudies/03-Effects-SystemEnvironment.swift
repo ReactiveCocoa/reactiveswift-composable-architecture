@@ -128,7 +128,7 @@ struct MultipleDependenciesView: View {
           }
         }
       }
-      .buttonStyle(BorderlessButtonStyle())
+      .buttonStyle(.borderless)
     }
     .navigationBarTitle("System Environment")
   }
@@ -146,7 +146,8 @@ struct MultipleDependenciesView_Previews: PreviewProvider {
               fetchNumber: {
                 Effect(value: Int.random(in: 1...1_000))
                   .delay(1, on: QueueScheduler.main)
-              })
+              }
+            )
           )
         )
       )

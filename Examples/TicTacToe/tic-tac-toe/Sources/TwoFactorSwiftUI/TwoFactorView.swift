@@ -48,7 +48,7 @@ public struct TwoFactorView: View {
               text: viewStore.binding(get: \.code, send: ViewAction.codeChanged)
             )
             .keyboardType(.numberPad)
-            .textFieldStyle(RoundedBorderTextFieldStyle())
+            .textFieldStyle(.roundedBorder)
           }
 
           HStack {

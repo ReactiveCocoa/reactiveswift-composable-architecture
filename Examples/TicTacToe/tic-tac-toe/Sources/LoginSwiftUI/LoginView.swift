@@ -62,7 +62,7 @@ public struct LoginView: View {
             .autocapitalization(.none)
             .keyboardType(.emailAddress)
             .textContentType(.emailAddress)
-            .textFieldStyle(RoundedBorderTextFieldStyle())
+            .textFieldStyle(.roundedBorder)
           }
 
           VStack(alignment: .leading) {
@@ -71,7 +71,7 @@ public struct LoginView: View {
               "••••••••",
               text: viewStore.binding(get: \.password, send: ViewAction.passwordChanged)
             )
-            .textFieldStyle(RoundedBorderTextFieldStyle())
+            .textFieldStyle(.roundedBorder)
           }
 
           NavigationLink(
