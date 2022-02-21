@@ -39,9 +39,13 @@ extension Effect {
   ///     canceled before starting this new one.
   /// - Returns: A new effect that is capable of being canceled by an identifier.
   public func cancellable(id: AnyHashable, cancelInFlight: Bool = false) -> Effect {
-    let effect = Effect.deferred { () -> SignalProducer<Value, Error> in
+    Effect.deferred { () -> SignalProducer<Value, Error> in
       cancellablesLock.lock()
       defer { cancellablesLock.unlock() }
+
+      if cancelInFlight {
+        cancellationCancellables[id]?.forEach { $0.dispose() }
+      }
 
       let subject = Signal<Value, Error>.pipe()
 
@@ -82,8 +86,6 @@ extension Effect {
           disposed: cancellationDisposable.dispose
         )
     }
-
-    return cancelInFlight ? .concatenate(.cancel(id: id), effect) : effect
   }
 
   /// An effect that will cancel any currently in-flight effect with the given identifier.
