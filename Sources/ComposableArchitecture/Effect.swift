@@ -114,6 +114,37 @@ extension Effect {
     }
   }
 
+  /// Initializes an effect that lazily executes some work in the real world and synchronously sends
+  /// that data back into the store.
+  ///
+  /// For example, to load a user from some JSON on the disk, one can wrap that work in an effect:
+  ///
+  /// ```swift
+  /// Effect<User, Error>.result {
+  ///   let fileUrl = URL(
+  ///     fileURLWithPath: NSSearchPathForDirectoriesInDomains(
+  ///       .documentDirectory, .userDomainMask, true
+  ///     )[0]
+  ///   )
+  ///   .appendingPathComponent("user.json")
+  ///
+  ///   let result = Result<User, Error> {
+  ///     let data = try Data(contentsOf: fileUrl)
+  ///     return try JSONDecoder().decode(User.self, from: $0)
+  ///   }
+  ///
+  ///   return result
+  /// }
+  /// ```
+  ///
+  /// - Parameter attemptToFulfill: A closure encapsulating some work to execute in the real world.
+  /// - Returns: An effect.
+  public static func result(_ attemptToFulfill: @escaping () -> Result<Value, Error>) -> Self {
+    Effect { () -> Result<Value, Error> in
+      attemptToFulfill()
+    }
+  }
+
   /// Turns any `SignalProducer` into an ``Effect`` that cannot fail by wrapping its output and failure in
   /// a result.
   ///
