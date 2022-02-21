@@ -4,6 +4,7 @@ import XCTest
 @testable import ComposableArchitecture
 
 final class DebugTests: XCTestCase {
+  #if canImport(SwiftUI)
   func testAlertState() {
     var dump = ""
     customDump(
@@ -144,6 +145,7 @@ final class DebugTests: XCTestCase {
       """#
     )
   }
+  #endif
 
   func testDebugCaseOutput() {
     enum Action {
@@ -182,7 +184,7 @@ final class DebugTests: XCTestCase {
     )
   }
 
-  #if compiler(>=5.4)
+  #if canImport(SwiftUI) && compiler(>=5.4)
     func testBindingAction() {
       struct State {
         @BindableState var width = 0
