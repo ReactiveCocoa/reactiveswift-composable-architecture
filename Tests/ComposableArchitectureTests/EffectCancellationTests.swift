@@ -262,4 +262,18 @@ final class EffectCancellationTests: XCTestCase {
     scheduler.advance(by: 1)
     XCTAssertNoDifference(expectedOutput, [])
   }
+
+
+  func testNestedMergeCancellation() {
+    let effect = Effect<Int, Never>.merge(
+      [Effect(1...2).cancellable(id: 1)]
+    )
+    .cancellable(id: 2)
+
+    var output: [Int] = []
+    effect
+      .startWithValues { output.append($0) }
+
+    XCTAssertEqual(output, [1, 2])
+  }
 }
