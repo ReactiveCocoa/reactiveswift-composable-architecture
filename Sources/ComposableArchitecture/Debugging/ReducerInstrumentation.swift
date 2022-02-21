@@ -79,7 +79,7 @@
             .event, log: log, name: "Effect Output", "%sOutput from %s", prefix, actionOutput
           )
         }
-			)
+      )
     }
   }
 #endif

@@ -1,4 +1,5 @@
 import ReactiveSwift
+
 #if canImport(_Concurrency) && compiler(>=5.5.2)
   extension Effect {
     /// Wraps an asynchronous unit of work in an effect.

@@ -29,7 +29,7 @@ extension Effect {
     .deferred { () -> SignalProducer<Value, Error> in
       work()
       return .empty
-  }
+    }
   }
 
   /// Concatenates a variadic list of effects together into a single effect, which runs the effects
@@ -111,7 +111,7 @@ extension Effect {
           observer.send(error: error)
         }
       }
-  }
+    }
   }
 
   /// Initializes an effect that lazily executes some work in the real world and synchronously sends
@@ -142,7 +142,7 @@ extension Effect {
   public static func result(_ attemptToFulfill: @escaping () -> Result<Value, Error>) -> Self {
     Effect { () -> Result<Value, Error> in
       attemptToFulfill()
-  }
+    }
   }
 
   /// Turns any `SignalProducer` into an ``Effect`` that cannot fail by wrapping its output and failure in
