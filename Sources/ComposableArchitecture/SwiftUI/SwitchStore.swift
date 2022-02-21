@@ -1,7 +1,7 @@
 #if canImport(SwiftUI)
 import SwiftUI
 
-#if DEBUG
+#if DEBUG && canImport(os)
   import os
 #endif
 
