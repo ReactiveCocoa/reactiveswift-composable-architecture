@@ -219,13 +219,16 @@ final class EffectTests: XCTestCase {
         failed: { error in
           result = error
         },
+        completed: {
+          XCTFail()
+        },
         value: { _ in
           XCTFail()
         }
       )
       .start()
 
-      self.wait(for: [expectation], timeout: 0)
+      self.wait(for: [expectation], timeout: 1)
       XCTAssertNotNil(result)
       disposable.dispose()
     }
