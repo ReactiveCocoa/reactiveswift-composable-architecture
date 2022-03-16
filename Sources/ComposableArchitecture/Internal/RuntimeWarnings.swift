@@ -26,6 +26,7 @@
     log: OSLog(subsystem: "com.apple.runtime-issues", category: "ComposableArchitecture")
   )
 
+  @_transparent
   func runtimeWarning(
     _ message: StaticString,
     _ args: CVarArg...
@@ -37,6 +38,7 @@
     XCTFail(String(format: "\(message)", arguments: args))
   }
   #else
+    @_transparent
     func runtimeWarning(
       _ message: StaticString,
       _ args: CVarArg...
