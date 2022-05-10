@@ -249,6 +249,7 @@ final class EffectTests: XCTestCase {
        .start()
 
       disposable.dispose()
+
       _ = XCTWaiter.wait(for: [.init()], timeout: 1.1)
     }
 
@@ -262,14 +263,15 @@ final class EffectTests: XCTestCase {
         return 42
       }
 
-      Effect<Int, Never >.task { await work() }
-        .sink(
-          receiveCompletion: { _ in XCTFail() },
-          receiveValue: { _ in XCTFail() }
+      let disposable = Effect<Int, Never >.task { await work() }
+        .on(
+           completed: { XCTFail() },
+           value: { _ in XCTFail() }
         )
-        .store(in: &self.cancellables)
+        .start(on: QueueScheduler.main)
+        .start()
 
-      self.cancellables = []
+      disposable.dispose()
 
       _ = XCTWaiter.wait(for: [.init()], timeout: 1.1)
     }
