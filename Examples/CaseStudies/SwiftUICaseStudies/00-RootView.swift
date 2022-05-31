@@ -273,16 +273,6 @@ struct RootView: View {
             )
 
             NavigationLink(
-              "Strict reducers",
-              destination: DieRollView(
-                store: self.store.scope(
-                  state: \.dieRoll,
-                  action: RootAction.dieRoll
-                )
-              )
-            )
-
-            NavigationLink(
               "Elm-like subscriptions",
               destination: ClockView(
                 store: self.store.scope(
