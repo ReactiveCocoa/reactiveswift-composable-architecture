@@ -67,11 +67,13 @@ import SwiftUI
 public final class ViewStore<State, Action> {
   #if canImport(Combine)
   public private(set) lazy var objectWillChange = ObservableObjectPublisher()
+  #else
+  // dummy Void to support using `self.objectWillChange` in closure capture lists
+  public private(set) lazy var objectWillChange = Void()
   #endif
 
   private let _send: (Action) -> Void
-  private var _state: State
-  fileprivate let statePipe = Signal<State, Never>.pipe()
+  fileprivate var _state: CurrentValueRelay<State>
   private var viewDisposable: Disposable?
 
   /// Initializes a view store from a store.
@@ -85,25 +87,24 @@ public final class ViewStore<State, Action> {
     removeDuplicates isDuplicate: @escaping (State, State) -> Bool
   ) {
     self._send = { store.send($0) }
-    self._state = store.state
+    self._state = CurrentValueRelay(store.state)
 
     self.viewDisposable = store.producer
       .skipRepeats(isDuplicate)
-      .startWithValues { [weak self] in
-        guard let self = self else { return }
+      .startWithValues { [weak objectWillChange = self.objectWillChange, weak _state = self._state] in
+        guard let objectWillChange = objectWillChange, let _state = _state else { return }
         #if canImport(Combine)
-          self.objectWillChange.send()
-          self._state = $0
+        objectWillChange.send()
         #endif
-        self._state = $0
-        self.statePipe.input.send(value: $0)
+        _state.value = $0
       }
+  }
 
   internal init(_ viewStore: ViewStore<State, Action>) {
     self._send = viewStore._send
     self._state = viewStore._state
     self.objectWillChange = viewStore.objectWillChange
-    self.viewCancellable = viewStore.viewCancellable
+    self.viewDisposable = viewStore.viewDisposable
   }
 
   /// A `SignalProducerConvertible` that emits when state changes.
@@ -133,12 +134,12 @@ public final class ViewStore<State, Action> {
 
   /// The current state.
   public var state: State {
-    self._state
+    self._state.value
   }
 
   /// Returns the resulting value of a given key path.
   public subscript<LocalState>(dynamicMember keyPath: KeyPath<State, LocalState>) -> LocalState {
-    self._state[keyPath: keyPath]
+    self._state.value[keyPath: keyPath]
   }
 
   /// Sends an action to the store.
@@ -281,10 +282,6 @@ public final class ViewStore<State, Action> {
   }
   #endif
 
-  deinit {
-    viewDisposable?.dispose()
-  }
-
   private subscript<LocalState>(
     get state: HashableWrapper<(State) -> LocalState>,
     send action: HashableWrapper<(LocalState) -> Action>
@@ -322,8 +319,7 @@ public struct StoreProducer<State>: SignalProducerConvertible {
 
   fileprivate init<Action>(viewStore: ViewStore<State, Action>) {
     self.viewStore = viewStore
-    self.upstream =
-      Property<State>(initial: viewStore.state, then: viewStore.statePipe.output).producer
+    self.upstream = viewStore._state.producer
   }
 
   private init(
