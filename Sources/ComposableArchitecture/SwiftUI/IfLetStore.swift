@@ -13,7 +13,7 @@ import SwiftUI
 ///   store.scope(state: \SearchState.results, action: SearchAction.results),
 /// ) {
 ///   SearchResultsView(store: $0)
-/// } else {
+/// } else: {
 ///   Text("Loading search results...")
 /// }
 /// ```
