@@ -35,4 +35,23 @@ extension Effect {
       .flatMap(.latest) { self.observe(on: scheduler) }
       .cancellable(id: id, cancelInFlight: true)
   }
+
+  /// Turns an effect into one that can be debounced.
+  ///
+  /// A convenience for calling ``Effect/debounce(id:for:scheduler:options:)-76yye`` with a static
+  /// type as the effect's unique identifier.
+  ///
+  /// - Parameters:
+  ///   - id: A unique type identifying the effect.
+  ///   - dueTime: The duration you want to debounce for.
+  ///   - scheduler: The scheduler you want to deliver the debounced output to.
+  ///   - options: Scheduler options that customize the effect's delivery of elements.
+  /// - Returns: An effect that publishes events only after a specified time elapses.
+  public func debounce(
+    id: Any.Type,
+    for dueTime: TimeInterval,
+    scheduler: DateScheduler
+  ) -> Effect {
+    self.debounce(id: ObjectIdentifier(id), for: dueTime, scheduler: scheduler)
+  }
 }

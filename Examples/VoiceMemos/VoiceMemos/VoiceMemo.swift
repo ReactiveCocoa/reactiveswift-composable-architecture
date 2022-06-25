@@ -44,17 +44,17 @@ struct VoiceMemoEnvironment {
 let voiceMemoReducer = Reducer<
   VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment
 > { memo, action, environment in
-  struct TimerId: Hashable {}
+  enum TimerId {}
 
   switch action {
   case .audioPlayerClient(.success(.didFinishPlaying)), .audioPlayerClient(.failure):
     memo.mode = .notPlaying
-    return .cancel(id: TimerId())
+    return .cancel(id: TimerId.self)
 
   case .delete:
     return .merge(
       environment.audioPlayerClient.stop().fireAndForget(),
-      Effect.cancel(id: TimerId())
+      Effect.cancel(id: TimerId.self)
     )
 
   case .playButtonTapped:
@@ -64,7 +64,7 @@ let voiceMemoReducer = Reducer<
 
       let start = environment.mainRunLoop.currentDate
       return .merge(
-        Effect.timer(id: TimerId(), every: .milliseconds(500), on: environment.mainRunLoop)
+        Effect.timer(id: TimerId.self, every: .milliseconds(500), on: environment.mainRunLoop)
           .map { .timerUpdated($0.timeIntervalSince1970 - start.timeIntervalSince1970) },
 
         environment.audioPlayerClient
@@ -76,7 +76,7 @@ let voiceMemoReducer = Reducer<
       memo.mode = .notPlaying
 
       return .concatenate(
-        .cancel(id: TimerId()),
+        .cancel(id: TimerId.self),
         environment.audioPlayerClient.stop().fireAndForget()
       )
     }

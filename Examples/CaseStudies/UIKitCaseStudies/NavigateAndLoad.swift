@@ -31,18 +31,18 @@ let eagerNavigationReducer =
       EagerNavigationState, EagerNavigationAction, EagerNavigationEnvironment
     > { state, action, environment in
 
-      struct CancelId: Hashable {}
+      enum CancelId {}
 
       switch action {
       case .setNavigation(isActive: true):
         state.isNavigationActive = true
         return Effect(value: .setNavigationIsActiveDelayCompleted)
           .delay(1, on: environment.mainQueue)
-          .cancellable(id: CancelId())
+          .cancellable(id: CancelId.self)
       case .setNavigation(isActive: false):
         state.isNavigationActive = false
         state.optionalCounter = nil
-        return .cancel(id: CancelId())
+        return .cancel(id: CancelId.self)
       case .setNavigationIsActiveDelayCompleted:
         state.optionalCounter = CounterState()
         return .none
