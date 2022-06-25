@@ -39,7 +39,7 @@ import ReactiveSwift
     ) -> Self where Error == Never {
       var task: Task<Void, Never>?
       return .future { callback in
-        task = Task(priority: priority) {
+        task = Task(priority: priority) { @MainActor in
           guard !Task.isCancelled else { return }
           let output = await operation()
           guard !Task.isCancelled else { return }
@@ -84,20 +84,20 @@ import ReactiveSwift
       deferred {
         var task: Task<(), Never>?
         let producer = SignalProducer { observer, lifetime in
-          task = Task(priority: priority) {
-            do {
-              try Task.checkCancellation()
-              let output = try await operation()
-              try Task.checkCancellation()
+          task = Task(priority: priority) { @MainActor in
+          do {
+            try Task.checkCancellation()
+            let output = try await operation()
+            try Task.checkCancellation()
               observer.send(value: output)
               observer.sendCompleted()
-            } catch is CancellationError {
+          } catch is CancellationError {
               observer.sendCompleted()
-            } catch {
+          } catch {
               observer.send(error: error)
-            }
           }
         }
+      }
 
         return producer.on(disposed: task?.cancel)
       }
