@@ -390,7 +390,7 @@
 
         XCTFail(
           """
-          State change does not match expectation: …
+          A state change does not match expectation: …
 
           \(difference)
           """,

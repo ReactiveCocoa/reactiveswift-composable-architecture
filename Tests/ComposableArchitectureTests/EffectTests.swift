@@ -189,7 +189,7 @@ final class EffectTests: XCTestCase {
       #if os(Linux)
         // for some reason this test fails on Linux
         return
-      #endif
+  #endif
 
       let expectation = self.expectation(description: "Complete")
       var result: Int?
@@ -223,8 +223,8 @@ final class EffectTests: XCTestCase {
           XCTFail()
         },
         value: { _ in
-          XCTFail()
-        }
+            XCTFail()
+          }
       )
       .start()
 
@@ -235,25 +235,21 @@ final class EffectTests: XCTestCase {
 
     func testCancellingTask() {
       @Sendable func work() async throws -> Int {
-        var task: Task<Int, Error>!
-        task = Task {
-          try? await Task.sleep(nanoseconds: NSEC_PER_MSEC)
-          try Task.checkCancellation()
-          return 42
-        }
-        task.cancel()
-        return try await task.value
+        try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
+        XCTFail()
+        return 42
       }
 
-      let expectation = self.expectation(description: "Complete")
-      Effect<Int, Error>.task {
-        try await work()
-      }.on(
-        completed: { expectation.fulfill() },
-        value: { _ in XCTFail() }
-      ).start()
+       let disposable = Effect<Int, Error>.task { try await work() }
+       .on(
+          completed: { XCTFail() },
+          value: { _ in XCTFail() }
+       )
+       .start(on: QueueScheduler.main)
+       .start()
 
-      self.wait(for: [expectation], timeout: 1)
+      disposable.dispose()
+      _ = XCTWaiter.wait(for: [.init()], timeout: 1.1)
     }
   #endif
 }
