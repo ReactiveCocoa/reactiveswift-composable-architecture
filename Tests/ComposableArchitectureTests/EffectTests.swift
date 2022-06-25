@@ -184,6 +184,18 @@ final class EffectTests: XCTestCase {
     XCTAssertEqual(result, 42)
   }
 
+  #if compiler(>=5.4) && !os(Linux)
+    func testFailing() {
+      let effect = Effect<Never, Never>.failing("failing")
+      XCTExpectFailure {
+        effect
+          .start()
+      } issueMatcher: { issue in
+        issue.compactDescription == "failing - A failing effect ran."
+      }
+    }
+  #endif
+
   #if canImport(_Concurrency) && compiler(>=5.5.2)
     func testTask() {
       let expectation = self.expectation(description: "Complete")
