@@ -454,7 +454,7 @@ public final class Store<State, Action> {
           "Store" (including all of its scopes and derived view stores) must be done on the same \
           thread.
           """,
-          debugCaseOutput(action)
+          [debugCaseOutput(action)]
         )
 
       case .`init`:
@@ -497,7 +497,7 @@ public final class Store<State, Action> {
           "Store" (including all of its scopes and derived view stores) must be done on the same \
           thread.
           """,
-          debugCaseOutput(action)
+          [debugCaseOutput(action)]
         )
 
       case let .send(action, originatingAction: .some(originatingAction)):
@@ -519,8 +519,10 @@ public final class Store<State, Action> {
           "Store" (including all of its scopes and derived view stores) must be done on the same \
           thread.
           """,
-          debugCaseOutput(action),
-          debugCaseOutput(originatingAction)
+          [
+            debugCaseOutput(action),
+            debugCaseOutput(originatingAction)
+          ]
         )
       }
     #endif
