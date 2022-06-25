@@ -170,8 +170,7 @@ extension Effect {
   /// Turns any `SignalProducer` into an ``Effect`` that cannot fail by wrapping its output and failure into
   /// result and then applying passed in function to it.
   ///
-  /// This is a convenience operator for writing ``Effect/catchToEffect()`` followed by a
-  /// ``Effect/map(_:)``.
+  /// This is a convenience operator for writing ``Effect/catchToEffect()`` followed by `map`.
   ///
   /// ```swift
   /// case .buttonTapped:
