@@ -21,13 +21,16 @@ extension Effect {
   }
 
   /// Creates an effect that executes some work in the real world that doesn't need to feed data
-  /// back into the store.
+  /// back into the store. If an error is thrown, the effect will complete and the error will be ignored.
   ///
   /// - Parameter work: A closure encapsulating some work to execute in the real world.
   /// - Returns: An effect.
-  public static func fireAndForget(_ work: @escaping () -> Void) -> Effect {
+  ///
+  /// - Parameter work: A closure encapsulating some work to execute in the real world.
+  /// - Returns: An effect.
+  public static func fireAndForget(_ work: @escaping () throws -> Void) -> Effect {
     .deferred { () -> SignalProducer<Value, Error> in
-      work()
+      try? work()
       return .empty
     }
   }
