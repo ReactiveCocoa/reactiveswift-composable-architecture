@@ -154,7 +154,7 @@ class TestStoreTests: XCTestCase {
         switch action {
         case .a:
           count += 1
-          return .merge(.init(value: .b), .init(value: .c), .init(value: .d))
+          return .merge(Effect(value: .b), Effect(value: .c), Effect(value: .d))
         case .b, .c, .d:
           count += 1
           return .none
