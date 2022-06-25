@@ -57,6 +57,9 @@ class TestStoreTests: XCTestCase {
 
     store.send(.d)
   }
+
+  // XCTExpectFailure is not supported on Linux
+  #if !os(Linux)
   func testExpectedStateEquality() {
     struct State: Equatable {
       var count: Int = 0
@@ -107,6 +110,7 @@ class TestStoreTests: XCTestCase {
       }
     }
   }
+  
   func testExpectedStateEqualityMustModify() {
     struct State: Equatable {
       var count: Int = 0
@@ -145,6 +149,7 @@ class TestStoreTests: XCTestCase {
       }
     }
   }
+  #endif
 
   func testStateAccess() {
     enum Action { case a, b, c, d }

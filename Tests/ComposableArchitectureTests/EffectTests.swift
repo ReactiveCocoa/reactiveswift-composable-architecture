@@ -186,11 +186,6 @@ final class EffectTests: XCTestCase {
 
   #if canImport(_Concurrency) && compiler(>=5.5.2)
     func testTask() {
-      #if os(Linux)
-        // for some reason this test fails on Linux
-        return
-  #endif
-
       let expectation = self.expectation(description: "Complete")
       var result: Int?
       Effect<Int, Never>.task {
@@ -203,11 +198,6 @@ final class EffectTests: XCTestCase {
     }
 
     func testThrowingTask() {
-      #if os(Linux)
-        // for some reason this test fails on Linux
-        return
-      #endif
-
       let expectation = self.expectation(description: "Complete")
       struct MyError: Error {}
       var result: Error?

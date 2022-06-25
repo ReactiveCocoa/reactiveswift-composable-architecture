@@ -42,10 +42,10 @@ func runtimeWarning(
       )(.fault, rw.dso, rw.log, message, args())
       XCTFail(String(format: "\(message)", arguments: args()))
     #else
-      let strMessage = message.withUTF8Buffer {
+      let strMessage = message().withUTF8Buffer {
         String(decoding: $0, as: UTF8.self)
       }
-      print(String(format: strMessage, arguments: args))
+      print(String(format: strMessage, arguments: args()))
     #endif
   #endif
 }
