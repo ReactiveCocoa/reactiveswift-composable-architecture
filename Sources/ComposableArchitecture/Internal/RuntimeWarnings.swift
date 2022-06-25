@@ -43,7 +43,10 @@
       _ message: StaticString,
       _ args: CVarArg...
     ) {
-      print(String(format: message, arguments: args))
+      let strMessage = message.withUTF8Buffer {
+        String(decoding: $0, as: UTF8.self)
+      }
+      print(String(format: strMessage, arguments: args))
     }
   #endif
 #endif

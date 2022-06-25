@@ -65,12 +65,12 @@ import SwiftUI
 /// ``WithViewStore`` helper ensures that the ``ViewStore`` is retained.
 @dynamicMemberLookup
 public final class ViewStore<State, Action> {
-  #if canImport(Combine)
-  public private(set) lazy var objectWillChange = ObservableObjectPublisher()
-  #else
-  // dummy Void to support using `self.objectWillChange` in closure capture lists
-  public private(set) lazy var objectWillChange = Void()
+  #if !canImport(Combine)
+  // dummy implementation in order to allow capturing below
+  public class ObservableObjectPublisher {}
   #endif
+
+  public private(set) lazy var objectWillChange = ObservableObjectPublisher()
 
   private let _send: (Action) -> Void
   fileprivate var _state: CurrentValueRelay<State>
