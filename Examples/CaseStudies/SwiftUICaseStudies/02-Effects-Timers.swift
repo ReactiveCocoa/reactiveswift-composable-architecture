@@ -29,7 +29,8 @@ struct TimersEnvironment {
 
 let timersReducer = Reducer<TimersState, TimersAction, TimersEnvironment> {
   state, action, environment in
-  struct TimerId: Hashable {}
+
+  enum TimerId {}
 
   switch action {
   case .timerTicked:
@@ -40,13 +41,13 @@ let timersReducer = Reducer<TimersState, TimersAction, TimersEnvironment> {
     state.isTimerActive.toggle()
     return state.isTimerActive
       ? Effect.timer(
-        id: TimerId(),
+        id: TimerId.self,
         every: .seconds(1),
         tolerance: .seconds(0),
         on: environment.mainQueue.animation(.interpolatingSpring(stiffness: 3000, damping: 40))
       )
       .map { _ in TimersAction.timerTicked }
-      : Effect.cancel(id: TimerId())
+      : .cancel(id: TimerId.self)
   }
 }
 

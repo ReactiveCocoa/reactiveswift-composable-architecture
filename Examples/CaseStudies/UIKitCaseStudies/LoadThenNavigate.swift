@@ -31,15 +31,17 @@ let lazyNavigationReducer =
     with: Reducer<
       LazyNavigationState, LazyNavigationAction, LazyNavigationEnvironment
     > { state, action, environment in
-      struct CancelId: Hashable {}
+
+      enum CancelId {}
+
       switch action {
       case .onDisappear:
-        return .cancel(id: CancelId())
+        return .cancel(id: CancelId.self)
       case .setNavigation(isActive: true):
         state.isActivityIndicatorHidden = false
         return Effect(value: .setNavigationIsActiveDelayCompleted)
           .delay(1, on: environment.mainQueue)
-          .cancellable(id: CancelId())
+          .cancellable(id: CancelId.self)
       case .setNavigation(isActive: false):
         state.optionalCounter = nil
         return .none
