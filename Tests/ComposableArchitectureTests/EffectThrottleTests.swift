@@ -11,13 +11,13 @@ final class EffectThrottleTests: XCTestCase {
     var effectRuns = 0
 
     func runThrottledEffect(value: Int) {
-      struct CancelToken: Hashable {}
+      enum CancelToken {}
 
       Effect.deferred { () -> Effect<Int, Never> in
         effectRuns += 1
         return .init(value: value)
       }
-      .throttle(id: CancelToken(), for: 1, scheduler: scheduler, latest: true)
+      .throttle(id: CancelToken.self, for: 1, scheduler: scheduler, latest: true)
       .startWithValues { values.append($0) }
     }
 
@@ -61,13 +61,13 @@ final class EffectThrottleTests: XCTestCase {
     var effectRuns = 0
 
     func runThrottledEffect(value: Int) {
-      struct CancelToken: Hashable {}
+      enum CancelToken {}
 
       Effect.deferred { () -> Effect<Int, Never> in
         effectRuns += 1
         return .init(value: value)
       }
-      .throttle(id: CancelToken(), for: 1, scheduler: scheduler, latest: false)
+      .throttle(id: CancelToken.self, for: 1, scheduler: scheduler, latest: false)
       .startWithValues { values.append($0) }
     }
 
@@ -124,13 +124,13 @@ final class EffectThrottleTests: XCTestCase {
     var effectRuns = 0
 
     func runThrottledEffect(value: Int) {
-      struct CancelToken: Hashable {}
+      enum CancelToken {}
 
       Effect.deferred { () -> Effect<Int, Never> in
         effectRuns += 1
         return .init(value: value)
       }
-      .throttle(id: CancelToken(), for: 1, scheduler: scheduler, latest: true)
+      .throttle(id: CancelToken.self, for: 1, scheduler: scheduler, latest: true)
       .startWithValues { values.append($0) }
     }
 
@@ -165,14 +165,14 @@ final class EffectThrottleTests: XCTestCase {
     var effectRuns = 0
 
     func runThrottledEffect(value: Int) {
-      struct CancelToken: Hashable {}
+      enum CancelToken {}
 
       Effect.deferred { () -> Effect<Int, Never> in
         effectRuns += 1
         return .init(value: value)
       }
       .throttle(
-        id: CancelToken(), for: 1, scheduler: scheduler, latest: false
+        id: CancelToken.self, for: 1, scheduler: scheduler, latest: false
       )
       .startWithValues { values.append($0) }
     }
