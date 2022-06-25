@@ -22,20 +22,23 @@ struct TestApp: App {
         checkAccessibilityRotor()
         checkToolbar()
       }
-        }
-    #if os(iOS) || os(macOS)
-        .commands {
-      WithViewStore(self.store) { viewStore in
+    }
+  }
+
+  #if os(iOS) || os(macOS)
+    var commands: some Scene {
+      self.body.commands {
+        WithViewStore(self.store) { viewStore in
           CommandMenu("Commands") {
             Button("Increment") {
               viewStore.send(())
             }
           }
         }
-        }
-      #endif
+      }
     }
-  
+  #endif
+
   @ViewBuilder
   func checkToolbar() -> some View {
     Color.clear
