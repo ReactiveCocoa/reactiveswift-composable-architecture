@@ -233,7 +233,7 @@ final class EffectTests: XCTestCase {
       disposable.dispose()
     }
 
-    func testCancellingTask() {
+    func testCancellingTask_Failable() {
       @Sendable func work() async throws -> Int {
         try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
         XCTFail()
@@ -249,6 +249,28 @@ final class EffectTests: XCTestCase {
        .start()
 
       disposable.dispose()
+      _ = XCTWaiter.wait(for: [.init()], timeout: 1.1)
+    }
+
+    func testCancellingTask_Infalable() {
+      @Sendable func work() async -> Int {
+        do {
+          try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
+          XCTFail()
+        } catch {
+        }
+        return 42
+      }
+
+      Effect<Int, Never >.task { await work() }
+        .sink(
+          receiveCompletion: { _ in XCTFail() },
+          receiveValue: { _ in XCTFail() }
+        )
+        .store(in: &self.cancellables)
+
+      self.cancellables = []
+
       _ = XCTWaiter.wait(for: [.init()], timeout: 1.1)
     }
   #endif
