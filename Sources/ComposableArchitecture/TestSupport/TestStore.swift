@@ -173,7 +173,7 @@
     private let file: StaticString
     private let fromLocalAction: (LocalAction) -> Action
     private var line: UInt
-    private var longLivingEffects: Set<LongLivingEffect> = []
+    private var inFlightEffects: Set<LongLivingEffect> = []
     var receivedActions: [(action: Action, state: State)] = []
     private let reducer: Reducer<State, Action, Environment>
     private var snapshotState: State
@@ -215,9 +215,9 @@
           return
             effects
             .on(
-              starting: { [weak self] in self?.longLivingEffects.insert(effect) },
-              completed: { [weak self] in self?.longLivingEffects.remove(effect) },
-              disposed: { [weak self] in self?.longLivingEffects.remove(effect) }
+              starting: { [weak self] in self?.inFlightEffects.insert(effect) },
+              completed: { [weak self] in self?.inFlightEffects.remove(effect) },
+              disposed: { [weak self] in self?.inFlightEffects.remove(effect) }
             )
             .map { .init(origin: .receive($0), file: action.file, line: action.line) }
 
@@ -244,7 +244,7 @@
           file: self.file, line: self.line
         )
       }
-      for effect in self.longLivingEffects {
+      for effect in self.inFlightEffects {
         XCTFail(
           """
           An effect returned for this action is still running. It must complete before the end of \
