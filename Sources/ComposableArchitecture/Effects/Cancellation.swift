@@ -43,6 +43,7 @@ extension Effect {
       cancellablesLock.lock()
       defer { cancellablesLock.unlock() }
 
+      let id = CancelToken(id: id)
       if cancelInFlight {
         cancellationCancellables[id]?.forEach { $0.dispose() }
       }
@@ -96,7 +97,7 @@ extension Effect {
   public static func cancel(id: AnyHashable) -> Effect {
     return .fireAndForget {
       cancellablesLock.sync {
-        cancellationCancellables[id]?.forEach { $0.dispose() }
+        cancellationCancellables[.init(id: id)]?.forEach { $0.dispose() }
       }
     }
   }
@@ -111,5 +112,15 @@ extension Effect {
   }
 }
 
-var cancellationCancellables: [AnyHashable: Set<AnyDisposable>] = [:]
+struct CancelToken: Hashable {
+  let id: AnyHashable
+  let discriminator: ObjectIdentifier
+
+  init(id: AnyHashable) {
+    self.id = id
+    self.discriminator = ObjectIdentifier(type(of: id.base))
+  }
+}
+
+var cancellationCancellables: [CancelToken: Set<AnyDisposable>] = [:]
 let cancellablesLock = NSRecursiveLock()
