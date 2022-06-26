@@ -88,7 +88,7 @@ extension Effect where Value == Date, Error == Never {
     every interval: DispatchTimeInterval,
     tolerance: DispatchTimeInterval? = nil,
     on scheduler: DateScheduler
-  ) -> Effect<Value, Error> {
+  ) -> Self {
     return SignalProducer.timer(
       interval: interval, on: scheduler, leeway: tolerance ?? .seconds(.max)
     )
@@ -114,7 +114,7 @@ extension Effect where Value == Date, Error == Never {
     every interval: DispatchTimeInterval,
     tolerance: DispatchTimeInterval? = nil,
     on scheduler: DateScheduler
-  ) -> Effect  {
+  ) -> Self  {
     self.timer(
       id: ObjectIdentifier(id),
       every: interval,

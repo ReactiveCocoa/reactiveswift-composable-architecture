@@ -344,17 +344,16 @@ public struct StoreProducer<State>: SignalProducerConvertible {
   }
 
   /// Returns the resulting `StoreProducer` of a given key path.
-  public subscript<LocalState>(
+  public subscript<LocalState: Equatable>(
     dynamicMember keyPath: KeyPath<State, LocalState>
-  ) -> StoreProducer<LocalState>
-  where LocalState: Equatable {
+  ) -> StoreProducer<LocalState> {
     .init(upstream: self.upstream.map(keyPath).skipRepeats(), viewStore: self.viewStore)
   }
 
   /// Returns the resulting `SignalProducer` of a given key path.
-  public subscript<LocalValue>(
+  public subscript<LocalValue: Equatable>(
     dynamicMember keyPath: KeyPath<Value, LocalValue>
-  ) -> Effect<LocalValue, Never> where LocalValue: Equatable {
+  ) -> Effect<LocalValue, Never> {
     self.upstream.map(keyPath).skipRepeats()
   }
 }

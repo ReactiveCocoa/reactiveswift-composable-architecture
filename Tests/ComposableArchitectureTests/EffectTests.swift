@@ -187,7 +187,7 @@ final class EffectTests: XCTestCase {
   #if compiler(>=5.4) && !os(Linux)
     func testFailing() {
       let effect = Effect<Never, Never>.failing("failing")
-      XCTExpectFailure {
+      _ = XCTExpectFailure {
         effect
           .start()
       } issueMatcher: { issue in

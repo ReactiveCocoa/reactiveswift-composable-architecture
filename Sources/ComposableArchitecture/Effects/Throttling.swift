@@ -19,7 +19,7 @@ extension Effect {
     for interval: TimeInterval,
     scheduler: DateScheduler,
     latest: Bool
-  ) -> Effect<Value, Error> {
+  ) -> Self {
     self.observe(on: scheduler)
       .flatMap(.latest) { value -> Effect<Value, Error> in
         throttleLock.lock()
@@ -79,7 +79,7 @@ extension Effect {
     for interval: TimeInterval,
     scheduler: DateScheduler,
     latest: Bool
-  ) -> Effect {
+  ) -> Self {
     self.throttle(id: ObjectIdentifier(id), for: interval, scheduler: scheduler, latest: latest)
   }
 }
