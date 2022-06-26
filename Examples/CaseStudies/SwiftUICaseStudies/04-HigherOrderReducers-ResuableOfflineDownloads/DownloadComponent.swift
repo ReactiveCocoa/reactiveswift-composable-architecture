@@ -36,10 +36,10 @@ enum DownloadComponentAction: Equatable {
   case downloadClient(Result<DownloadClient.Action, DownloadClient.Error>)
 
   enum AlertAction: Equatable {
-    case cancelButtonTapped
     case deleteButtonTapped
     case dismiss
     case nevermindButtonTapped
+    case stopButtonTapped
   }
 }
 
@@ -58,11 +58,6 @@ extension Reducer {
       Reducer<DownloadComponentState<ID>, DownloadComponentAction, DownloadComponentEnvironment> {
         state, action, environment in
         switch action {
-        case .alert(.cancelButtonTapped):
-          state.mode = .notDownloaded
-          state.alert = nil
-          return .cancel(id: state.id)
-
         case .alert(.deleteButtonTapped):
           state.alert = nil
           state.mode = .notDownloaded
@@ -73,6 +68,11 @@ extension Reducer {
           state.alert = nil
           return .none
 
+        case .alert(.stopButtonTapped):
+          state.mode = .notDownloaded
+          state.alert = nil
+          return .cancel(id: state.id)
+
         case .buttonTapped:
           switch state.mode {
           case .downloaded:
@@ -80,7 +80,7 @@ extension Reducer {
             return .none
 
           case .downloading:
-            state.alert = cancelAlert
+            state.alert = stopAlert
             return .none
 
           case .notDownloaded:
@@ -92,7 +92,7 @@ extension Reducer {
               .cancellable(id: state.id)
 
           case .startingToDownload:
-            state.alert = cancelAlert
+            state.alert = stopAlert
             return .none
           }
 
@@ -123,14 +123,14 @@ private let deleteAlert = AlertState(
   secondaryButton: nevermindButton
 )
 
-private let cancelAlert = AlertState(
-  title: .init("Do you want to cancel downloading this map?"),
-  primaryButton: .destructive(.init("Cancel"), action: .send(.cancelButtonTapped)),
+private let stopAlert = AlertState(
+  title: .init("Do you want to stop downloading this map?"),
+  primaryButton: .destructive(.init("Stop"), action: .send(.stopButtonTapped)),
   secondaryButton: nevermindButton
 )
 
 let nevermindButton = AlertState<DownloadComponentAction.AlertAction>.Button
-  .default(.init("Nevermind"), action: .send(.nevermindButtonTapped))
+  .cancel(.init("Nevermind"), action: .send(.nevermindButtonTapped))
 
 struct DownloadComponent<ID: Equatable>: View {
   let store: Store<DownloadComponentState<ID>, DownloadComponentAction>
