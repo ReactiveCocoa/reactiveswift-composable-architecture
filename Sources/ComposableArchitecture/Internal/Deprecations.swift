@@ -9,6 +9,15 @@ import SwiftUI
   import os
 #endif
 
+// NB: Deprecated after 0.36.0:
+
+extension ViewStore {
+  @available(*, deprecated, renamed: "yield(while:)")
+  public func suspend(while predicate: @escaping (State) -> Bool) async {
+    await self.yield(while: predicate)
+  }
+}
+
 // NB: Deprecated after 0.34.0:
 
 extension Effect {
