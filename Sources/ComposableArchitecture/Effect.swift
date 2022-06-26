@@ -16,7 +16,7 @@ public typealias Effect<Value, Error: Swift.Error> = SignalProducer<Value, Error
 extension Effect {
   /// An effect that does nothing and completes immediately. Useful for situations where you must
   /// return an effect, but you don't need to do anything.
-  public static var none: Effect {
+  public static var none: Self {
     .empty
   }
 
@@ -28,19 +28,17 @@ extension Effect {
   ///
   /// - Parameter work: A closure encapsulating some work to execute in the real world.
   /// - Returns: An effect.
-  public static func fireAndForget(_ work: @escaping () throws -> Void) -> Effect {
+  public static func fireAndForget(_ work: @escaping () throws -> Void) -> Self {
     .deferred { () -> SignalProducer<Value, Error> in
       try? work()
       return .empty
     }
   }
 
-  /// Concatenates a variadic list of effects together into a single effect, which runs the effects
-  /// one after the other.
   ///
   /// - Parameter effects: A variadic list of effects.
   /// - Returns: A new effect
-  public static func concatenate(_ effects: Effect...) -> Effect {
+  public static func concatenate(_ effects: Effect...) -> Self {
     .concatenate(effects)
   }
 
@@ -66,7 +64,7 @@ extension Effect {
   /// the supplied closure to create a new ``Effect``, whose values
   /// are then sent to the subscriber of this effect.
   public static func deferred(_ createProducer: @escaping () -> SignalProducer<Value, Error>)
-    -> SignalProducer<Value, Error>
+    -> Self
   {
     Effect<Void, Error>(value: ())
       .flatMap(.merge, createProducer)
@@ -103,7 +101,7 @@ extension Effect {
   ///   used to feed it `Result<Output, Failure>` values.
   public static func future(
     _ attemptToFulfill: @escaping (@escaping (Result<Value, Error>) -> Void) -> Void
-  ) -> Effect {
+  ) -> Self {
     SignalProducer { observer, _ in
       attemptToFulfill { result in
         switch result {

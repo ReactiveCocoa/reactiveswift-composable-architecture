@@ -39,7 +39,7 @@ extension Effect {
   ///   - cancelInFlight: Determines if any in-flight effect with the same identifier should be
   ///     canceled before starting this new one.
   /// - Returns: A new effect that is capable of being canceled by an identifier.
-  public func cancellable(id: AnyHashable, cancelInFlight: Bool = false) -> Effect {
+  public func cancellable(id: AnyHashable, cancelInFlight: Bool = false) -> Self {
     Effect.deferred { () -> SignalProducer<Value, Error> in
       cancellablesLock.lock()
       defer { cancellablesLock.unlock() }
@@ -100,7 +100,7 @@ extension Effect {
   ///   - cancelInFlight: Determines if any in-flight effect with the same identifier should be
   ///     canceled before starting this new one.
   /// - Returns: A new effect that is capable of being canceled by an identifier.
-  public func cancellable(id: Any.Type, cancelInFlight: Bool = false) -> Effect {
+  public func cancellable(id: Any.Type, cancelInFlight: Bool = false) -> Self {
     self.cancellable(id: ObjectIdentifier(id), cancelInFlight: cancelInFlight)
   }
 
@@ -109,7 +109,7 @@ extension Effect {
   /// - Parameter id: An effect identifier.
   /// - Returns: A new effect that will cancel any currently in-flight effect with the given
   ///   identifier.
-  public static func cancel(id: AnyHashable) -> Effect {
+  public static func cancel(id: AnyHashable) -> Self {
     .fireAndForget {
       cancellablesLock.sync {
         cancellationCancellables[.init(id: id)]?.forEach { $0.dispose() }
@@ -125,7 +125,7 @@ extension Effect {
   /// - Parameter id: A unique type identifying the effect.
   /// - Returns: A new effect that will cancel any currently in-flight effect with the given
   ///   identifier.
-  public static func cancel(id: Any.Type) -> Effect {
+  public static func cancel(id: Any.Type) -> Self {
     .cancel(id: ObjectIdentifier(id))
   }
 
@@ -134,7 +134,7 @@ extension Effect {
   /// - Parameter ids: An array of effect identifiers.
   /// - Returns: A new effect that will cancel any currently in-flight effects with the given
   ///   identifiers.
-  public static func cancel(ids: [AnyHashable]) -> Effect {
+  public static func cancel(ids: [AnyHashable]) -> Self {
     .merge(ids.map(Effect.cancel(id:)))
   }
 
@@ -146,7 +146,7 @@ extension Effect {
   /// - Parameter ids: An array of unique types identifying the effects.
   /// - Returns: A new effect that will cancel any currently in-flight effects with the given
   ///   identifiers.
-  public static func cancel(ids: [Any.Type]) -> Effect {
+  public static func cancel(ids: [Any.Type]) -> Self {
     .merge(ids.map(Effect.cancel(id:)))
   }
 }

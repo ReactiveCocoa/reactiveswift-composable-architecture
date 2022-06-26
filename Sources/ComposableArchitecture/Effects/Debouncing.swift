@@ -28,7 +28,7 @@ extension Effect {
     id: AnyHashable,
     for dueTime: TimeInterval,
     scheduler: DateScheduler
-  ) -> Effect<Value, Error> {
+  ) -> Self {
     Effect<Void, Never>.init(value: ())
       .promoteError(Error.self)
       .delay(dueTime, on: scheduler)
@@ -51,7 +51,7 @@ extension Effect {
     id: Any.Type,
     for dueTime: TimeInterval,
     scheduler: DateScheduler
-  ) -> Effect {
+  ) -> Self {
     self.debounce(id: ObjectIdentifier(id), for: dueTime, scheduler: scheduler)
   }
 }

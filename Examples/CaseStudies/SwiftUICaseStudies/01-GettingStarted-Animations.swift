@@ -23,7 +23,7 @@ extension Effect where Error == Never {
   public static func keyFrames(
     values: [(output: Value, duration: TimeInterval)],
     scheduler: DateScheduler
-  ) -> Effect {
+  ) -> Self {
     .concatenate(
       values
         .enumerated()
