@@ -39,7 +39,7 @@ class VoiceMemosTests: XCTestCase {
     mainRunLoop.advance()
     store.receive(.recordPermissionResponse(true)) {
       $0.audioRecorderPermission = .allowed
-      $0.currentRecording = .init(
+      $0.currentRecording = VoiceMemosState.CurrentRecording(
         date: Date(timeIntervalSinceReferenceDate: 0),
         mode: .recording,
         url: URL(string: "file:///tmp/DEADBEEF-DEAD-BEEF-DEAD-BEEFDEADBEEF.m4a")!
@@ -90,7 +90,7 @@ class VoiceMemosTests: XCTestCase {
 
     store.send(.recordButtonTapped)
     store.receive(.recordPermissionResponse(false)) {
-      $0.alert = .init(title: .init("Permission is required to record voice memos."))
+      $0.alert = AlertState(title: TextState("Permission is required to record voice memos."))
       $0.audioRecorderPermission = .denied
     }
     store.send(.alertDismissed) {
@@ -112,7 +112,7 @@ class VoiceMemosTests: XCTestCase {
       audioRecorderSubject.output.producer
     }
     environment.mainRunLoop = ImmediateScheduler()
-    environment.temporaryDirectory = { .init(fileURLWithPath: "/tmp") }
+    environment.temporaryDirectory = { URL(fileURLWithPath: "/tmp") }
     environment.uuid = { UUID(uuidString: "DEADBEEF-DEAD-BEEF-DEAD-BEEFDEADBEEF")! }
 
     let store = TestStore(
@@ -124,7 +124,7 @@ class VoiceMemosTests: XCTestCase {
     store.send(.recordButtonTapped)
     store.receive(.recordPermissionResponse(true)) {
       $0.audioRecorderPermission = .allowed
-      $0.currentRecording = .init(
+      $0.currentRecording = VoiceMemosState.CurrentRecording(
         date: Date(timeIntervalSince1970: 0),
         mode: .recording,
         url: URL(string: "file:///tmp/DEADBEEF-DEAD-BEEF-DEAD-BEEFDEADBEEF.m4a")!
@@ -135,7 +135,7 @@ class VoiceMemosTests: XCTestCase {
       $0.currentRecording?.duration = 1.0
     }
     store.receive(.audioRecorder(.failure(.couldntActivateAudioSession))) {
-      $0.alert = .init(title: .init("Voice memo recording failed."))
+      $0.alert = AlertState(title: TextState("Voice memo recording failed."))
       $0.currentRecording = nil
     }
   }
@@ -214,7 +214,7 @@ class VoiceMemosTests: XCTestCase {
     }
     store.receive(.voiceMemo(id: url, action: .timerUpdated(0)))
     store.receive(.voiceMemo(id: url, action: .audioPlayerClient(.failure(.decodeErrorDidOccur)))) {
-      $0.alert = .init(title: .init("Voice memo playback failed."))
+      $0.alert = AlertState(title: TextState("Voice memo playback failed."))
       $0.voiceMemos[id: url]?.mode = .notPlaying
     }
   }
