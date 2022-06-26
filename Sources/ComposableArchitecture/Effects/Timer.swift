@@ -114,7 +114,7 @@ extension Effect where Value == Date, Error == Never {
     every interval: DispatchTimeInterval,
     tolerance: DispatchTimeInterval? = nil,
     on scheduler: DateScheduler
-  ) -> Self  {
+  ) -> Self {
     self.timer(
       id: ObjectIdentifier(id),
       every: interval,

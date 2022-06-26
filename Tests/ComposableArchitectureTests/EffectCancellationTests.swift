@@ -275,7 +275,7 @@ final class EffectCancellationTests: XCTestCase {
 
     XCTAssertEqual(output, [1, 2])
   }
-  
+
   func testMultipleCancellations() {
     let scheduler = TestScheduler()
     var output: [AnyHashable] = []
@@ -286,9 +286,9 @@ final class EffectCancellationTests: XCTestCase {
 
     let ids: [AnyHashable] = [A(), B(), C()]
     let effects = ids.map { id in
-        Effect(value: id)
-          .delay(1, on: scheduler)
-          .cancellable(id: id)
+      Effect(value: id)
+        .delay(1, on: scheduler)
+        .cancellable(id: id)
     }
 
     Effect<AnyHashable, Never>.merge(effects)

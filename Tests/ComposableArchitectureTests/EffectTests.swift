@@ -225,8 +225,8 @@ final class EffectTests: XCTestCase {
           XCTFail()
         },
         value: { _ in
-            XCTFail()
-          }
+          XCTFail()
+        }
       )
       .start()
 
@@ -242,13 +242,13 @@ final class EffectTests: XCTestCase {
         return 42
       }
 
-       let disposable = Effect<Int, Error>.task { try await work() }
-       .on(
+      let disposable = Effect<Int, Error>.task { try await work() }
+        .on(
           completed: { XCTFail() },
           value: { _ in XCTFail() }
-       )
-       .start(on: QueueScheduler.main)
-       .start()
+        )
+        .start(on: QueueScheduler.main)
+        .start()
 
       disposable.dispose()
 
@@ -265,10 +265,10 @@ final class EffectTests: XCTestCase {
         return 42
       }
 
-      let disposable = Effect<Int, Never >.task { await work() }
+      let disposable = Effect<Int, Never>.task { await work() }
         .on(
-           completed: { XCTFail() },
-           value: { _ in XCTFail() }
+          completed: { XCTFail() },
+          value: { _ in XCTFail() }
         )
         .start(on: QueueScheduler.main)
         .start()

@@ -1,10 +1,10 @@
 import ReactiveSwift
 
 #if canImport(Combine)
-import Combine
+  import Combine
 #endif
 #if canImport(SwiftUI)
-import SwiftUI
+  import SwiftUI
 #endif
 
 /// A ``ViewStore`` is an object that can observe state changes and send actions. They are most
@@ -66,8 +66,8 @@ import SwiftUI
 @dynamicMemberLookup
 public final class ViewStore<State, Action> {
   #if !canImport(Combine)
-  // dummy implementation in order to allow capturing below
-  public class ObservableObjectPublisher {}
+    // dummy implementation in order to allow capturing below
+    public class ObservableObjectPublisher {}
   #endif
 
   public private(set) lazy var objectWillChange = ObservableObjectPublisher()
@@ -91,10 +91,11 @@ public final class ViewStore<State, Action> {
 
     self.viewDisposable = store.producer
       .skipRepeats(isDuplicate)
-      .startWithValues { [weak objectWillChange = self.objectWillChange, weak _state = self._state] in
+      .startWithValues {
+        [weak objectWillChange = self.objectWillChange, weak _state = self._state] in
         guard let objectWillChange = objectWillChange, let _state = _state else { return }
         #if canImport(Combine)
-        objectWillChange.send()
+          objectWillChange.send()
         #endif
         _state.value = $0
       }
@@ -156,143 +157,143 @@ public final class ViewStore<State, Action> {
   }
 
   #if canImport(SwiftUI)
-  /// Sends an action to the store with a given animation.
-  ///
-  /// See ``ViewStore/send(_:)`` for more info.
-  ///
-  /// - Parameters:
-  ///   - action: An action.
-  ///   - animation: An animation.
-  public func send(_ action: Action, animation: Animation?) {
-    withAnimation(animation) {
-      self.send(action)
+    /// Sends an action to the store with a given animation.
+    ///
+    /// See ``ViewStore/send(_:)`` for more info.
+    ///
+    /// - Parameters:
+    ///   - action: An action.
+    ///   - animation: An animation.
+    public func send(_ action: Action, animation: Animation?) {
+      withAnimation(animation) {
+        self.send(action)
+      }
     }
-  }
 
-  /// Derives a binding from the store that prevents direct writes to state and instead sends
-  /// actions to the store.
-  ///
-  /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
-  /// since the ``Store`` does not allow directly writing its state; it only allows reading state
-  /// and sending actions.
-  ///
-  /// For example, a text field binding can be created like this:
-  ///
-  /// ```swift
-  /// struct State { var name = "" }
-  /// enum Action { case nameChanged(String) }
-  ///
-  /// TextField(
-  ///   "Enter name",
-  ///   text: viewStore.binding(
-  ///     get: { $0.name },
-  ///     send: { Action.nameChanged($0) }
-  ///   )
-  /// )
-  /// ```
-  ///
-  /// - Parameters:
-  ///   - get: A function to get the state for the binding from the view
-  ///     store's full state.
-  ///   - localStateToViewAction: A function that transforms the binding's value
-  ///     into an action that can be sent to the store.
-  /// - Returns: A binding.
-  public func binding<LocalState>(
-    get: @escaping (State) -> LocalState,
-    send localStateToViewAction: @escaping (LocalState) -> Action
-  ) -> Binding<LocalState> {
-    ObservedObject(wrappedValue: self)
-      .projectedValue[get: .init(rawValue: get), send: .init(rawValue: localStateToViewAction)]
-  }
-  /// Derives a binding from the store that prevents direct writes to state and instead sends
-  /// actions to the store.
-  ///
-  /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
-  /// since the ``Store`` does not allow directly writing its state; it only allows reading state
-  /// and sending actions.
-  ///
-  /// For example, an alert binding can be dealt with like this:
-  ///
-  /// ```swift
-  /// struct State { var alert: String? }
-  /// enum Action { case alertDismissed }
-  ///
-  /// .alert(
-  ///   item: self.store.binding(
-  ///     get: { $0.alert },
-  ///     send: .alertDismissed
-  ///   )
-  /// ) { alert in Alert(title: Text(alert.message)) }
-  /// ```
-  ///
-  /// - Parameters:
-  ///   - get: A function to get the state for the binding from the view store's full state.
-  ///   - action: The action to send when the binding is written to.
-  /// - Returns: A binding.
-  public func binding<LocalState>(
-    get: @escaping (State) -> LocalState,
-    send action: Action
-  ) -> Binding<LocalState> {
-    self.binding(get: get, send: { _ in action })
-  }
+    /// Derives a binding from the store that prevents direct writes to state and instead sends
+    /// actions to the store.
+    ///
+    /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
+    /// since the ``Store`` does not allow directly writing its state; it only allows reading state
+    /// and sending actions.
+    ///
+    /// For example, a text field binding can be created like this:
+    ///
+    /// ```swift
+    /// struct State { var name = "" }
+    /// enum Action { case nameChanged(String) }
+    ///
+    /// TextField(
+    ///   "Enter name",
+    ///   text: viewStore.binding(
+    ///     get: { $0.name },
+    ///     send: { Action.nameChanged($0) }
+    ///   )
+    /// )
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - get: A function to get the state for the binding from the view
+    ///     store's full state.
+    ///   - localStateToViewAction: A function that transforms the binding's value
+    ///     into an action that can be sent to the store.
+    /// - Returns: A binding.
+    public func binding<LocalState>(
+      get: @escaping (State) -> LocalState,
+      send localStateToViewAction: @escaping (LocalState) -> Action
+    ) -> Binding<LocalState> {
+      ObservedObject(wrappedValue: self)
+        .projectedValue[get: .init(rawValue: get), send: .init(rawValue: localStateToViewAction)]
+    }
+    /// Derives a binding from the store that prevents direct writes to state and instead sends
+    /// actions to the store.
+    ///
+    /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
+    /// since the ``Store`` does not allow directly writing its state; it only allows reading state
+    /// and sending actions.
+    ///
+    /// For example, an alert binding can be dealt with like this:
+    ///
+    /// ```swift
+    /// struct State { var alert: String? }
+    /// enum Action { case alertDismissed }
+    ///
+    /// .alert(
+    ///   item: self.store.binding(
+    ///     get: { $0.alert },
+    ///     send: .alertDismissed
+    ///   )
+    /// ) { alert in Alert(title: Text(alert.message)) }
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - get: A function to get the state for the binding from the view store's full state.
+    ///   - action: The action to send when the binding is written to.
+    /// - Returns: A binding.
+    public func binding<LocalState>(
+      get: @escaping (State) -> LocalState,
+      send action: Action
+    ) -> Binding<LocalState> {
+      self.binding(get: get, send: { _ in action })
+    }
 
-  /// Derives a binding from the store that prevents direct writes to state and instead sends
-  /// actions to the store.
-  ///
-  /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
-  /// since the ``Store`` does not allow directly writing its state; it only allows reading state
-  /// and sending actions.
-  ///
-  /// For example, a text field binding can be created like this:
-  ///
-  /// ```swift
-  /// typealias State = String
-  /// enum Action { case nameChanged(String) }
-  ///
-  /// TextField(
-  ///   "Enter name",
-  ///   text: viewStore.binding(
-  ///     send: { Action.nameChanged($0) }
-  ///   )
-  /// )
-  /// ```
-  ///
-  /// - Parameters:
-  ///   - localStateToViewAction: A function that transforms the binding's value
-  ///     into an action that can be sent to the store.
-  /// - Returns: A binding.
-  public func binding(
-    send localStateToViewAction: @escaping (State) -> Action
-  ) -> Binding<State> {
-    self.binding(get: { $0 }, send: localStateToViewAction)
-  }
+    /// Derives a binding from the store that prevents direct writes to state and instead sends
+    /// actions to the store.
+    ///
+    /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
+    /// since the ``Store`` does not allow directly writing its state; it only allows reading state
+    /// and sending actions.
+    ///
+    /// For example, a text field binding can be created like this:
+    ///
+    /// ```swift
+    /// typealias State = String
+    /// enum Action { case nameChanged(String) }
+    ///
+    /// TextField(
+    ///   "Enter name",
+    ///   text: viewStore.binding(
+    ///     send: { Action.nameChanged($0) }
+    ///   )
+    /// )
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - localStateToViewAction: A function that transforms the binding's value
+    ///     into an action that can be sent to the store.
+    /// - Returns: A binding.
+    public func binding(
+      send localStateToViewAction: @escaping (State) -> Action
+    ) -> Binding<State> {
+      self.binding(get: { $0 }, send: localStateToViewAction)
+    }
 
-  /// Derives a binding from the store that prevents direct writes to state and instead sends
-  /// actions to the store.
-  ///
-  /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
-  /// since the ``Store`` does not allow directly writing its state; it only allows reading state
-  /// and sending actions.
-  ///
-  /// For example, an alert binding can be dealt with like this:
-  ///
-  /// ```swift
-  /// typealias State = String
-  /// enum Action { case alertDismissed }
-  ///
-  /// .alert(
+    /// Derives a binding from the store that prevents direct writes to state and instead sends
+    /// actions to the store.
+    ///
+    /// The method is useful for dealing with SwiftUI components that work with two-way `Binding`s
+    /// since the ``Store`` does not allow directly writing its state; it only allows reading state
+    /// and sending actions.
+    ///
+    /// For example, an alert binding can be dealt with like this:
+    ///
+    /// ```swift
+    /// typealias State = String
+    /// enum Action { case alertDismissed }
+    ///
+    /// .alert(
     ///       item: self.store.binding(
-  ///     send: .alertDismissed
-  ///   )
-  /// ) { title in Alert(title: Text(title)) }
-  /// ```
-  ///
-  /// - Parameters:
-  ///   - action: The action to send when the binding is written to.
-  /// - Returns: A binding.
-  public func binding(send action: Action) -> Binding<State> {
-    self.binding(send: { _ in action })
-  }
+    ///     send: .alertDismissed
+    ///   )
+    /// ) { title in Alert(title: Text(title)) }
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - action: The action to send when the binding is written to.
+    /// - Returns: A binding.
+    public func binding(send action: Action) -> Binding<State> {
+      self.binding(send: { _ in action })
+    }
   #endif
 
   private subscript<LocalState>(
@@ -457,23 +458,23 @@ private struct HashableWrapper<Value>: Hashable {
     }
 
     #if canImport(SwiftUI)
-    /// Sends an action into the store and then suspends while a piece of state is `true`.
-    ///
-    /// See the documentation of ``send(_:while:)`` for more information.
-    ///
-    /// - Parameters:
-    ///   - action: An action.
-    ///   - animation: The animation to perform when the action is sent.
-    ///   - predicate: A predicate on `State` that determines for how long this method should
-    ///     suspend.
-    public func send(
-      _ action: Action,
-      animation: Animation?,
-      while predicate: @escaping (State) -> Bool
-    ) async {
-      withAnimation(animation) { self.send(action) }
-      await self.yield(while: predicate)
-    }
+      /// Sends an action into the store and then suspends while a piece of state is `true`.
+      ///
+      /// See the documentation of ``send(_:while:)`` for more information.
+      ///
+      /// - Parameters:
+      ///   - action: An action.
+      ///   - animation: The animation to perform when the action is sent.
+      ///   - predicate: A predicate on `State` that determines for how long this method should
+      ///     suspend.
+      public func send(
+        _ action: Action,
+        animation: Animation?,
+        while predicate: @escaping (State) -> Bool
+      ) async {
+        withAnimation(animation) { self.send(action) }
+        await self.yield(while: predicate)
+      }
     #endif
 
     /// Suspends the current task while a predicate on state is `true`.
@@ -485,26 +486,26 @@ private struct HashableWrapper<Value>: Hashable {
     ///   should suspend.
     public func yield(while predicate: @escaping (State) -> Bool) async {
       let cancellable = Box<Disposable?>(wrappedValue: nil)
-        try? await withTaskCancellationHandler(
+      try? await withTaskCancellationHandler(
         handler: { cancellable.wrappedValue?.dispose() },
-          operation: {
-            try Task.checkCancellation()
-            try await withUnsafeThrowingContinuation {
-              (continuation: UnsafeContinuation<Void, Error>) in
-              guard !Task.isCancelled else {
-                continuation.resume(throwing: CancellationError())
-                return
-              }
+        operation: {
+          try Task.checkCancellation()
+          try await withUnsafeThrowingContinuation {
+            (continuation: UnsafeContinuation<Void, Error>) in
+            guard !Task.isCancelled else {
+              continuation.resume(throwing: CancellationError())
+              return
+            }
             cancellable.wrappedValue = self.produced.producer
-                .filter { !predicate($0) }
+              .filter { !predicate($0) }
               .take(first: 1)
               .startWithValues { _ in
-                  continuation.resume()
-                  _ = cancellable
-                }
-            }
+                continuation.resume()
+                _ = cancellable
+              }
           }
-        )
+        }
+      )
 
     }
   }

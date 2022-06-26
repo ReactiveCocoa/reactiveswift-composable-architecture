@@ -1,9 +1,9 @@
 import AppCore
 import AuthenticationClient
 import ComposableArchitecture
-import ReactiveSwift
 import LoginCore
 import NewGameCore
+import ReactiveSwift
 import TwoFactorCore
 import XCTest
 

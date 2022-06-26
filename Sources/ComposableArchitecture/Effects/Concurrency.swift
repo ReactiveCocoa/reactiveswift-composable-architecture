@@ -85,19 +85,19 @@ import ReactiveSwift
         var task: Task<(), Never>?
         let producer = SignalProducer { observer, lifetime in
           task = Task(priority: priority) { @MainActor in
-          do {
-            try Task.checkCancellation()
-            let output = try await operation()
-            try Task.checkCancellation()
+            do {
+              try Task.checkCancellation()
+              let output = try await operation()
+              try Task.checkCancellation()
               observer.send(value: output)
               observer.sendCompleted()
-          } catch is CancellationError {
+            } catch is CancellationError {
               observer.sendCompleted()
-          } catch {
+            } catch {
               observer.send(error: error)
+            }
           }
         }
-      }
 
         return producer.on(disposed: task?.cancel)
       }

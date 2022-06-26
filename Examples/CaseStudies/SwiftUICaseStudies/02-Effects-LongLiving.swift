@@ -51,7 +51,6 @@ let longLivingEffectsReducer = Reducer<
       .map { _ in LongLivingEffectsAction.userDidTakeScreenshotNotification }
       .cancellable(id: UserDidTakeScreenshotNotificationId.self)
 
-
   case .onDisappear:
     // When view disappears, stop the effect.
     return .cancel(id: UserDidTakeScreenshotNotificationId.self)

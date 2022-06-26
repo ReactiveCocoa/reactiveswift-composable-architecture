@@ -17,7 +17,8 @@ extension AuthenticationClient {
           return Effect(error: .invalidUserPassword)
         }
       }
-      return effect
+      return
+        effect
         .delay(1, on: QueueScheduler(qos: .default, name: "auth", targeting: queue))
     },
     twoFactor: { request in
@@ -32,7 +33,8 @@ extension AuthenticationClient {
           )
         }
       }
-      return effect
+      return
+        effect
         .delay(1, on: QueueScheduler(qos: .default, name: "auth", targeting: queue))
     }
   )

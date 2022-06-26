@@ -1,7 +1,7 @@
 import CustomDump
 
 #if canImport(SwiftUI)
-import SwiftUI
+  import SwiftUI
 #endif
 
 // NB: `BindableAction` can produce crashes in Xcode 12.4 (Swift 5.3) and earlier due to an enum
@@ -276,35 +276,35 @@ import SwiftUI
   }
 
   #if canImport(SwiftUI)
-  extension ViewStore where Action: BindableAction, Action.State == State {
-    /// Returns a binding to the resulting bindable state of a given key path.
-    ///
-    /// - Parameter keyPath: A key path to a specific bindable state.
-    /// - Returns: A new binding.
-    public func binding<Value: Equatable>(
-      _ keyPath: WritableKeyPath<State, BindableState<Value>>,
-      file: StaticString = #fileID,
-      line: UInt = #line
-    ) -> Binding<Value> {
-      self.binding(
-        get: { $0[keyPath: keyPath].wrappedValue },
-        send: { value in
-          #if DEBUG
-            let debugger = BindableActionViewStoreDebugger(
-              value: value, bindableActionType: Action.self, file: file, line: line
-            )
-            let set: (inout State) -> Void = {
-              $0[keyPath: keyPath].wrappedValue = value
-              debugger.wasCalled = true
-            }
-          #else
-            let set: (inout State) -> Void = { $0[keyPath: keyPath].wrappedValue = value }
-          #endif
-          return .binding(.init(keyPath: keyPath, set: set, value: value))
-        }
-      )
+    extension ViewStore where Action: BindableAction, Action.State == State {
+      /// Returns a binding to the resulting bindable state of a given key path.
+      ///
+      /// - Parameter keyPath: A key path to a specific bindable state.
+      /// - Returns: A new binding.
+      public func binding<Value: Equatable>(
+        _ keyPath: WritableKeyPath<State, BindableState<Value>>,
+        file: StaticString = #fileID,
+        line: UInt = #line
+      ) -> Binding<Value> {
+        self.binding(
+          get: { $0[keyPath: keyPath].wrappedValue },
+          send: { value in
+            #if DEBUG
+              let debugger = BindableActionViewStoreDebugger(
+                value: value, bindableActionType: Action.self, file: file, line: line
+              )
+              let set: (inout State) -> Void = {
+                $0[keyPath: keyPath].wrappedValue = value
+                debugger.wasCalled = true
+              }
+            #else
+              let set: (inout State) -> Void = { $0[keyPath: keyPath].wrappedValue = value }
+            #endif
+            return .binding(.init(keyPath: keyPath, set: set, value: value))
+          }
+        )
+      }
     }
-  }
 
   #endif
 #endif
