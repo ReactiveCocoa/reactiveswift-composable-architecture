@@ -453,7 +453,7 @@ private struct HashableWrapper<Value>: Hashable {
       while predicate: @escaping (State) -> Bool
     ) async {
       self.send(action)
-      await self.suspend(while: predicate)
+      await self.yield(while: predicate)
     }
 
     #if canImport(SwiftUI)
@@ -472,15 +472,18 @@ private struct HashableWrapper<Value>: Hashable {
       while predicate: @escaping (State) -> Bool
     ) async {
       withAnimation(animation) { self.send(action) }
-      await self.suspend(while: predicate)
+      await self.yield(while: predicate)
     }
     #endif
 
-    /// Suspends while a predicate on state is `true`.
+    /// Suspends the current task while a predicate on state is `true`.
+    ///
+    /// If you want to suspend at the same time you send an action to the view store, use
+    /// ``send(_:while:)``.
     ///
     /// - Parameter predicate: A predicate on `State` that determines for how long this method
     ///   should suspend.
-    public func suspend(while predicate: @escaping (State) -> Bool) async {
+    public func yield(while predicate: @escaping (State) -> Bool) async {
       let cancellable = Box<Disposable?>(wrappedValue: nil)
         try? await withTaskCancellationHandler(
         handler: { cancellable.wrappedValue?.dispose() },
