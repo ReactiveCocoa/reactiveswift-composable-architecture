@@ -10,9 +10,9 @@ class LifecycleTests: XCTestCase {
     let scheduler = TestScheduler()
 
     let store = TestStore(
-      initialState: .init(),
+      initialState: LifecycleDemoState(),
       reducer: lifecycleDemoReducer,
-      environment: .init(
+      environment: LifecycleDemoEnvironment(
         mainQueue: scheduler
       )
     )

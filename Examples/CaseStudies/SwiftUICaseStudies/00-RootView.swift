@@ -303,7 +303,7 @@ struct RootView: View {
 struct RootView_Previews: PreviewProvider {
   static var previews: some View {
     RootView(
-      store: .init(
+      store: Store(
         initialState: RootState(),
         reducer: rootReducer,
         environment: .live
