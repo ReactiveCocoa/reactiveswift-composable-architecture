@@ -123,7 +123,7 @@ final class ReducerTests: XCTestCase {
     store.send(.incr) { $0.count = 1 }
     store.send(.noop)
 
-    self.wait(for: [logsExpectation], timeout: 2)
+    self.wait(for: [logsExpectation], timeout: 5)
 
     XCTAssertNoDifference(
       logs,
@@ -176,7 +176,7 @@ final class ReducerTests: XCTestCase {
     )
     viewStore.send(.incrWithBool(true))
 
-    self.wait(for: [logsExpectation], timeout: 2)
+    self.wait(for: [logsExpectation], timeout: 5)
 
     XCTAssertNoDifference(
       logs,
