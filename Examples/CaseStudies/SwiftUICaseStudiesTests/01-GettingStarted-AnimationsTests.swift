@@ -61,13 +61,13 @@ class AnimationTests: XCTestCase {
   }
 
   func testReset() {
-    let mainQueue = DispatchQueue.test
+    let mainQueue = TestScheduler()
 
     let store = TestStore(
       initialState: AnimationsState(),
       reducer: animationsReducer,
       environment: AnimationsEnvironment(
-        mainQueue: mainQueue.eraseToAnyScheduler()
+        mainQueue: mainQueue
       )
     )
 
