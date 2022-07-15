@@ -165,7 +165,7 @@ final class RuntimeWarningTests: XCTestCase {
       environment: ()
     )
     ViewStore(store).send(.tap)
-    _ = XCTWaiter.wait(for: [.init()], timeout: 0.2)
+    _ = XCTWaiter.wait(for: [.init()], timeout: 1)
   }
 
   func testBindingUnhandledAction() {
