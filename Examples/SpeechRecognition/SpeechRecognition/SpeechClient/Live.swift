@@ -5,14 +5,13 @@ import Speech
 extension SpeechClient {
   static var live: Self {
     var audioEngine: AVAudioEngine?
-    var inputNode: AVAudioInputNode?
     var recognitionTask: SFSpeechRecognitionTask?
 
     return Self(
       finishTask: {
         .fireAndForget {
           audioEngine?.stop()
-          inputNode?.removeTap(onBus: 0)
+          audioEngine?.inputNode.removeTap(onBus: 0)
           recognitionTask?.finish()
         }
       },
@@ -21,7 +20,7 @@ extension SpeechClient {
           let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))!
           let cancellable = AnyDisposable {
             audioEngine?.stop()
-            inputNode?.removeTap(onBus: 0)
+            audioEngine?.inputNode.removeTap(onBus: 0)
             recognitionTask?.cancel()
             _ = speechRecognizer
           }
@@ -37,7 +36,6 @@ extension SpeechClient {
             subscriber.send(error: .couldntConfigureAudioSession)
             return
           }
-          inputNode = audioEngine!.inputNode
 
           recognitionTask = speechRecognizer.recognitionTask(with: request) { result, error in
             switch (result, error) {
@@ -50,10 +48,10 @@ extension SpeechClient {
             }
           }
 
-          inputNode!.installTap(
+          audioEngine?.inputNode.installTap(
             onBus: 0,
             bufferSize: 1024,
-            format: inputNode!.outputFormat(forBus: 0)
+            format: audioEngine?.inputNode.outputFormat(forBus: 0)
           ) { buffer, when in
             request.append(buffer)
           }
