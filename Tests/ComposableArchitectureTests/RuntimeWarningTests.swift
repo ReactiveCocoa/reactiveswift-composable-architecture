@@ -18,7 +18,7 @@ final class RuntimeWarningTests: XCTestCase {
     Task {
       _ = Store<Int, Void>(initialState: 0, reducer: .empty, environment: ())
     }
-    _ = XCTWaiter.wait(for: [.init()], timeout: 1)
+    _ = XCTWaiter.wait(for: [.init()], timeout: 2)
   }
 
   func testEffectFinishedMainThread() {
@@ -52,7 +52,7 @@ final class RuntimeWarningTests: XCTestCase {
       environment: ()
     )
     ViewStore(store).send(.tap)
-    _ = XCTWaiter.wait(for: [.init()], timeout: 1)
+    _ = XCTWaiter.wait(for: [.init()], timeout: 2)
   }
 
   func testStoreScopeMainThread() {
@@ -78,7 +78,7 @@ final class RuntimeWarningTests: XCTestCase {
     Task {
       _ = store.scope(state: { $0 })
     }
-    _ = XCTWaiter.wait(for: [.init()], timeout: 1)
+    _ = XCTWaiter.wait(for: [.init()], timeout: 2)
   }
 
   func testViewStoreSendMainThread() {
@@ -110,7 +110,7 @@ final class RuntimeWarningTests: XCTestCase {
     Task {
       ViewStore(store).send(())
     }
-    _ = XCTWaiter.wait(for: [.init()], timeout: 1)
+    _ = XCTWaiter.wait(for: [.init()], timeout: 2)
   }
 
   func testEffectEmitMainThread() {
@@ -165,7 +165,7 @@ final class RuntimeWarningTests: XCTestCase {
       environment: ()
     )
     ViewStore(store).send(.tap)
-    _ = XCTWaiter.wait(for: [.init()], timeout: 1)
+    _ = XCTWaiter.wait(for: [.init()], timeout: 2)
   }
 
   func testBindingUnhandledAction() {
