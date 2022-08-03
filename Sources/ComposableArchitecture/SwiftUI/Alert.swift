@@ -94,7 +94,7 @@ import SwiftUI
 ///     secondaryButton: .cancel(TextState("Cancel"))
 ///   )
 /// }
-/// store.send(.deleteTapped) {
+/// store.send(.confirmTapped) {
 ///   $0.alert = nil
 ///   // Also verify that delete logic executed correctly
 /// }
