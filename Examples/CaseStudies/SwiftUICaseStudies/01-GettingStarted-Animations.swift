@@ -45,8 +45,8 @@ struct AnimationsState: Equatable {
 }
 
 enum AnimationsAction: Equatable {
+  case alertDismissed
   case circleScaleToggleChanged(Bool)
-  case dismissAlert
   case rainbowButtonTapped
   case resetButtonTapped
   case resetConfirmationButtonTapped
@@ -63,12 +63,12 @@ let animationsReducer = Reducer<AnimationsState, AnimationsAction, AnimationsEnv
   enum CancelID {}
 
   switch action {
-  case let .circleScaleToggleChanged(isScaled):
-    state.isCircleScaled = isScaled
+  case .alertDismissed:
+    state.alert = nil
     return .none
 
-  case .dismissAlert:
-    state.alert = nil
+  case let .circleScaleToggleChanged(isScaled):
+    state.isCircleScaled = isScaled
     return .none
 
   case .rainbowButtonTapped:
@@ -149,7 +149,7 @@ struct AnimationsView: View {
         Button("Reset") { viewStore.send(.resetButtonTapped) }
           .padding([.horizontal, .bottom])
       }
-      .alert(self.store.scope(state: \.alert), dismiss: .dismissAlert)
+      .alert(self.store.scope(state: \.alert), dismiss: .alertDismissed)
       .navigationBarTitleDisplayMode(.inline)
     }
   }
