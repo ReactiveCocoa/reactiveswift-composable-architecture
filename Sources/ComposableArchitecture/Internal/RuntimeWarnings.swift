@@ -1,31 +1,31 @@
 #if DEBUG
   #if canImport(os)
-    import os
-    import XCTestDynamicOverlay
+  import os
+  import XCTestDynamicOverlay
 
-    // NB: Xcode runtime warnings offer a much better experience than traditional assertions and
-    //     breakpoints, but Apple provides no means of creating custom runtime warnings ourselves.
-    //     To work around this, we hook into SwiftUI's runtime issue delivery mechanism, instead.
-    //
-    // Feedback filed: https://gist.github.com/stephencelis/a8d06383ed6ccde3e5ef5d1b3ad52bbc
-    private let rw = (
-      dso: { () -> UnsafeMutableRawPointer in
-        let count = _dyld_image_count()
-        for i in 0..<count {
-          if let name = _dyld_get_image_name(i) {
-            let swiftString = String(cString: name)
-            if swiftString.hasSuffix("/SwiftUI") {
-              if let header = _dyld_get_image_header(i) {
-                return UnsafeMutableRawPointer(mutating: UnsafeRawPointer(header))
-              }
+  // NB: Xcode runtime warnings offer a much better experience than traditional assertions and
+  //     breakpoints, but Apple provides no means of creating custom runtime warnings ourselves.
+  //     To work around this, we hook into SwiftUI's runtime issue delivery mechanism, instead.
+  //
+  // Feedback filed: https://gist.github.com/stephencelis/a8d06383ed6ccde3e5ef5d1b3ad52bbc
+  private let rw = (
+    dso: { () -> UnsafeMutableRawPointer in
+      let count = _dyld_image_count()
+      for i in 0..<count {
+        if let name = _dyld_get_image_name(i) {
+          let swiftString = String(cString: name)
+          if swiftString.hasSuffix("/SwiftUI") {
+            if let header = _dyld_get_image_header(i) {
+              return UnsafeMutableRawPointer(mutating: UnsafeRawPointer(header))
             }
           }
         }
-        return UnsafeMutableRawPointer(mutating: #dsohandle)
-      }(),
-      log: OSLog(subsystem: "com.apple.runtime-issues", category: "ComposableArchitecture")
-    )
-  #endif
+      }
+      return UnsafeMutableRawPointer(mutating: #dsohandle)
+    }(),
+    log: OSLog(subsystem: "com.apple.runtime-issues", category: "ComposableArchitecture")
+  )
+#endif
 #endif
 
 @inline(__always)
@@ -34,18 +34,20 @@ func runtimeWarning(
   _ args: @autoclosure () -> [CVarArg] = []
 ) {
   #if DEBUG
-    #if canImport(os)
-      let message = message()
-      unsafeBitCast(
-        os_log as (OSLogType, UnsafeRawPointer, OSLog, StaticString, CVarArg...) -> Void,
-        to: ((OSLogType, UnsafeRawPointer, OSLog, StaticString, [CVarArg]) -> Void).self
-      )(.fault, rw.dso, rw.log, message, args())
-      XCTFail(String(format: "\(message)", arguments: args()))
-    #else
-      let strMessage = message().withUTF8Buffer {
-        String(decoding: $0, as: UTF8.self)
-      }
-      print(String(format: strMessage, arguments: args()))
-    #endif
+    if _XCTIsTesting {
+      XCTFail(String(format: "\(message())", arguments: args()))
+    } else {
+      #if canImport(os)
+        unsafeBitCast(
+          os_log as (OSLogType, UnsafeRawPointer, OSLog, StaticString, CVarArg...) -> Void,
+          to: ((OSLogType, UnsafeRawPointer, OSLog, StaticString, [CVarArg]) -> Void).self
+        )(.fault, rw.dso, rw.log, message(), args())
+      #else
+        let strMessage = message().withUTF8Buffer {
+          String(decoding: $0, as: UTF8.self)
+        }
+        print(String(format: strMessage, arguments: args()))
+      #endif
+    }
   #endif
 }
