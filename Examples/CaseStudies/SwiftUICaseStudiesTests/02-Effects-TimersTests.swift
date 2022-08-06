@@ -12,7 +12,7 @@ class TimersTests: XCTestCase {
       initialState: TimersState(),
       reducer: timersReducer,
       environment: TimersEnvironment(
-        mainQueue: self.scheduler
+        mainQueue: self.mainQueue
       )
     )
 

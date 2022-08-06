@@ -30,7 +30,7 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
       reducer: reducer,
       environment: DownloadComponentEnvironment(
         downloadClient: downloadClient,
-        mainQueue: self.scheduler
+        mainQueue: self.mainQueue
       )
     )
 
@@ -66,7 +66,7 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
       reducer: reducer,
       environment: DownloadComponentEnvironment(
         downloadClient: downloadClient,
-        mainQueue: self.scheduler
+        mainQueue: self.mainQueue
       )
     )
 
@@ -90,7 +90,7 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
     }
 
     self.downloadSubject.input.sendCompleted()
-    self.scheduler.run()
+    self.mainQueue.run()
   }
 
   func testCancelDownloadFlow() {
@@ -106,7 +106,7 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
       reducer: reducer,
       environment: DownloadComponentEnvironment(
         downloadClient: downloadClient,
-        mainQueue: self.scheduler
+        mainQueue: self.mainQueue
       )
     )
 
@@ -127,7 +127,7 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
       $0.mode = .notDownloaded
     }
 
-    self.scheduler.run()
+    self.mainQueue.run()
   }
 
   func testDownloadFinishesWhileTryingToCancel() {
@@ -143,7 +143,7 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
       reducer: reducer,
       environment: DownloadComponentEnvironment(
         downloadClient: downloadClient,
-        mainQueue: self.scheduler
+        mainQueue: self.mainQueue
       )
     )
 
@@ -182,7 +182,7 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
       reducer: reducer,
       environment: DownloadComponentEnvironment(
         downloadClient: downloadClient,
-        mainQueue: self.scheduler
+        mainQueue: self.mainQueue
       )
     )
 

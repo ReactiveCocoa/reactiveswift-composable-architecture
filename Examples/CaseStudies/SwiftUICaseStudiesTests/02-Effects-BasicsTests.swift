@@ -28,7 +28,7 @@ class EffectsBasicsTests: XCTestCase {
     )
 
     store.environment.fact.fetch = { Effect(value: "\($0) is a good number Brent") }
-    store.environment.mainQueue = .immediate
+    store.environment.mainQueue = ImmediateScheduler()
 
     store.send(.incrementButtonTapped) {
       $0.count = 1
@@ -50,7 +50,7 @@ class EffectsBasicsTests: XCTestCase {
     )
 
     store.environment.fact.fetch = { _ in Effect(error: FactClient.Error()) }
-    store.environment.mainQueue = .immediate
+    store.environment.mainQueue = ImmediateScheduler()
 
     store.send(.incrementButtonTapped) {
       $0.count = 1
@@ -67,6 +67,6 @@ class EffectsBasicsTests: XCTestCase {
 extension EffectsBasicsEnvironment {
   static let unimplemented = Self(
     fact: .unimplemented,
-    mainQueue: .unimplemented
+    mainQueue: UnimplementedScheduler()
   )
 }
