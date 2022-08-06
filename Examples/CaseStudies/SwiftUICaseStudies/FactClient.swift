@@ -13,37 +13,17 @@ struct FactClient {
 // Typically this live implementation of the dependency would live in its own module so that the
 // main feature doesn't need to compile it.
 extension FactClient {
-  #if compiler(>=5.5)
     static let live = Self(
       fetch: { number in
         Effect.task {
-          try? await Task.sleep(nanoseconds: NSEC_PER_SEC)
-          do {
+        try await Task.sleep(nanoseconds: NSEC_PER_SEC)
             let (data, _) = try await URLSession.shared
               .data(from: URL(string: "http://numbersapi.com/\(number)/trivia")!)
             return String(decoding: data, as: UTF8.self)
-          } catch {
-            return "\(number) is a good number Brent"
           }
-        }
-        .promoteError(Error.self)
+      .mapError { _ in Error() }
       }
     )
-  #else
-    static let live = Self(
-      fetch: { number in
-        URLSession.shared.reactive.data(
-          with: URLRequest(url: URL(string: "http://numbersapi.com/\(number)/trivia")!)
-        )
-        .map { data, _ in String(decoding: data, as: UTF8.self) }
-        .flatMapError { _ in
-          Effect(value: "\(number) is a good number Brent")
-            .delay(1, on: QueueScheduler.main)
-        }
-        .promoteError(Error.self)
-      }
-    )
-  #endif
 }
 
 #if DEBUG

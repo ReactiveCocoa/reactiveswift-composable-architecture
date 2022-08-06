@@ -1,12 +1,9 @@
 import CustomDump
 
 #if canImport(SwiftUI)
-  import SwiftUI
+import SwiftUI
 #endif
 
-// NB: `BindableAction` can produce crashes in Xcode 12.4 (Swift 5.3) and earlier due to an enum
-//     protocol witness bug: https://bugs.swift.org/browse/SR-14041
-#if compiler(>=5.4)
   /// A property wrapper type that can designate properties of app state that can be directly
   /// bindable in SwiftUI views.
   ///
@@ -276,38 +273,37 @@ import CustomDump
   }
 
   #if canImport(SwiftUI)
-    extension ViewStore where Action: BindableAction, Action.State == State {
-      /// Returns a binding to the resulting bindable state of a given key path.
-      ///
-      /// - Parameter keyPath: A key path to a specific bindable state.
-      /// - Returns: A new binding.
-      public func binding<Value: Equatable>(
-        _ keyPath: WritableKeyPath<State, BindableState<Value>>,
-        file: StaticString = #fileID,
-        line: UInt = #line
-      ) -> Binding<Value> {
-        self.binding(
-          get: { $0[keyPath: keyPath].wrappedValue },
-          send: { value in
-            #if DEBUG
-              let debugger = BindableActionViewStoreDebugger(
-                value: value, bindableActionType: Action.self, file: file, line: line
-              )
-              let set: (inout State) -> Void = {
-                $0[keyPath: keyPath].wrappedValue = value
-                debugger.wasCalled = true
-              }
-            #else
-              let set: (inout State) -> Void = { $0[keyPath: keyPath].wrappedValue = value }
-            #endif
-            return .binding(.init(keyPath: keyPath, set: set, value: value))
-          }
-        )
-      }
+  extension ViewStore where Action: BindableAction, Action.State == State {
+    /// Returns a binding to the resulting bindable state of a given key path.
+    ///
+    /// - Parameter keyPath: A key path to a specific bindable state.
+    /// - Returns: A new binding.
+    public func binding<Value: Equatable>(
+      _ keyPath: WritableKeyPath<State, BindableState<Value>>,
+      file: StaticString = #fileID,
+      line: UInt = #line
+    ) -> Binding<Value> {
+      self.binding(
+        get: { $0[keyPath: keyPath].wrappedValue },
+        send: { value in
+          #if DEBUG
+            let debugger = BindableActionViewStoreDebugger(
+              value: value, bindableActionType: Action.self, file: file, line: line
+            )
+            let set: (inout State) -> Void = {
+              $0[keyPath: keyPath].wrappedValue = value
+              debugger.wasCalled = true
+            }
+          #else
+            let set: (inout State) -> Void = { $0[keyPath: keyPath].wrappedValue = value }
+          #endif
+          return .binding(.init(keyPath: keyPath, set: set, value: value))
+        }
+      )
     }
+  }
 
   #endif
-#endif
 
 /// An action that describes simple mutations to some root state at a writable key path.
 ///
@@ -327,7 +323,6 @@ public struct BindingAction<Root>: Equatable {
   }
 }
 
-#if compiler(>=5.4)
   extension BindingAction {
     /// Returns an action that describes simple mutations to some root state at a writable key path
     /// to bindable state.
@@ -381,7 +376,6 @@ public struct BindingAction<Root>: Equatable {
       )
     }
   }
-#endif
 
 extension BindingAction {
   /// Transforms a binding action over some root state to some other type of root state given a
@@ -526,7 +520,6 @@ extension BindingAction: CustomDumpReflectable {
   }
 }
 
-#if compiler(>=5.4)
   extension Reducer where Action: BindableAction, State == Action.State {
     /// Returns a reducer that applies ``BindingAction`` mutations to `State` before running this
     /// reducer's logic.
@@ -565,7 +558,6 @@ extension BindingAction: CustomDumpReflectable {
       }
     }
   }
-#endif
 
 #if DEBUG
   private final class BindableActionViewStoreDebugger<Value> {
