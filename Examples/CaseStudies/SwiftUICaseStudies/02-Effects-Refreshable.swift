@@ -72,7 +72,6 @@ let refreshableReducer = Reducer<
   }
 }
 
-#if compiler(>=5.5)
   struct RefreshableView: View {
     let store: Store<RefreshableState, RefreshableAction>
 
@@ -119,4 +118,3 @@ let refreshableReducer = Reducer<
       )
     }
   }
-#endif
