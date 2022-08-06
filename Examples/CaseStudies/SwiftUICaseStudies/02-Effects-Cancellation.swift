@@ -82,7 +82,7 @@ struct EffectsCancellationView: View {
     WithViewStore(self.store) { viewStore in
       Form {
         Section {
-          Text(readMe)
+          AboutView(readMe: readMe)
         }
 
         Section {
@@ -117,6 +117,7 @@ struct EffectsCancellationView: View {
             UIApplication.shared.open(URL(string: "http://numbersapi.com")!)
           }
           .foregroundColor(.gray)
+          .frame(maxWidth: .infinity)
         }
       }
       .buttonStyle(.borderless)
