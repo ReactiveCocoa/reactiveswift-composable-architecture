@@ -12,7 +12,7 @@ class TodosTests: XCTestCase {
       initialState: AppState(),
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler,
+        mainQueue: self.mainQueue,
         uuid: UUID.incrementing
       )
     )
@@ -43,7 +43,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler,
+        mainQueue: self.mainQueue,
         uuid: UUID.incrementing
       )
     )
@@ -74,7 +74,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler,
+        mainQueue: self.mainQueue,
         uuid: UUID.incrementing
       )
     )
@@ -110,7 +110,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler,
+        mainQueue: self.mainQueue,
         uuid: UUID.incrementing
       )
     )
@@ -145,7 +145,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler,
+        mainQueue: self.mainQueue,
         uuid: UUID.incrementing
       )
     )
@@ -181,7 +181,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler,
+        mainQueue: self.mainQueue,
         uuid: UUID.incrementing
       )
     )
@@ -218,7 +218,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler,
+        mainQueue: self.mainQueue,
         uuid: UUID.incrementing
       )
     )
@@ -266,7 +266,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler,
+        mainQueue: self.mainQueue,
         uuid: UUID.incrementing
       )
     )
@@ -308,7 +308,7 @@ class TodosTests: XCTestCase {
       initialState: state,
       reducer: appReducer,
       environment: AppEnvironment(
-        mainQueue: self.scheduler,
+        mainQueue: self.mainQueue,
         uuid: UUID.incrementing
       )
     )

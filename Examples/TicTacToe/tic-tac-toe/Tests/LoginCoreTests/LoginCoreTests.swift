@@ -75,7 +75,7 @@ class LoginCoreTests: XCTestCase {
       reducer: loginReducer,
       environment: LoginEnvironment(
         authenticationClient: authenticationClient,
-        mainQueue: scheduler
+        mainQueue: mainQueue
       )
     )
 

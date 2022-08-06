@@ -113,7 +113,7 @@ class WebSocketTests: XCTestCase {
       initialState: WebSocketState(),
       reducer: webSocketReducer,
       environment: WebSocketEnvironment(
-        mainQueue: scheduler,
+        mainQueue: mainQueue,
         webSocket: webSocket
       )
     )

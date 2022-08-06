@@ -61,7 +61,7 @@ class EffectsCancellationTests: XCTestCase {
       reducer: effectsCancellationReducer,
       environment: EffectsCancellationEnvironment(
         fact: FactClient(fetch: { n in Effect(value: "\(n) is a good number Brent") }),
-        mainQueue: scheduler
+        mainQueue: mainQueue
       )
     )
 
@@ -71,7 +71,7 @@ class EffectsCancellationTests: XCTestCase {
     store.send(.cancelButtonTapped) {
       $0.isTriviaRequestInFlight = false
     }
-    scheduler.run()
+    mainQueue.run()
   }
 
   func testTrivia_PlusMinusButtonsCancelsRequest() {
@@ -81,7 +81,7 @@ class EffectsCancellationTests: XCTestCase {
       reducer: effectsCancellationReducer,
       environment: EffectsCancellationEnvironment(
         fact: FactClient(fetch: { n in Effect(value: "\(n) is a good number Brent") }),
-        mainQueue: scheduler
+        mainQueue: mainQueue
       )
     )
 

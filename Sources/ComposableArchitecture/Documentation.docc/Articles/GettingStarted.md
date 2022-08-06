@@ -215,7 +215,7 @@ let store = TestStore(
   initialState: AppState(),
   reducer: appReducer,
   environment: AppEnvironment(
-    mainQueue: scheduler.eraseToAnyScheduler(),
+    mainQueue: mainQueue.eraseToAnyScheduler(),
     numberFact: { number in Effect(value: "\(number) is a good number Brent") }
   )
 )

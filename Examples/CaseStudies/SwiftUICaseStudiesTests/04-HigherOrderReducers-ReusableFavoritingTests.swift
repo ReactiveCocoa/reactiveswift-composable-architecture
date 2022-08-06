@@ -30,7 +30,7 @@ class ReusableComponentsFavoritingTests: XCTestCase {
       reducer: episodesReducer,
       environment: EpisodesEnvironment(
         favorite: { _, isFavorite in Effect.future { $0(.success(isFavorite)) } },
-        mainQueue: self.scheduler
+        mainQueue: mainQueue
       )
     )
 

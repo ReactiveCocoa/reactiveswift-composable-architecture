@@ -13,7 +13,7 @@ class SearchTests: XCTestCase {
       reducer: searchReducer,
       environment: SearchEnvironment(
         weatherClient: .unimplemented,
-        mainQueue: self.scheduler
+        mainQueue: self.mainQueue
       )
     )
 
@@ -37,7 +37,7 @@ class SearchTests: XCTestCase {
       reducer: searchReducer,
       environment: SearchEnvironment(
         weatherClient: .unimplemented,
-        mainQueue: self.scheduler
+        mainQueue: self.mainQueue
       )
     )
 
@@ -58,7 +58,7 @@ class SearchTests: XCTestCase {
       reducer: searchReducer,
       environment: SearchEnvironment(
         weatherClient: weatherClient,
-        mainQueue: self.scheduler
+        mainQueue: self.mainQueue
       )
     )
 
@@ -69,7 +69,7 @@ class SearchTests: XCTestCase {
     store.send(.searchQueryChanged("")) {
       $0.searchQuery = ""
     }
-    self.scheduler.run()
+    self.mainQueue.run()
   }
 
   func testTapOnLocation() {
@@ -92,7 +92,7 @@ class SearchTests: XCTestCase {
       reducer: searchReducer,
       environment: SearchEnvironment(
         weatherClient: weatherClient,
-        mainQueue: self.scheduler
+        mainQueue: self.mainQueue
       )
     )
 
@@ -151,7 +151,7 @@ class SearchTests: XCTestCase {
       reducer: searchReducer,
       environment: SearchEnvironment(
         weatherClient: weatherClient,
-        mainQueue: self.scheduler
+        mainQueue: self.mainQueue
       )
     )
 
@@ -204,7 +204,7 @@ class SearchTests: XCTestCase {
       reducer: searchReducer,
       environment: SearchEnvironment(
         weatherClient: weatherClient,
-        mainQueue: self.scheduler
+        mainQueue: self.mainQueue
       )
     )
 

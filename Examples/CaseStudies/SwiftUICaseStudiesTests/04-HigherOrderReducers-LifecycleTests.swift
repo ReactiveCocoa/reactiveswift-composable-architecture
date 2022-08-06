@@ -13,7 +13,7 @@ class LifecycleTests: XCTestCase {
       initialState: LifecycleDemoState(),
       reducer: lifecycleDemoReducer,
       environment: LifecycleDemoEnvironment(
-        mainQueue: scheduler
+        mainQueue: mainQueue
       )
     )
 
