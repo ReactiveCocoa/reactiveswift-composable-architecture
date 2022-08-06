@@ -244,7 +244,7 @@ store.send(.decrementButtonTapped) {
 // `.receive(on:)` in the reducer.
 store.send(.numberFactButtonTapped)
 
-scheduler.advance()
+mainQueue.advance()
 store.receive(.numberFactResponse(.success("0 is a good number Brent"))) {
   $0.numberFactAlert = "0 is a good number Brent"
 }

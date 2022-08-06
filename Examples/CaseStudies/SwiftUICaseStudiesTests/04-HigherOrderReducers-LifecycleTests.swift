@@ -7,7 +7,7 @@ import XCTest
 
 class LifecycleTests: XCTestCase {
   func testLifecycle() {
-    let scheduler = TestScheduler()
+    let mainQueue = TestScheduler()
 
     let store = TestStore(
       initialState: LifecycleDemoState(),
@@ -23,12 +23,12 @@ class LifecycleTests: XCTestCase {
 
     store.send(.timer(.onAppear))
 
-    scheduler.advance(by: 1)
+    mainQueue.advance(by: 1)
     store.receive(.timer(.action(.tick))) {
       $0.count = 1
     }
 
-    scheduler.advance(by: 1)
+    mainQueue.advance(by: 1)
     store.receive(.timer(.action(.tick))) {
       $0.count = 2
     }

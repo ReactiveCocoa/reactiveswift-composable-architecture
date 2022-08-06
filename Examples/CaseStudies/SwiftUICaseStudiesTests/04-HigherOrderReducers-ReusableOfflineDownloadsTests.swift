@@ -15,7 +15,7 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
     action: .self,
     environment: { $0 }
   )
-  let scheduler = TestScheduler()
+  let mainQueue = TestScheduler()
 
   func testDownloadFlow() {
     var downloadClient = DownloadClient.unimplemented
@@ -39,18 +39,18 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
     }
 
     self.downloadSubject.input.send(value: .updateProgress(0.2))
-    self.scheduler.advance()
+    self.mainQueue.advance()
     store.receive(.downloadClient(.success(.updateProgress(0.2)))) {
       $0.mode = .downloading(progress: 0.2)
     }
 
     self.downloadSubject.input.send(value: .response(Data()))
-    self.scheduler.advance(by: 1)
+    self.mainQueue.advance(by: 1)
     store.receive(.downloadClient(.success(.response(Data())))) {
       $0.mode = .downloaded
     }
     self.downloadSubject.input.sendCompleted()
-    self.scheduler.advance()
+    self.mainQueue.advance()
   }
 
   func testDownloadThrottling() {
@@ -75,16 +75,16 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
     }
 
     self.downloadSubject.input.send(value: .updateProgress(0.5))
-    self.scheduler.advance()
+    self.mainQueue.advance()
     store.receive(.downloadClient(.success(.updateProgress(0.5)))) {
       $0.mode = .downloading(progress: 0.5)
     }
 
     self.downloadSubject.input.send(value: .updateProgress(0.6))
-    self.scheduler.advance(by: 0.5)
+    self.mainQueue.advance(by: 0.5)
 
     self.downloadSubject.input.send(value: .updateProgress(0.7))
-    self.scheduler.advance(by: 0.5)
+    self.mainQueue.advance(by: 0.5)
     store.receive(.downloadClient(.success(.updateProgress(0.7)))) {
       $0.mode = .downloading(progress: 0.7)
     }
@@ -160,13 +160,13 @@ class ReusableComponentsDownloadComponentTests: XCTestCase {
     }
 
     self.downloadSubject.input.send(value: .response(Data()))
-    self.scheduler.advance(by: 1)
+    self.mainQueue.advance(by: 1)
     store.receive(.downloadClient(.success(.response(Data())))) {
       $0.alert = nil
       $0.mode = .downloaded
     }
     self.downloadSubject.input.sendCompleted()
-    self.scheduler.advance()
+    self.mainQueue.advance()
   }
 
   func testDeleteDownloadFlow() {

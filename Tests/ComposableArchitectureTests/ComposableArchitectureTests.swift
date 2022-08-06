@@ -31,23 +31,23 @@ final class ComposableArchitectureTests: XCTestCase {
       }
     }
 
-    let scheduler = TestScheduler()
+    let mainQueue = TestScheduler()
 
     let store = TestStore(
       initialState: 2,
       reducer: counterReducer,
-      environment: scheduler
+      environment: mainQueue
     )
 
     store.send(.incrAndSquareLater)
-    scheduler.advance(by: 1)
+    mainQueue.advance(by: 1)
     store.receive(.squareNow) { $0 = 4 }
-    scheduler.advance(by: 1)
+    mainQueue.advance(by: 1)
     store.receive(.incrNow) { $0 = 5 }
     store.receive(.squareNow) { $0 = 25 }
 
     store.send(.incrAndSquareLater)
-    scheduler.advance(by: 2)
+    mainQueue.advance(by: 2)
     store.receive(.squareNow) { $0 = 625 }
     store.receive(.incrNow) { $0 = 626 }
     store.receive(.squareNow) { $0 = 391876 }
@@ -137,23 +137,23 @@ final class ComposableArchitectureTests: XCTestCase {
       }
     }
 
-    let scheduler = TestScheduler()
+    let mainQueue = TestScheduler()
 
     let store = TestStore(
       initialState: 0,
       reducer: reducer,
       environment: Environment(
         fetch: { value in Effect(value: value * value) },
-        mainQueue: scheduler
+        mainQueue: mainQueue
       )
     )
 
     store.send(.incr) { $0 = 1 }
-    scheduler.advance()
+    mainQueue.advance()
     store.receive(.response(1))
 
     store.send(.incr) { $0 = 2 }
     store.send(.cancel)
-    scheduler.run()
+    mainQueue.run()
   }
 }

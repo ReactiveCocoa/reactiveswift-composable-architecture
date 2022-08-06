@@ -48,9 +48,9 @@ final class StoreTests: XCTestCase {
   }
 
   func testCancellableIsRemovedWhenEffectCompletes() {
-    let scheduler = TestScheduler()
+    let mainQueue = TestScheduler()
     let effect = Effect<Void, Never>(value: ())
-      .delay(1, on: scheduler)
+      .delay(1, on: mainQueue)
 
     enum Action { case start, end }
 
@@ -70,7 +70,7 @@ final class StoreTests: XCTestCase {
 
     XCTAssertNoDifference(store.effectDisposables.count, 1)
 
-    scheduler.advance(by: 2)
+    mainQueue.advance(by: 2)
 
     XCTAssertNoDifference(store.effectDisposables.count, 0)
   }

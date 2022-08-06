@@ -49,22 +49,22 @@ extension Effect where Value == Date, Error == Never {
   ///
   ///    ```swift
   ///     func testTimer() {
-  ///       let scheduler = TestScheduler()
+  ///       let mainQueue = TestScheduler()
   ///
   ///       let store = TestStore(
   ///         initialState: .init(),
   ///         reducer: appReducer,
   ///     environment: .init(
-  ///           mainQueue: scheduler
+  ///           mainQueue: mainQueue
   ///         )
   ///       )
   ///
   ///       store.send(.startButtonTapped)
   ///
-  ///       scheduler.advance(by: 1)
+  ///       mainQueue.advance(by: 1)
   ///       store.receive(.timerTicked) { $0.count = 1 }
   ///
-  ///       scheduler.advance(by: 5)
+  ///       mainQueue.advance(by: 5)
   ///       store.receive(.timerTicked) { $0.count = 2 }
   ///       store.receive(.timerTicked) { $0.count = 3 }
   ///       store.receive(.timerTicked) { $0.count = 4 }
