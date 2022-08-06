@@ -9,7 +9,7 @@ class WebSocketTests: XCTestCase {
     let socketSubject = Signal<WebSocketClient.Action, Never>.pipe()
     let receiveSubject = Signal<WebSocketClient.Message, NSError>.pipe()
 
-    var webSocket = WebSocketClient.failing
+    var webSocket = WebSocketClient.unimplemented
     webSocket.open = { _, _, _ in socketSubject.output.producer }
     webSocket.receive = { _ in receiveSubject.output.producer }
     webSocket.send = { _, _ in Effect(value: nil) }
@@ -58,7 +58,7 @@ class WebSocketTests: XCTestCase {
     let socketSubject = Signal<WebSocketClient.Action, Never>.pipe()
     let receiveSubject = Signal<WebSocketClient.Message, NSError>.pipe()
 
-    var webSocket = WebSocketClient.failing
+    var webSocket = WebSocketClient.unimplemented
     webSocket.open = { _, _, _ in socketSubject.output.producer }
     webSocket.receive = { _ in receiveSubject.output.producer }
     webSocket.send = { _, _ in Effect(value: NSError(domain: "", code: 1)) }
@@ -103,7 +103,7 @@ class WebSocketTests: XCTestCase {
     let socketSubject = Signal<WebSocketClient.Action, Never>.pipe()
     let pingSubject = Signal<NSError?, Never>.pipe()
 
-    var webSocket = WebSocketClient.failing
+    var webSocket = WebSocketClient.unimplemented
     webSocket.open = { _, _, _ in socketSubject.output.producer }
     webSocket.receive = { _ in .none }
     webSocket.sendPing = { _ in pingSubject.output.producer }
@@ -141,7 +141,7 @@ class WebSocketTests: XCTestCase {
   func testWebSocketConnectError() {
     let socketSubject = Signal<WebSocketClient.Action, Never>.pipe()
 
-    var webSocket = WebSocketClient.failing
+    var webSocket = WebSocketClient.unimplemented
     webSocket.cancel = { _, _, _ in .fireAndForget { socketSubject.input.sendCompleted() } }
     webSocket.open = { _, _, _ in socketSubject.output.producer }
     webSocket.receive = { _ in .none }
@@ -168,11 +168,11 @@ class WebSocketTests: XCTestCase {
 }
 
 extension WebSocketClient {
-  static let failing = Self(
-    cancel: { _, _, _ in .failing("WebSocketClient.cancel") },
-    open: { _, _, _ in .failing("WebSocketClient.open") },
-    receive: { _ in .failing("WebSocketClient.receive") },
-    send: { _, _ in .failing("WebSocketClient.send") },
-    sendPing: { _ in .failing("WebSocketClient.sendPing") }
+  static let unimplemented = Self(
+    cancel: { _, _, _ in .unimplemented("\(Self.self).cancel") },
+    open: { _, _, _ in .unimplemented("\(Self.self).open") },
+    receive: { _ in .unimplemented("\(Self.self).receive") },
+    send: { _, _ in .unimplemented("\(Self.self).send") },
+    sendPing: { _ in .unimplemented("\(Self.self).sendPing") }
   )
 }
