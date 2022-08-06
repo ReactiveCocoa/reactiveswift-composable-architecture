@@ -5,7 +5,7 @@ import XCTest
 @testable import Todos
 
 class TodosTests: XCTestCase {
-  let scheduler = TestScheduler()
+  let mainQueue = TestScheduler()
 
   func testAddTodo() {
     let store = TestStore(
@@ -82,7 +82,7 @@ class TodosTests: XCTestCase {
     store.send(.todo(id: state.todos[0].id, action: .checkBoxToggled)) {
       $0.todos[id: state.todos[0].id]?.isComplete = true
     }
-    self.scheduler.advance(by: 1)
+    self.mainQueue.advance(by: 1)
     store.receive(.sortCompletedTodos) {
       $0.todos = [
         $0.todos[1],
@@ -118,11 +118,11 @@ class TodosTests: XCTestCase {
     store.send(.todo(id: state.todos[0].id, action: .checkBoxToggled)) {
       $0.todos[id: state.todos[0].id]?.isComplete = true
     }
-    self.scheduler.advance(by: 0.5)
+    self.mainQueue.advance(by: 0.5)
     store.send(.todo(id: state.todos[0].id, action: .checkBoxToggled)) {
       $0.todos[id: state.todos[0].id]?.isComplete = false
     }
-    self.scheduler.advance(by: 1)
+    self.mainQueue.advance(by: 1)
     store.receive(.sortCompletedTodos)
   }
 
@@ -233,7 +233,7 @@ class TodosTests: XCTestCase {
         $0.todos[2],
       ]
     }
-    self.scheduler.advance(by: 0.1)
+    self.mainQueue.advance(by: 0.1)
     store.receive(.sortCompletedTodos)
   }
 
@@ -285,7 +285,7 @@ class TodosTests: XCTestCase {
         $0.todos[3],
       ]
     }
-    self.scheduler.advance(by: .milliseconds(100))
+    self.mainQueue.advance(by: .milliseconds(100))
     store.receive(.sortCompletedTodos)
   }
 

@@ -5,7 +5,7 @@ import XCTest
 @testable import Search
 
 class SearchTests: XCTestCase {
-  let scheduler = TestScheduler()
+  let mainQueue = TestScheduler()
 
   func testSearchAndClearQuery() {
     let store = TestStore(
@@ -21,7 +21,7 @@ class SearchTests: XCTestCase {
     store.send(.searchQueryChanged("S")) {
       $0.searchQuery = "S"
     }
-    self.scheduler.advance(by: 0.3)
+    self.mainQueue.advance(by: 0.3)
     store.receive(.searchResponse(.success(.mock))) {
       $0.results = Search.mock.results
     }
@@ -45,7 +45,7 @@ class SearchTests: XCTestCase {
     store.send(.searchQueryChanged("S")) {
       $0.searchQuery = "S"
     }
-    self.scheduler.advance(by: 0.3)
+    self.mainQueue.advance(by: 0.3)
     store.receive(.searchResponse(.failure(WeatherClient.Failure())))
   }
 
@@ -65,7 +65,7 @@ class SearchTests: XCTestCase {
     store.send(.searchQueryChanged("S")) {
       $0.searchQuery = "S"
     }
-    self.scheduler.advance(by: 0.2)
+    self.mainQueue.advance(by: 0.2)
     store.send(.searchQueryChanged("")) {
       $0.searchQuery = ""
     }
@@ -99,7 +99,7 @@ class SearchTests: XCTestCase {
     store.send(.searchResultTapped(specialResult)) {
       $0.resultForecastRequestInFlight = specialResult
     }
-    self.scheduler.advance()
+    self.mainQueue.advance()
     store.receive(.forecastResponse(42, .success(.mock))) {
       $0.resultForecastRequestInFlight = nil
       $0.weather = SearchState.Weather(
@@ -161,7 +161,7 @@ class SearchTests: XCTestCase {
     store.send(.searchResultTapped(specialResult)) {
       $0.resultForecastRequestInFlight = specialResult
     }
-    self.scheduler.advance()
+    self.mainQueue.advance()
     store.receive(.forecastResponse(42, .success(.mock))) {
       $0.resultForecastRequestInFlight = nil
       $0.weather = SearchState.Weather(
@@ -211,7 +211,7 @@ class SearchTests: XCTestCase {
     store.send(.searchResultTapped(results.first!)) {
       $0.resultForecastRequestInFlight = results.first!
     }
-    self.scheduler.advance()
+    self.mainQueue.advance()
     store.receive(.forecastResponse(1, .failure(WeatherClient.Failure()))) {
       $0.resultForecastRequestInFlight = nil
     }

@@ -5,7 +5,7 @@ import XCTest
 @testable import SwiftUICaseStudies
 
 class TimersTests: XCTestCase {
-  let scheduler = TestScheduler()
+  let mainQueue = TestScheduler()
 
   func testStart() {
     let store = TestStore(
@@ -19,11 +19,11 @@ class TimersTests: XCTestCase {
     store.send(.toggleTimerButtonTapped) {
       $0.isTimerActive = true
     }
-    self.scheduler.advance(by: 1)
+    self.mainQueue.advance(by: 1)
     store.receive(.timerTicked) {
       $0.secondsElapsed = 1
     }
-    self.scheduler.advance(by: 5)
+    self.mainQueue.advance(by: 5)
     store.receive(.timerTicked) {
       $0.secondsElapsed = 2
     }

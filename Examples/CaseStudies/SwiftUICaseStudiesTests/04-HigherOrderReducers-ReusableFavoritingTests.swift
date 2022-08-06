@@ -5,7 +5,7 @@ import XCTest
 @testable import SwiftUICaseStudies
 
 class ReusableComponentsFavoritingTests: XCTestCase {
-  let scheduler = TestScheduler()
+  let mainQueue = TestScheduler()
 
   func testFavoriteButton() {
     let episodes: IdentifiedArrayOf<EpisodeState> = [
@@ -39,7 +39,7 @@ class ReusableComponentsFavoritingTests: XCTestCase {
       $0.episodes[id: episodes[0].id]?.isFavorite = true
     }
 
-    self.scheduler.advance()
+    self.mainQueue.advance()
     store.receive(.episode(id: episodes[0].id, action: .favorite(.response(.success(true)))))
 
     store.send(.episode(id: episodes[1].id, action: .favorite(.buttonTapped))) {
@@ -49,7 +49,7 @@ class ReusableComponentsFavoritingTests: XCTestCase {
       $0.episodes[id: episodes[1].id]?.isFavorite = false
     }
 
-    self.scheduler.advance()
+    self.mainQueue.advance()
     store.receive(.episode(id: episodes[1].id, action: .favorite(.response(.success(false)))))
 
     store.environment.favorite = { _, _ in .future { $0(.failure(error)) } }
@@ -57,7 +57,7 @@ class ReusableComponentsFavoritingTests: XCTestCase {
       $0.episodes[id: episodes[2].id]?.isFavorite = true
     }
 
-    self.scheduler.advance()
+    self.mainQueue.advance()
     store.receive(
       .episode(
         id: episodes[2].id, action: .favorite(.response(.failure(FavoriteError(error: error)))))

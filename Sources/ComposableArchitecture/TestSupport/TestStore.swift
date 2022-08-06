@@ -124,13 +124,13 @@
   ///
   /// ```swift
   /// // Create a test dispatch scheduler to control the timing of effects
-  ///     let scheduler = TestScheduler()
+  ///     let mainQueue = TestScheduler()
   ///
   /// let store = TestStore(
   ///   initialState: SearchState(),
   ///   reducer: searchReducer,
   ///   environment: SearchEnvironment(
-  ///         mainQueue: scheduler,
+  ///         mainQueue: mainQueue,
   ///     // Simulate a search response with one item
   ///     request: { _ in Effect(value: ["Composable Architecture"]) }
   ///   )
@@ -143,7 +143,7 @@
   /// }
   ///
   /// // Advance the scheduler by a period shorter than the debounce
-  ///     scheduler.advance(by: .millseconds(250))
+  ///     mainQueue.advance(by: .millseconds(250))
   ///
   /// // Change the query again
   /// store.send(.searchFieldChanged("co") {
@@ -151,9 +151,9 @@
   /// }
   ///
   /// // Advance the scheduler by a period shorter than the debounce
-  ///     scheduler.advance(by: .millseconds(250))
+  ///     mainQueue.advance(by: .millseconds(250))
   /// // Advance the scheduler to the debounce
-  ///     scheduler.advance(by: .millseconds(250))
+  ///     mainQueue.advance(by: .millseconds(250))
   ///
   /// // Assert that the expected response is received
   /// store.receive(.response(["Composable Architecture"])) {

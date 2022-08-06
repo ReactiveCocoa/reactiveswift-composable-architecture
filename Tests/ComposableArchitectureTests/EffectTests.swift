@@ -8,7 +8,7 @@ import XCTest
 #endif
 
 final class EffectTests: XCTestCase {
-  let scheduler = TestScheduler()
+  let mainQueue = TestScheduler()
 
   func testEraseToEffectWithError() {
     struct Error: Swift.Error, Equatable {}
@@ -49,25 +49,25 @@ final class EffectTests: XCTestCase {
     var values: [Int] = []
 
     let effect = Effect<Int, Never>.concatenate(
-      Effect(value: 1).delay(1, on: scheduler),
-      Effect(value: 2).delay(2, on: scheduler),
-      Effect(value: 3).delay(3, on: scheduler)
+      Effect(value: 1).delay(1, on: mainQueue),
+      Effect(value: 2).delay(2, on: mainQueue),
+      Effect(value: 3).delay(3, on: mainQueue)
     )
 
     effect.startWithValues { values.append($0) }
 
     XCTAssertNoDifference(values, [])
 
-    self.scheduler.advance(by: 1)
+    self.mainQueue.advance(by: 1)
     XCTAssertNoDifference(values, [1])
 
-    self.scheduler.advance(by: 2)
+    self.mainQueue.advance(by: 2)
     XCTAssertNoDifference(values, [1, 2])
 
-    self.scheduler.advance(by: 3)
+    self.mainQueue.advance(by: 3)
     XCTAssertNoDifference(values, [1, 2, 3])
 
-    self.scheduler.run()
+    self.mainQueue.run()
     XCTAssertNoDifference(values, [1, 2, 3])
   }
 
@@ -75,25 +75,25 @@ final class EffectTests: XCTestCase {
     var values: [Int] = []
 
     let effect = Effect<Int, Never>.concatenate(
-      Effect(value: 1).delay(1, on: scheduler)
+      Effect(value: 1).delay(1, on: mainQueue)
     )
 
     effect.startWithValues { values.append($0) }
 
     XCTAssertNoDifference(values, [])
 
-    self.scheduler.advance(by: 1)
+    self.mainQueue.advance(by: 1)
     XCTAssertNoDifference(values, [1])
 
-    self.scheduler.run()
+    self.mainQueue.run()
     XCTAssertNoDifference(values, [1])
   }
 
   func testMerge() {
     let effect = Effect<Int, Never>.merge(
-      Effect(value: 1).delay(1, on: scheduler),
-      Effect(value: 2).delay(2, on: scheduler),
-      Effect(value: 3).delay(3, on: scheduler)
+      Effect(value: 1).delay(1, on: mainQueue),
+      Effect(value: 2).delay(2, on: mainQueue),
+      Effect(value: 3).delay(3, on: mainQueue)
     )
 
     var values: [Int] = []
@@ -101,13 +101,13 @@ final class EffectTests: XCTestCase {
 
     XCTAssertNoDifference(values, [])
 
-    self.scheduler.advance(by: 1)
+    self.mainQueue.advance(by: 1)
     XCTAssertNoDifference(values, [1])
 
-    self.scheduler.advance(by: 1)
+    self.mainQueue.advance(by: 1)
     XCTAssertNoDifference(values, [1, 2])
 
-    self.scheduler.advance(by: 1)
+    self.mainQueue.advance(by: 1)
     XCTAssertNoDifference(values, [1, 2, 3])
   }
 
@@ -115,10 +115,10 @@ final class EffectTests: XCTestCase {
     let effect = Effect<Int, Never> { subscriber, _ in
       subscriber.send(value: 1)
       subscriber.send(value: 2)
-      self.scheduler.schedule(after: self.scheduler.currentDate.addingTimeInterval(1)) {
+      self.mainQueue.schedule(after: self.mainQueue.currentDate.addingTimeInterval(1)) {
         subscriber.send(value: 3)
       }
-      self.scheduler.schedule(after: self.scheduler.currentDate.addingTimeInterval(2)) {
+      self.mainQueue.schedule(after: self.mainQueue.currentDate.addingTimeInterval(2)) {
         subscriber.send(value: 4)
         subscriber.sendCompleted()
       }
@@ -133,12 +133,12 @@ final class EffectTests: XCTestCase {
     XCTAssertNoDifference(values, [1, 2])
     XCTAssertNoDifference(isComplete, false)
 
-    self.scheduler.advance(by: 1)
+    self.mainQueue.advance(by: 1)
 
     XCTAssertNoDifference(values, [1, 2, 3])
     XCTAssertNoDifference(isComplete, false)
 
-    self.scheduler.advance(by: 1)
+    self.mainQueue.advance(by: 1)
 
     XCTAssertNoDifference(values, [1, 2, 3, 4])
     XCTAssertNoDifference(isComplete, true)
@@ -149,7 +149,7 @@ final class EffectTests: XCTestCase {
 
     let effect = Effect<Int, Never> { subscriber, _ in
       subscriber.send(value: 1)
-      self.scheduler.schedule(after: self.scheduler.currentDate.addingTimeInterval(1)) {
+      self.mainQueue.schedule(after: self.mainQueue.currentDate.addingTimeInterval(1)) {
         subscriber.send(value: 2)
       }
     }
@@ -167,7 +167,7 @@ final class EffectTests: XCTestCase {
     Effect<Void, Never>.cancel(id: CancelId.self)
       .startWithValues { _ in }
 
-    self.scheduler.advance(by: 1)
+    self.mainQueue.advance(by: 1)
 
     XCTAssertNoDifference(values, [1])
     XCTAssertNoDifference(isComplete, true)
