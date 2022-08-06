@@ -19,19 +19,11 @@ extension SpeechClient {
       recognitionTask: { request in
         Effect { subscriber, lifetime in
           let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))!
-          let speechRecognizerDelegate = SpeechRecognizerDelegate(
-            availabilityDidChange: { available in
-              subscriber.send(value: .availabilityDidChange(isAvailable: available))
-            }
-          )
-          speechRecognizer.delegate = speechRecognizerDelegate
-
           let cancellable = AnyDisposable {
             audioEngine?.stop()
             inputNode?.removeTap(onBus: 0)
             recognitionTask?.cancel()
             _ = speechRecognizer
-            _ = speechRecognizerDelegate
           }
 
           lifetime += cancellable
@@ -50,7 +42,7 @@ extension SpeechClient {
           recognitionTask = speechRecognizer.recognitionTask(with: request) { result, error in
             switch (result, error) {
             case let (.some(result), _):
-              subscriber.send(value: .taskResult(SpeechRecognitionResult(result)))
+              subscriber.send(value: SpeechRecognitionResult(result))
             case (_, .some):
               subscriber.send(error: .taskError)
             case (.none, .none):
