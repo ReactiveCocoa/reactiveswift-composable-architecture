@@ -38,9 +38,9 @@ extension Effect where Error == Never {
 }
 
 struct AnimationsState: Equatable {
-  var alert: AlertState<AnimationsAction>? = nil
-  var circleCenter = CGPoint(x: 50, y: 50)
-  var circleColor = Color.white
+  var alert: AlertState<AnimationsAction>?
+  var circleCenter = CGPoint(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height / 2)
+  var circleColor = Color.black
   var isCircleScaled = false
 }
 
@@ -72,7 +72,7 @@ let animationsReducer = Reducer<AnimationsState, AnimationsAction, AnimationsEnv
 
   case .rainbowButtonTapped:
     return .keyFrames(
-      values: [Color.red, .blue, .green, .orange, .pink, .purple, .yellow, .white]
+      values: [Color.red, .blue, .green, .orange, .pink, .purple, .yellow, .black]
         .map { (output: .setColor($0), duration: 1) },
       scheduler: environment.mainQueue.animation(.linear)
     )
@@ -116,6 +116,7 @@ struct AnimationsView: View {
 
             Circle()
               .fill(viewStore.circleColor)
+              .colorInvert()
               .blendMode(.difference)
               .frame(width: 50, height: 50)
               .scaleEffect(viewStore.isCircleScaled ? 2 : 1)
@@ -149,6 +150,7 @@ struct AnimationsView: View {
         }
         .alert(self.store.scope(state: \.alert), dismiss: .dismissAlert)
       }
+      .navigationBarTitleDisplayMode(.inline)
     }
   }
 }
