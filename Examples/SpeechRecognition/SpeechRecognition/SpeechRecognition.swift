@@ -19,7 +19,7 @@ struct AppState: Equatable {
 enum AppAction: Equatable {
   case dismissAuthorizationStateAlert
   case recordButtonTapped
-  case speech(Result<SpeechClient.Action, SpeechClient.Error>)
+  case speech(Result<SpeechRecognitionResult, SpeechClient.Error>)
   case speechRecognizerAuthorizationStatusResponse(SFSpeechRecognizerAuthorizationStatus)
 }
 
@@ -50,10 +50,7 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, action, e
         .fireAndForget()
     }
 
-  case let .speech(.success(.availabilityDidChange(isAvailable))):
-    return .none
-
-  case let .speech(.success(.taskResult(result))):
+  case let .speech(.success(result)):
     state.transcribedText = result.bestTranscription.formattedString
     if result.isFinal {
       return environment.speechClient.finishTask()
@@ -188,11 +185,10 @@ extension SpeechClient {
         """
         var text = ""
 
-        return .run { subscriber in
-          return Timer.publish(every: 0.33, on: .main, in: .default)
-            .autoconnect()
-            .prefix { _ in !finalText.isEmpty && isRunning }
-            .sink { _ in
+        return Effect { subscriber, lifetime in
+          let disposable = Effect.timer(interval: .milliseconds(330), on: QueueScheduler.main)
+            .take(while: { _ in !finalText.isEmpty && isRunning })
+            .startWithValues { _ in
               let word = finalText.prefix { $0 != " " }
               finalText.removeFirst(word.count)
               if finalText.first == " " {
@@ -200,18 +196,18 @@ extension SpeechClient {
               }
               text += word + " "
               subscriber.send(
-                .taskResult(
-                  .init(
-                    bestTranscription: .init(
-                      formattedString: text,
-                      segments: []
-                    ),
-                    isFinal: false,
-                    transcriptions: []
-                  )
+                value: .init(
+                  bestTranscription: .init(
+                    formattedString: text,
+                    segments: []
+                  ),
+                  isFinal: false,
+                  transcriptions: []
                 )
               )
             }
+
+            lifetime += disposable
         }
       },
       requestAuthorization: {
