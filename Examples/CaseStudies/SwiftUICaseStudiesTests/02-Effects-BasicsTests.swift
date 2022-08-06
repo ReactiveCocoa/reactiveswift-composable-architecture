@@ -49,7 +49,7 @@ class EffectsBasicsTests: XCTestCase {
       environment: .unimplemented
     )
 
-    store.environment.fact.fetch = { _ in Effect(error: FactClient.Error()) }
+    store.environment.fact.fetch = { _ in Effect(error: FactClient.Failure()) }
     store.environment.mainQueue = ImmediateScheduler()
 
     store.send(.incrementButtonTapped) {
@@ -58,7 +58,7 @@ class EffectsBasicsTests: XCTestCase {
     store.send(.numberFactButtonTapped) {
       $0.isNumberFactRequestInFlight = true
     }
-    store.receive(.numberFactResponse(.failure(FactClient.Error()))) {
+    store.receive(.numberFactResponse(.failure(FactClient.Failure()))) {
       $0.isNumberFactRequestInFlight = false
     }
   }
