@@ -3,7 +3,7 @@
   import ReactiveSwift
   import XCTestDynamicOverlay
 
-  public final class FailingScheduler: DateScheduler {
+  public final class UnimplementedScheduler: DateScheduler {
     public init() {}
 
     public var currentDate: Date {
