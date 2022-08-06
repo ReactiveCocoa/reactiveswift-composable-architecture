@@ -10,7 +10,7 @@ class EffectsBasicsTests: XCTestCase {
       initialState: EffectsBasicsState(),
       reducer: effectsBasicsReducer,
       environment: EffectsBasicsEnvironment(
-        fact: .failing,
+        fact: .unimplemented,
         mainQueue: ImmediateScheduler()
       )
     )
@@ -27,7 +27,7 @@ class EffectsBasicsTests: XCTestCase {
     let store = TestStore(
       initialState: EffectsBasicsState(),
       reducer: effectsBasicsReducer,
-      environment: .failing
+      environment: .unimplemented
     )
 
     store.environment.fact.fetch = { Effect(value: "\($0) is a good number Brent") }
@@ -49,7 +49,7 @@ class EffectsBasicsTests: XCTestCase {
     let store = TestStore(
       initialState: EffectsBasicsState(),
       reducer: effectsBasicsReducer,
-      environment: .failing
+      environment: .unimplemented
     )
 
     store.environment.fact.fetch = { _ in Effect(error: FactClient.Error()) }
@@ -68,8 +68,8 @@ class EffectsBasicsTests: XCTestCase {
 }
 
 extension EffectsBasicsEnvironment {
-  static let failing = Self(
-    fact: .failing,
-    mainQueue: .failing
+  static let unimplemented = Self(
+    fact: .unimplemented,
+    mainQueue: .unimplemented
   )
 }

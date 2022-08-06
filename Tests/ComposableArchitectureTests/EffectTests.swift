@@ -185,13 +185,13 @@ final class EffectTests: XCTestCase {
   }
 
     #if !os(Linux)
-    func testFailing() {
-      let effect = Effect<Never, Never>.failing("failing")
+    func testUnimplemented() {
+      let effect = Effect<Never, Never>.failing("unimplemented")
       _ = XCTExpectFailure {
         effect
           .start()
       } issueMatcher: { issue in
-        issue.compactDescription == "failing - A failing effect ran."
+        issue.compactDescription == "unimplemented - An unimplemented effect ran."
       }
     }
     #endif
