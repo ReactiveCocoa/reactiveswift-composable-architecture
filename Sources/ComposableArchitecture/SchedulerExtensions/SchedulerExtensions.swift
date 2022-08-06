@@ -9,7 +9,7 @@
     public var currentDate: Date {
       XCTFail(
         """
-        A failing scheduler was asked the current time.
+        An unimplemented scheduler was asked the current time.
         """
       )
       return Date()
@@ -18,7 +18,7 @@
     public func schedule(after date: Date, action: @escaping () -> Void) -> Disposable? {
       XCTFail(
         """
-        A failing scheduler scheduled an action to run later.
+        An unimplemented scheduler scheduled an action to run later.
         """
       )
       return nil
@@ -30,7 +30,7 @@
     ) -> Disposable? {
       XCTFail(
         """
-        A failing scheduler scheduled an action to run later.
+        An unimplemented scheduler scheduled an action to run later.
         """
       )
       return nil
