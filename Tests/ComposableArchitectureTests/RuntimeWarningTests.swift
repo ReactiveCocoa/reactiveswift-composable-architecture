@@ -1,7 +1,9 @@
-import Combine
+import ReactiveSwift
 import ComposableArchitecture
 import XCTest
 
+// `XCTExpectFailure` is not supported on Linux
+#if !os(Linux)
 final class RuntimeWarningTests: XCTestCase {
   func testStoreCreationMainThread() {
     XCTExpectFailure {
@@ -41,9 +43,8 @@ final class RuntimeWarningTests: XCTestCase {
       reducer: Reducer<Int, Action, Void> { state, action, _ in
         switch action {
         case .tap:
-          return Empty()
-            .receive(on: DispatchQueue(label: "background"))
-            .eraseToEffect()
+          return SignalProducer.none
+            .observe(on: QueueScheduler(qos: .userInitiated, name: "test", targeting: DispatchQueue(label: "background")))
         case .response:
           return .none
         }
@@ -152,11 +153,9 @@ final class RuntimeWarningTests: XCTestCase {
       reducer: Reducer<Int, Action, Void> { state, action, _ in
         switch action {
         case .tap:
-          return .run { subscriber in
+          return Effect { subscriber, lifetime in
             DispatchQueue(label: "background").async {
-              subscriber.send(.response)
-            }
-            return AnyCancellable {
+              subscriber.send(value: .response)
             }
           }
         case .response:
@@ -198,3 +197,4 @@ final class RuntimeWarningTests: XCTestCase {
     }
   }
 }
+#endif
