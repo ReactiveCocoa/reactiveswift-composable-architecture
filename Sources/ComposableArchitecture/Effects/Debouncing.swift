@@ -12,10 +12,10 @@ extension Effect {
   ///
   /// ```swift
   /// case let .textChanged(text):
-  ///   struct SearchId: Hashable {}
+  ///   enum SearchID {}
   ///
   ///   return environment.search(text)
-  ///     .debounce(id: SearchId(), for: 0.5, scheduler: environment.mainQueue)
+  ///     .debounce(id: SearchID.self, for: 0.5, scheduler: environment.mainQueue)
   ///     .map(Action.searchResponse)
   /// ```
   ///
@@ -29,10 +29,11 @@ extension Effect {
     for dueTime: TimeInterval,
     scheduler: DateScheduler
   ) -> Self {
-    Effect<Void, Never>.init(value: ())
-      .promoteError(Error.self)
+    SignalProducer<Void, Never>.init(value: ())
+      .promoteError(Failure.self)
       .delay(dueTime, on: scheduler)
-      .flatMap(.latest) { self.observe(on: scheduler) }
+      .flatMap(.latest) { self.producer.observe(on: scheduler) }
+      .eraseToEffect()
       .cancellable(id: id, cancelInFlight: true)
   }
 

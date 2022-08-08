@@ -2,6 +2,7 @@ import ComposableArchitecture
 import XCTest
 
 #if !os(Linux)  // XCTExpectFailure is not supported on Linux
+  @MainActor
   class TestStoreFailureTests: XCTestCase {
     func testNoStateChangeFailure() {
       enum Action { case first, second }
@@ -17,7 +18,7 @@ import XCTest
       )
 
       XCTExpectFailure {
-        store.send(.first) { _ = $0 }
+        _ = store.send(.first) { _ = $0 }
       } issueMatcher: {
         $0.compactDescription == """
           Expected state to change, but no change occurred.
@@ -50,7 +51,7 @@ import XCTest
       )
 
       XCTExpectFailure {
-        store.send(()) { $0.count = 0 }
+        _ = store.send(()) { $0.count = 0 }
       } issueMatcher: {
         $0.compactDescription == """
           A state change does not match expectation: …
@@ -73,7 +74,7 @@ import XCTest
         environment: ()
       )
 
-      XCTExpectFailure {
+      _ = XCTExpectFailure {
         store.send(())
       } issueMatcher: {
         $0.compactDescription == """
@@ -151,7 +152,7 @@ import XCTest
           let store = TestStore(
             initialState: 0,
             reducer: Reducer<Int, Void, Void> { state, action, _ in
-              .task { try? await Task.sleep(nanoseconds: NSEC_PER_SEC) }
+              .task { try await Task.sleep(nanoseconds: NSEC_PER_SEC) }
             },
             environment: ()
           )
@@ -165,6 +166,9 @@ import XCTest
           To fix, inspect any effects the reducer returns for this action and ensure that all of \
           them complete by the end of the test. There are a few reasons why an effect may not have \
           completed:
+
+          • If using async/await in your effect, it may need a little bit of time to properly \
+          finish. To fix you can simply perform "await store.finish()" at the end of your test.
 
           • If an effect uses a scheduler (via "receive(on:)", "delay", "debounce", etc.), make sure \
           that you wait enough time for the scheduler to perform the effect. If you are using a test \
@@ -259,7 +263,7 @@ import XCTest
       )
 
       XCTExpectFailure {
-        store.send(()) { _ in
+        _ = store.send(()) { _ in
           struct SomeError: Error {}
           throw SomeError()
         }

@@ -1,95 +1,96 @@
-import ComposableArchitecture
 import ReactiveSwift
 import XCTest
 
+@testable import ComposableArchitecture
+
 final class SchedulerTests: XCTestCase {
-  func testAdvance() {
+  func testAdvance() async {
     let mainQueue = TestScheduler()
 
     var value: Int?
-    Effect(value: 1)
+    SignalProducer(value: 1)
       .delay(1, on: mainQueue)
       .startWithValues { value = $0 }
 
     XCTAssertNoDifference(value, nil)
 
-    mainQueue.advance(by: 0.25)
+    await mainQueue.advance(by: 0.25)
 
     XCTAssertNoDifference(value, nil)
 
-    mainQueue.advance(by: 0.25)
+    await mainQueue.advance(by: 0.25)
 
     XCTAssertNoDifference(value, nil)
 
-    mainQueue.advance(by: 0.25)
+    await mainQueue.advance(by: 0.25)
 
     XCTAssertNoDifference(value, nil)
 
-    mainQueue.advance(by: 0.25)
+    await mainQueue.advance(by: 0.25)
 
     XCTAssertNoDifference(value, 1)
   }
 
-  func testRunScheduler() {
+  func testRunScheduler() async {
     let mainQueue = TestScheduler()
 
     var value: Int?
-    Effect(value: 1)
+    SignalProducer(value: 1)
       .delay(1_000_000_000, on: mainQueue)
       .startWithValues { value = $0 }
 
     XCTAssertNoDifference(value, nil)
 
-    mainQueue.advance(by: .seconds(1_000_000))
+    await mainQueue.advance(by: .seconds(1_000_000))
 
     XCTAssertNoDifference(value, nil)
 
-    mainQueue.run()
+    await mainQueue.run()
 
     XCTAssertNoDifference(value, 1)
   }
 
-  func testDelay0Advance() {
+  func testDelay0Advance() async {
     let mainQueue = TestScheduler()
 
     var value: Int?
-    Effect(value: 1)
+    SignalProducer(value: 1)
       .delay(0, on: mainQueue)
       .startWithValues { value = $0 }
 
     XCTAssertNoDifference(value, nil)
 
-    mainQueue.advance()
+    await mainQueue.advance()
 
     XCTAssertNoDifference(value, 1)
   }
 
-  func testSubscribeOnAdvance() {
+  func testSubscribeOnAdvance() async {
     let mainQueue = TestScheduler()
 
     var value: Int?
-    Effect(value: 1)
+    SignalProducer(value: 1)
       .start(on: mainQueue)
       .startWithValues { value = $0 }
 
     XCTAssertNoDifference(value, nil)
 
-    mainQueue.advance()
+    await mainQueue.advance()
 
     XCTAssertNoDifference(value, 1)
   }
 
-  func testReceiveOnAdvance() {
+  func testReceiveOnAdvance() async {
     let mainQueue = TestScheduler()
 
     var value: Int?
-    Effect(value: 1)
+    SignalProducer(value: 1)
       .observe(on: mainQueue)
       .startWithValues { value = $0 }
 
     XCTAssertNoDifference(value, nil)
 
-    mainQueue.advance()
+    await mainQueue.advance()
 
     XCTAssertNoDifference(value, 1)
   }
@@ -110,7 +111,7 @@ final class SchedulerTests: XCTestCase {
     XCTAssertNoDifference(values, [1, 42, 42, 1, 42])
   }
 
-  func testDebounceReceiveOn() {
+  func testDebounceReceiveOn() async {
     let mainQueue = TestScheduler()
 
     let subject = Signal<Void, Never>.pipe()
@@ -126,13 +127,13 @@ final class SchedulerTests: XCTestCase {
     subject.input.send(value: ())
     XCTAssertNoDifference(count, 0)
 
-    mainQueue.advance(by: 1)
+    await mainQueue.advance(by: 1)
     XCTAssertNoDifference(count, 1)
 
-    mainQueue.advance(by: 1)
+    await mainQueue.advance(by: 1)
     XCTAssertNoDifference(count, 1)
 
-    mainQueue.run()
+    await mainQueue.run()
     XCTAssertNoDifference(count, 1)
   }
 }

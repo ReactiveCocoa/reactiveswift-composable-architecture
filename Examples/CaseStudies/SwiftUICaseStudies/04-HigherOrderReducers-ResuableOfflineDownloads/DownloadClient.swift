@@ -1,14 +1,11 @@
 import Combine
 import ComposableArchitecture
 import Foundation
-import ReactiveSwift
 
 struct DownloadClient {
-  var download: (URL) -> Effect<Action, Error>
+  var download: @Sendable (URL) -> AsyncThrowingStream<Event, Error>
 
-  struct Error: Swift.Error, Equatable {}
-
-  enum Action: Equatable {
+  enum Event: Equatable {
     case response(Data)
     case updateProgress(Double)
   }
@@ -17,28 +14,27 @@ struct DownloadClient {
 extension DownloadClient {
   static let live = DownloadClient(
     download: { url in
-      .init { subscriber, lifetime in
-        let task = URLSession.shared.dataTask(with: url) { data, _, error in
-          switch (data, error) {
-          case let (.some(data), _):
-            subscriber.send(value: .response(data))
-            subscriber.sendCompleted()
-          case let (_, .some(error)):
-            subscriber.send(error: Error())
-          case (.none, .none):
-            fatalError("Data and Error should not both be nil")
+      .init { continuation in
+        Task {
+          do {
+            let (bytes, response) = try await URLSession.shared.bytes(from: url)
+            var data = Data()
+            var progress = 0
+            for try await byte in bytes {
+              data.append(byte)
+              let newProgress = Int(
+                Double(data.count) / Double(response.expectedContentLength) * 100)
+              if newProgress != progress {
+                progress = newProgress
+                continuation.yield(.updateProgress(Double(progress) / 100))
+              }
+            }
+            continuation.yield(.response(data))
+            continuation.finish()
+          } catch {
+            continuation.finish(throwing: error)
           }
         }
-
-        let observation = task.progress.observe(\.fractionCompleted) { progress, _ in
-          subscriber.send(value: .updateProgress(progress.fractionCompleted))
-        }
-
-        lifetime += AnyDisposable {
-          observation.invalidate()
-          task.cancel()
-        }
-        task.resume()
       }
     }
   )

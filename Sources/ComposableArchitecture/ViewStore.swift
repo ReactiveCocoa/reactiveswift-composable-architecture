@@ -50,19 +50,10 @@ import ReactiveSwift
 /// }
 /// ```
 ///
-/// ### Thread safety
-///
-/// The ``ViewStore`` class is not thread-safe, and all interactions with it (and the store it was
-/// derived from) must happen on the same thread. Further, for SwiftUI applications, all
-/// interactions must happen on the _main_ thread. See the documentation of the ``Store`` class for
-/// more information as to why this decision was made.
-///
-/// ### ViewStore object lifetime
-///
-/// You must always keep a strong reference to any ``ViewStore`` that you create to prevent it from
-/// being immediately deallocated, and thereby preventing its ``produced`` ``StoreProducer`` from
-/// emiting any more state updates. This is primarly an issue when using UIKit, as the SwiftUI
-/// ``WithViewStore`` helper ensures that the ``ViewStore`` is retained.
+/// > Important: The ``ViewStore`` class is not thread-safe, and all interactions with it (and the
+/// > store it was derived from) must happen on the same thread. Further, for SwiftUI applications,
+/// > all interactions must happen on the _main_ thread. See the documentation of the ``Store``
+/// > class for more information as to why this decision was made.
 @dynamicMemberLookup
 public final class ViewStore<State, Action> {
   #if !canImport(Combine)
@@ -70,10 +61,12 @@ public final class ViewStore<State, Action> {
     public class ObservableObjectPublisher {}
   #endif
 
+  // N.B. `ViewStore` does not use a `@Published` property, so `objectWillChange`
+  // won't be synthesized automatically. To work around issues on iOS 13 we explicitly declare it.
   public private(set) lazy var objectWillChange = ObservableObjectPublisher()
 
-  private let _send: (Action) -> Void
-  fileprivate var _state: CurrentValueRelay<State>
+  private let _send: (Action) -> Task<Void, Never>?
+  fileprivate let _state: CurrentValueRelay<State>
   private var viewDisposable: Disposable?
 
   /// Initializes a view store from a store.
@@ -145,15 +138,26 @@ public final class ViewStore<State, Action> {
 
   /// Sends an action to the store.
   ///
-  /// ``ViewStore`` is not thread safe and you should only send actions to it from the main thread.
-  /// If you are wanting to send actions on background threads due to the fact that the reducer
-  /// is performing computationally expensive work, then a better way to handle this is to wrap
-  /// that work in an ``Effect`` that is performed on a background thread so that the result can
-  /// be fed back into the store.
+  /// This method returns a ``ViewStoreTask``, which represents the lifecycle of the effect started
+  /// from sending an action. You can use this value to tie the effect's lifecycle _and_
+  /// cancellation to an asynchronous context, such as SwiftUI's `task` view modifier:
+  ///
+  /// ```swift
+  /// .task { await viewStore.send(.task).finish() }
+  /// ```
+  ///
+  /// > Important: ``ViewStore`` is not thread safe and you should only send actions to it from the
+  /// > main thread. If you want to send actions on background threads due to the fact that the
+  /// > reducer is performing computationally expensive work, then a better way to handle this is to
+  /// > wrap that work in an ``Effect`` that is performed on a background thread so that the result
+  /// > can be fed back into the store.
   ///
   /// - Parameter action: An action.
-  public func send(_ action: Action) {
-    self._send(action)
+  /// - Returns: A ``ViewStoreTask`` that represents the lifecycle of the effect executed when
+  ///   sending the action.
+  @discardableResult
+  public func send(_ action: Action) -> ViewStoreTask {
+    .init(rawValue: self._send(action))
   }
 
   #if canImport(SwiftUI)
@@ -164,12 +168,161 @@ public final class ViewStore<State, Action> {
     /// - Parameters:
     ///   - action: An action.
     ///   - animation: An animation.
-    public func send(_ action: Action, animation: Animation?) {
+    @discardableResult
+    public func send(_ action: Action, animation: Animation?) -> ViewStoreTask {
       withAnimation(animation) {
         self.send(action)
       }
     }
+  #endif
 
+  #if canImport(_Concurrency) && compiler(>=5.5.2)
+    /// Sends an action into the store and then suspends while a piece of state is `true`.
+    ///
+    /// This method can be used to interact with async/await code, allowing you to suspend while work
+    /// is being performed in an effect. One common example of this is using SwiftUI's `.refreshable`
+    /// method, which shows a loading indicator on the screen while work is being performed.
+    ///
+    /// For example, suppose we wanted to load some data from the network when a pull-to-refresh
+    /// gesture is performed on a list. The domain and logic for this feature can be modeled like so:
+    ///
+    /// ```swift
+    /// struct State: Equatable {
+    ///   var isLoading = false
+    ///   var response: String?
+    /// }
+    ///
+    /// enum Action {
+    ///   case pulledToRefresh
+    ///   case receivedResponse(TaskResult<String>)
+    /// }
+    ///
+    /// struct Environment {
+    ///   var fetch: () async throws -> String
+    /// }
+    ///
+    /// let reducer = Reducer<State, Action, Environment> { state, action, environment in
+    ///   switch action {
+    ///   case .pulledToRefresh:
+    ///     state.isLoading = true
+    ///     return .task {
+    ///       await .receivedResponse(TaskResult { try await environment.fetch() })
+    ///     }
+    ///
+    ///   case let .receivedResponse(result):
+    ///     state.isLoading = false
+    ///     state.response = try? result.value
+    ///     return .none
+    ///   }
+    /// }
+    /// ```
+    ///
+    /// Note that we keep track of an `isLoading` boolean in our state so that we know exactly when
+    /// the network response is being performed.
+    ///
+    /// The view can show the fact in a `List`, if it's present, and we can use the `.refreshable`
+    /// view modifier to enhance the list with pull-to-refresh capabilities:
+    ///
+    /// ```swift
+    /// struct MyView: View {
+    ///   let store: Store<State, Action>
+    ///
+    ///   var body: some View {
+    ///     WithViewStore(self.store) { viewStore in
+    ///       List {
+    ///         if let response = viewStore.response {
+    ///           Text(response)
+    ///         }
+    ///       }
+    ///       .refreshable {
+    ///         await viewStore.send(.pulledToRefresh, while: \.isLoading)
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// ```
+    ///
+    /// Here we've used the ``send(_:while:)`` method to suspend while the `isLoading` state is
+    /// `true`. Once that piece of state flips back to `false` the method will resume, signaling to
+    /// `.refreshable` that the work has finished which will cause the loading indicator to disappear.
+    ///
+    /// - Parameters:
+    ///   - action: An action.
+    ///   - predicate: A predicate on `State` that determines for how long this method should suspend.
+    @MainActor
+    public func send(_ action: Action, while predicate: @escaping (State) -> Bool) async {
+      let task = self.send(action)
+      await withTaskCancellationHandler {
+        task.rawValue?.cancel()
+      } operation: {
+        await self.yield(while: predicate)
+      }
+    }
+
+    #if canImport(SwiftUI)
+      /// Sends an action into the store and then suspends while a piece of state is `true`.
+      ///
+      /// See the documentation of ``send(_:while:)`` for more information.
+      ///
+      /// - Parameters:
+      ///   - action: An action.
+      ///   - animation: The animation to perform when the action is sent.
+      ///   - predicate: A predicate on `State` that determines for how long this method should suspend.
+      @MainActor
+      public func send(
+        _ action: Action,
+        animation: Animation?,
+        while predicate: @escaping (State) -> Bool
+      ) async {
+        let task = withAnimation(animation) { self.send(action) }
+        await withTaskCancellationHandler {
+          task.rawValue?.cancel()
+        } operation: {
+          await self.yield(while: predicate)
+        }
+      }
+    #endif
+
+    /// Suspends the current task while a predicate on state is `true`.
+    ///
+    /// If you want to suspend at the same time you send an action to the view store, use
+    /// ``send(_:while:)``.
+    ///
+    /// - Parameter predicate: A predicate on `State` that determines for how long this method should
+    ///   suspend.
+    @MainActor
+    public func yield(while predicate: @escaping (State) -> Bool) async {
+      if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
+        _ = await self.produced.producer
+          .values
+          .first(where: { !predicate($0) })
+      } else {
+        let cancellable = Box<Disposable?>(wrappedValue: nil)
+        try? await withTaskCancellationHandler(
+          handler: { cancellable.wrappedValue?.dispose() },
+          operation: {
+            try Task.checkCancellation()
+            try await withUnsafeThrowingContinuation {
+              (continuation: UnsafeContinuation<Void, Error>) in
+              guard !Task.isCancelled else {
+                continuation.resume(throwing: CancellationError())
+                return
+              }
+              cancellable.wrappedValue = self.produced.producer
+                .filter { !predicate($0) }
+                .take(first: 1)
+                .startWithValues { _ in
+                  continuation.resume()
+                  _ = cancellable
+                }
+            }
+          }
+        )
+      }
+    }
+  #endif
+
+  #if canImport(SwiftUI)
     /// Derives a binding from the store that prevents direct writes to state and instead sends
     /// actions to the store.
     ///
@@ -282,7 +435,7 @@ public final class ViewStore<State, Action> {
     /// enum Action { case alertDismissed }
     ///
     /// .alert(
-    ///       item: self.store.binding(
+    ///   item: viewStore.binding(
     ///     send: .alertDismissed
     ///   )
     /// ) { title in Alert(title: Text(title)) }
@@ -317,17 +470,55 @@ extension ViewStore where State == Void {
   }
 }
 
+/// The type returned from ``ViewStore/send(_:)`` that represents the lifecycle of the effect
+/// started from sending an action.
+///
+/// You can use this value to tie the effect's lifecycle _and_ cancellation to an asynchronous
+/// context, such as the `task` view modifier.
+///
+/// ```swift
+/// .task { await viewStore.send(.task).finish() }
+/// ```
+///
+/// > Note: Unlike `Task`, ``ViewStoreTask`` automatically sets up a cancellation handler between
+/// > the current async context and the task.
+///
+/// See ``TestStoreTask`` for the analog provided to ``TestStore``.
+public struct ViewStoreTask: Hashable, Sendable {
+  fileprivate let rawValue: Task<Void, Never>?
+
+  /// Cancels the underlying task and waits for it to finish.
+  public func cancel() async {
+    self.rawValue?.cancel()
+    await self.finish()
+  }
+
+  /// Waits for the task to finish.
+  public func finish() async {
+    await self.rawValue?.cancellableValue
+  }
+
+  /// A Boolean value that indicates whether the task should stop executing.
+  ///
+  /// After the value of this property becomes `true`, it remains `true` indefinitely. There is no
+  /// way to uncancel a task.
+  public var isCancelled: Bool {
+    self.rawValue?.isCancelled ?? true
+  }
+}
+
 #if canImport(Combine)
   extension ViewStore: ObservableObject {
   }
 #endif
 
+/// A producer of store state.
 @dynamicMemberLookup
 public struct StoreProducer<State>: SignalProducerConvertible {
-  public let upstream: Effect<State, Never>
+  public let upstream: SignalProducer<State, Never>
   public let viewStore: Any
 
-  public var producer: Effect<State, Never> {
+  public var producer: SignalProducer<State, Never> {
     upstream
   }
 
@@ -337,7 +528,7 @@ public struct StoreProducer<State>: SignalProducerConvertible {
   }
 
   private init(
-    upstream: Effect<State, Never>,
+    upstream: SignalProducer<State, Never>,
     viewStore: Any
   ) {
     self.upstream = upstream
@@ -354,7 +545,7 @@ public struct StoreProducer<State>: SignalProducerConvertible {
   /// Returns the resulting `SignalProducer` of a given key path.
   public subscript<LocalValue: Equatable>(
     dynamicMember keyPath: KeyPath<Value, LocalValue>
-  ) -> Effect<LocalValue, Never> {
+  ) -> SignalProducer<LocalValue, Never> {
     self.upstream.map(keyPath).skipRepeats()
   }
 }
@@ -364,156 +555,3 @@ private struct HashableWrapper<Value>: Hashable {
   static func == (lhs: Self, rhs: Self) -> Bool { false }
   func hash(into hasher: inout Hasher) {}
 }
-
-#if canImport(_Concurrency) && compiler(>=5.5.2)
-  extension ViewStore {
-    /// Sends an action into the store and then suspends while a piece of state is `true`.
-    ///
-    /// This method can be used to interact with async/await code, allowing you to suspend while
-    /// work is being performed in an effect. One common example of this is using SwiftUI's
-    /// `.refreshable` method, which shows a loading indicator on the screen while work is being
-    /// performed.
-    ///
-    /// For example, suppose we wanted to load some data from the network when a pull-to-refresh
-    /// gesture is performed on a list. The domain and logic for this feature can be modeled like
-    /// so:
-    ///
-    /// ```swift
-    /// struct State: Equatable {
-    ///   var isLoading = false
-    ///   var response: String?
-    /// }
-    ///
-    /// enum Action {
-    ///   case pulledToRefresh
-    ///   case receivedResponse(String?)
-    /// }
-    ///
-    /// struct Environment {
-    ///   var fetch: () -> Effect<String?, Never>
-    /// }
-    ///
-    /// let reducer = Reducer<State, Action, Environment> { state, action, environment in
-    ///   switch action {
-    ///   case .pulledToRefresh:
-    ///     state.isLoading = true
-    ///     return environment.fetch()
-    ///       .map(Action.receivedResponse)
-    ///
-    ///   case let .receivedResponse(response):
-    ///     state.isLoading = false
-    ///     state.response = response
-    ///     return .none
-    ///   }
-    /// }
-    /// ```
-    ///
-    /// Note that we keep track of an `isLoading` boolean in our state so that we know exactly
-    /// when the network response is being performed.
-    ///
-    /// The view can show the fact in a `List`, if it's present, and we can use the `.refreshable`
-    /// view modifier to enhance the list with pull-to-refresh capabilities:
-    ///
-    /// ```swift
-    /// struct MyView: View {
-    ///   let store: Store<State, Action>
-    ///
-    ///   var body: some View {
-    ///     WithViewStore(self.store) { viewStore in
-    ///       List {
-    ///         if let response = viewStore.response {
-    ///           Text(response)
-    ///         }
-    ///       }
-    ///       .refreshable {
-    ///         await viewStore.send(.pulledToRefresh, while: \.isLoading)
-    ///       }
-    ///     }
-    ///   }
-    /// }
-    /// ```
-    ///
-    /// Here we've used the ``send(_:while:)`` method to suspend while the `isLoading` state is
-    /// `true`. Once that piece of state flips back to `false` the method will resume, signaling
-    /// to `.refreshable` that the work has finished which will cause the loading indicator to
-    /// disappear.
-    ///
-    /// **Note:** ``ViewStore`` is not thread safe and you should only send actions to it from the
-    /// main thread. If you are wanting to send actions on background threads due to the fact that
-    /// the reducer is performing computationally expensive work, then a better way to handle this
-    /// is to wrap that work in an ``Effect`` that is performed on a background thread so that the
-    /// result can be fed back into the store.
-    ///
-    /// - Parameters:
-    ///   - action: An action.
-    ///   - predicate: A predicate on `State` that determines for how long this method should
-    ///     suspend.
-    @MainActor
-    public func send(
-      _ action: Action,
-      while predicate: @escaping (State) -> Bool
-    ) async {
-      self.send(action)
-      await self.yield(while: predicate)
-    }
-
-    #if canImport(SwiftUI)
-      /// Sends an action into the store and then suspends while a piece of state is `true`.
-      ///
-      /// See the documentation of ``send(_:while:)`` for more information.
-      ///
-      /// - Parameters:
-      ///   - action: An action.
-      ///   - animation: The animation to perform when the action is sent.
-      ///   - predicate: A predicate on `State` that determines for how long this method should
-      ///     suspend.
-      public func send(
-        _ action: Action,
-        animation: Animation?,
-        while predicate: @escaping (State) -> Bool
-      ) async {
-        withAnimation(animation) { self.send(action) }
-        await self.yield(while: predicate)
-      }
-    #endif
-
-    /// Suspends the current task while a predicate on state is `true`.
-    ///
-    /// If you want to suspend at the same time you send an action to the view store, use
-    /// ``send(_:while:)``.
-    ///
-    /// - Parameter predicate: A predicate on `State` that determines for how long this method
-    ///   should suspend.
-    public func yield(while predicate: @escaping (State) -> Bool) async {
-      let cancellable = Box<Disposable?>(wrappedValue: nil)
-      try? await withTaskCancellationHandler(
-        operation: {
-          try Task.checkCancellation()
-          try await withUnsafeThrowingContinuation {
-            (continuation: UnsafeContinuation<Void, Error>) in
-            guard !Task.isCancelled else {
-              continuation.resume(throwing: CancellationError())
-              return
-            }
-            cancellable.wrappedValue = self.produced.producer
-              .filter { !predicate($0) }
-              .take(first: 1)
-              .startWithValues { _ in
-                continuation.resume()
-                _ = cancellable
-              }
-          }
-        },
-        onCancel: { cancellable.wrappedValue?.dispose() }
-      )
-    }
-  }
-
-  private class Box<Value> {
-    var wrappedValue: Value
-
-    init(wrappedValue: Value) {
-      self.wrappedValue = wrappedValue
-    }
-  }
-#endif

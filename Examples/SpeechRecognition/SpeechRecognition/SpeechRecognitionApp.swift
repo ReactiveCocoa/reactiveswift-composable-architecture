@@ -1,5 +1,4 @@
 import ComposableArchitecture
-import ReactiveSwift
 import SwiftUI
 
 @main
@@ -11,7 +10,6 @@ struct SpeechRecognitionApp: App {
           initialState: AppState(),
           reducer: appReducer,
           environment: AppEnvironment(
-            mainQueue: QueueScheduler.main,
             speechClient: .live
           )
         )

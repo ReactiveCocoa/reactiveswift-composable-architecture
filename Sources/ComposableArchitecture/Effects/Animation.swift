@@ -5,8 +5,6 @@
   extension Effect {
     /// Wraps the emission of each element with SwiftUI's `withAnimation`.
     ///
-    /// This publisher is most useful when using with ``Effect/task(priority:operation:)-2czg0``
-    ///
     /// ```swift
     /// case .buttonTapped:
     ///   return .task {
@@ -18,8 +16,8 @@
     /// - Parameter animation: An animation.
     /// - Returns: A publisher.
     public func animation(_ animation: Animation? = .default) -> Self {
-      SignalProducer { observer, _ in
-        self.start { action in
+      SignalProducer<Output, Failure> { observer, _ in
+        self.producer.start { action in
           switch action {
           case let .value(value):
             withAnimation(animation) {
@@ -34,6 +32,7 @@
           }
         }
       }
+      .eraseToEffect()
     }
   }
 #endif

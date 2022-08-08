@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import ReactiveSwift
 import SwiftUI
+@preconcurrency import SwiftUI  // NB: SwiftUI.Animation is not Sendable yet.
 
 private let readMe = """
   This screen demonstrates how the `Reducer` struct can be extended to enhance reducers with \
@@ -61,18 +62,14 @@ let clockReducer = Reducer<ClockState, ClockAction, ClockEnvironment>.combine(
     }
   },
   .subscriptions { state, environment in
-    struct TimerId: Hashable {}
     guard state.isTimerActive else { return [:] }
+    struct TimerID: Hashable {}
     return [
-      TimerId():
-        Effect
-        .timer(
-          id: TimerId(),
-          every: .seconds(1),
-          tolerance: .seconds(0),
-          on: environment.mainQueue.animation(.interpolatingSpring(stiffness: 3000, damping: 40))
-        )
-        .map { _ in .timerTicked }
+      TimerID(): .run { send in
+        for await _ in environment.mainQueue.timer(interval: .seconds(1)) {
+          await send(.timerTicked, animation: .interpolatingSpring(stiffness: 3000, damping: 40))
+        }
+      }
     ]
   }
 )

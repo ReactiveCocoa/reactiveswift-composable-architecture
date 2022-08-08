@@ -20,18 +20,19 @@ extension Effect {
     scheduler: DateScheduler,
     latest: Bool
   ) -> Self {
-    self.observe(on: scheduler)
-      .flatMap(.latest) { value -> Effect<Value, Error> in
+    self.producer
+      .observe(on: scheduler)
+      .flatMap(.latest) { value -> SignalProducer<Output, Failure> in
         throttleLock.lock()
         defer { throttleLock.unlock() }
 
         guard let throttleTime = throttleTimes[id] as! Date? else {
           throttleTimes[id] = scheduler.currentDate
           throttleValues[id] = nil
-          return Effect(value: value)
+          return SignalProducer(value: value)
         }
 
-        let value = latest ? value : (throttleValues[id] as! Value? ?? value)
+        let value = latest ? value : (throttleValues[id] as! Output? ?? value)
         throttleValues[id] = value
 
         guard
@@ -40,10 +41,10 @@ extension Effect {
         else {
           throttleTimes[id] = scheduler.currentDate
           throttleValues[id] = nil
-          return Effect(value: value)
+          return SignalProducer(value: value)
         }
 
-        return Effect(value: value)
+        return SignalProducer(value: value)
           .delay(
             throttleTime.addingTimeInterval(interval).timeIntervalSince1970
               - scheduler.currentDate.timeIntervalSince1970,
@@ -57,6 +58,7 @@ extension Effect {
             }
           )
       }
+      .eraseToEffect()
       .cancellable(id: id, cancelInFlight: true)
   }
 

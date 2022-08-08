@@ -51,7 +51,7 @@
   /// }
   /// ```
   ///
-  /// Enhance its reducer using ``Reducer/forEach(state:action:environment:file:line:)-gvte``:
+  /// Enhance its reducer using ``Reducer/forEach(state:action:environment:file:fileID:line:)-n7qj``:
   ///
   /// ```swift
   /// let appReducer = todoReducer.forEach(

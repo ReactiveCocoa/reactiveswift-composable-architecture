@@ -13,6 +13,7 @@ struct CaseStudy {
   }
 }
 
+@MainActor
 let dataSource: [CaseStudy] = [
   CaseStudy(
     title: "Basics",

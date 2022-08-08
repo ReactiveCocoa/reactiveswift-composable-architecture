@@ -1,7 +1,6 @@
 import AuthenticationClient
 import ComposableArchitecture
 import LoginCore
-import ReactiveSwift
 import SwiftUI
 import TwoFactorCore
 import TwoFactorSwiftUI
@@ -128,14 +127,11 @@ struct LoginView_Previews: PreviewProvider {
           reducer: loginReducer,
           environment: LoginEnvironment(
             authenticationClient: AuthenticationClient(
-              login: { _ in
-                Effect(value: AuthenticationResponse(token: "deadbeef", twoFactorRequired: false))
-              },
+              login: { _ in AuthenticationResponse(token: "deadbeef", twoFactorRequired: false) },
               twoFactor: { _ in
-                Effect(value: AuthenticationResponse(token: "deadbeef", twoFactorRequired: false))
+                AuthenticationResponse(token: "deadbeef", twoFactorRequired: false)
               }
-            ),
-            mainQueue: QueueScheduler.main
+            )
           )
         )
       )

@@ -1,7 +1,7 @@
 import Foundation
 import ReactiveSwift
 
-extension Effect where Value == Date, Error == Never {
+extension Effect where Output == Date, Failure == Never {
   /// Returns an effect that repeatedly emits the current time of the given scheduler on the given
   /// interval.
   ///
@@ -15,65 +15,66 @@ extension Effect where Value == Date, Error == Never {
   /// To start and stop a timer in your feature you can create the timer effect from an action
   /// and then use the ``Effect/cancel(id:)-iun1`` effect to stop the timer:
   ///
-  ///    ```swift
-  ///     struct AppState {
-  ///       var count = 0
-  ///     }
+  /// ```swift
+  /// struct AppState {
+  ///   var count = 0
+  /// }
   ///
-  ///     enum AppAction {
-  ///       case startButtonTapped, stopButtonTapped, timerTicked
-  ///     }
+  /// enum AppAction {
+  ///   case startButtonTapped, stopButtonTapped, timerTicked
+  /// }
   ///
-  ///     struct AppEnvironment {
-  ///       var mainQueue: AnySchedulerOf<DispatchQueue>
-  ///     }
+  /// struct AppEnvironment {
+  ///   var mainQueue: AnySchedulerOf<DispatchQueue>
+  /// }
   ///
-  ///     let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, action, env in
-  ///       struct TimerId: Hashable {}
+  /// let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, action, env in
+  ///   struct TimerID: Hashable {}
   ///
-  ///       switch action {
-  ///       case .startButtonTapped:
-  ///         return Effect.timer(id: TimerId(), every: 1, on: env.mainQueue)
-  ///           .map { _ in .timerTicked }
+  ///   switch action {
+  ///   case .startButtonTapped:
+  ///     return Effect.timer(id: TimerID(), every: 1, on: env.mainQueue)
+  ///       .map { _ in .timerTicked }
   ///
-  ///       case .stopButtonTapped:
-  ///         return .cancel(id: TimerId())
+  ///   case .stopButtonTapped:
+  ///     return .cancel(id: TimerID())
   ///
-  ///       case let .timerTicked:
-  ///         state.count += 1
-  ///         return .none
-  ///     }
-  ///    ```
+  ///   case let .timerTicked:
+  ///     state.count += 1
+  ///     return .none
+  /// }
+  /// ```
   ///
   /// Then to test the timer in this feature you can use a test scheduler to advance time:
   ///
-  ///    ```swift
-  ///     func testTimer() {
-  ///       let mainQueue = TestScheduler()
+  /// ```swift
+  /// @MainActor
+  /// func testTimer() async {
+  ///   let mainQueue = TestScheduler()
   ///
-  ///       let store = TestStore(
-  ///         initialState: .init(),
-  ///         reducer: appReducer,
+  ///   let store = TestStore(
+  ///     initialState: .init(),
+  ///     reducer: appReducer,
   ///     environment: .init(
-  ///           mainQueue: mainQueue
-  ///         )
-  ///       )
+  ///       mainQueue: mainQueue
+  ///     )
+  ///   )
   ///
-  ///       store.send(.startButtonTapped)
+  ///   await store.send(.startButtonTapped)
   ///
-  ///       mainQueue.advance(by: 1)
-  ///       store.receive(.timerTicked) { $0.count = 1 }
+  ///   await mainQueue.advance(by: .seconds(1))
+  ///   await store.receive(.timerTicked) { $0.count = 1 }
   ///
-  ///       mainQueue.advance(by: 5)
-  ///       store.receive(.timerTicked) { $0.count = 2 }
-  ///       store.receive(.timerTicked) { $0.count = 3 }
-  ///       store.receive(.timerTicked) { $0.count = 4 }
-  ///       store.receive(.timerTicked) { $0.count = 5 }
-  ///       store.receive(.timerTicked) { $0.count = 6 }
+  ///   await mainQueue.advance(by: .seconds(5))
+  ///   await store.receive(.timerTicked) { $0.count = 2 }
+  ///   await store.receive(.timerTicked) { $0.count = 3 }
+  ///   await store.receive(.timerTicked) { $0.count = 4 }
+  ///   await store.receive(.timerTicked) { $0.count = 5 }
+  ///   await store.receive(.timerTicked) { $0.count = 6 }
   ///
-  ///       store.send(.stopButtonTapped)
-  ///     }
-  ///    ```
+  ///   await store.send(.stopButtonTapped)
+  /// }
+  /// ```
   ///
   /// - Parameters:
   ///   - id: The effect's identifier.
@@ -89,10 +90,11 @@ extension Effect where Value == Date, Error == Never {
     tolerance: DispatchTimeInterval? = nil,
     on scheduler: DateScheduler
   ) -> Self {
-    return SignalProducer.timer(
-      interval: interval, on: scheduler, leeway: tolerance ?? .seconds(.max)
-    )
-    .cancellable(id: id, cancelInFlight: true)
+    return
+      SignalProducer
+      .timer(interval: interval, on: scheduler, leeway: tolerance ?? .seconds(.max))
+      .eraseToEffect()
+      .cancellable(id: id, cancelInFlight: true)
   }
 
   /// Returns an effect that repeatedly emits the current time of the given scheduler on the given

@@ -4,42 +4,43 @@ import XCTest
 
 @testable import SwiftUICaseStudies
 
+@MainActor
 class TimersTests: XCTestCase {
-  let mainQueue = TestScheduler()
+  func testStart() async {
+    let mainQueue = TestScheduler()
 
-  func testStart() {
     let store = TestStore(
       initialState: TimersState(),
       reducer: timersReducer,
       environment: TimersEnvironment(
-        mainQueue: self.mainQueue
+        mainQueue: mainQueue
       )
     )
 
-    store.send(.toggleTimerButtonTapped) {
+    await store.send(.toggleTimerButtonTapped) {
       $0.isTimerActive = true
     }
-    self.mainQueue.advance(by: 1)
-    store.receive(.timerTicked) {
+    await mainQueue.advance(by: .seconds(1))
+    await store.receive(.timerTicked) {
       $0.secondsElapsed = 1
     }
-    self.mainQueue.advance(by: 5)
-    store.receive(.timerTicked) {
+    await mainQueue.advance(by: .seconds(5))
+    await store.receive(.timerTicked) {
       $0.secondsElapsed = 2
     }
-    store.receive(.timerTicked) {
+    await store.receive(.timerTicked) {
       $0.secondsElapsed = 3
     }
-    store.receive(.timerTicked) {
+    await store.receive(.timerTicked) {
       $0.secondsElapsed = 4
     }
-    store.receive(.timerTicked) {
+    await store.receive(.timerTicked) {
       $0.secondsElapsed = 5
     }
-    store.receive(.timerTicked) {
+    await store.receive(.timerTicked) {
       $0.secondsElapsed = 6
     }
-    store.send(.toggleTimerButtonTapped) {
+    await store.send(.toggleTimerButtonTapped) {
       $0.isTimerActive = false
     }
   }
