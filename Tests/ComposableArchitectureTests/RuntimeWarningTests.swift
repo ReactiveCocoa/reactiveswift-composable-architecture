@@ -144,7 +144,7 @@ final class RuntimeWarningTests: XCTestCase {
         (including all of its scopes and derived view stores) must be done on the main thread.
         """
       ]
-        .contains($0.compactDescription)
+      .contains($0.compactDescription)
     }
 
     enum Action { case tap, response }
@@ -154,7 +154,8 @@ final class RuntimeWarningTests: XCTestCase {
         switch action {
         case .tap:
           return Effect { subscriber, lifetime in
-            DispatchQueue(label: "background").async {
+            Thread.detachNewThread {
+              XCTAssertFalse(Thread.isMainThread, "Effect should send on non-main thread.")
               subscriber.send(value: .response)
             }
           }
@@ -165,7 +166,7 @@ final class RuntimeWarningTests: XCTestCase {
       environment: ()
     )
     ViewStore(store).send(.tap)
-    _ = XCTWaiter.wait(for: [.init()], timeout: 2)
+    _ = XCTWaiter.wait(for: [.init()], timeout: 4)
   }
 
   func testBindingUnhandledAction() {
