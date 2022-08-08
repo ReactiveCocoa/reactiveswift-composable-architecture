@@ -15,7 +15,14 @@ extension SpeechClient {
           recognitionTask?.finish()
         }
       },
-      recognitionTask: { request in
+      requestAuthorization: {
+        .future { callback in
+          SFSpeechRecognizer.requestAuthorization { status in
+            callback(.success(status))
+          }
+        }
+      },
+      startTask: { request in
         Effect { subscriber, lifetime in
           let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))!
           let cancellable = AnyDisposable {
@@ -65,13 +72,6 @@ extension SpeechClient {
           }
 
           return
-        }
-      },
-      requestAuthorization: {
-        .future { callback in
-          SFSpeechRecognizer.requestAuthorization { status in
-            callback(.success(status))
-          }
         }
       }
     )
