@@ -10,7 +10,7 @@ class EffectsCancellationTests: XCTestCase {
       initialState: EffectsCancellationState(),
       reducer: effectsCancellationReducer,
       environment: .unimplemented
-      )
+    )
 
     store.environment.fact.fetch = { Effect(value: "\($0) is a good number Brent") }
     store.environment.mainQueue = ImmediateScheduler()
@@ -35,7 +35,7 @@ class EffectsCancellationTests: XCTestCase {
       initialState: EffectsCancellationState(),
       reducer: effectsCancellationReducer,
       environment: .unimplemented
-      )
+    )
 
     store.environment.fact.fetch = { _ in Effect(error: FactClient.Failure()) }
     store.environment.mainQueue = ImmediateScheduler()
@@ -60,7 +60,7 @@ class EffectsCancellationTests: XCTestCase {
       initialState: EffectsCancellationState(),
       reducer: effectsCancellationReducer,
       environment: .unimplemented
-      )
+    )
 
     store.environment.fact.fetch = { Effect(value: "\($0) is a good number Brent") }
     store.environment.mainQueue = mainQueue
@@ -80,7 +80,7 @@ class EffectsCancellationTests: XCTestCase {
       initialState: EffectsCancellationState(),
       reducer: effectsCancellationReducer,
       environment: .unimplemented
-      )
+    )
 
     store.environment.fact.fetch = { Effect(value: "\($0) is a good number Brent") }
     store.environment.mainQueue = mainQueue

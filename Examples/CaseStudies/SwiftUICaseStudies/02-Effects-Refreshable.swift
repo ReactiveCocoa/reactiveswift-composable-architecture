@@ -91,7 +91,7 @@ struct RefreshableView: View {
 
           Text("\(viewStore.count)")
             .monospacedDigit()
-          
+
           Button {
             viewStore.send(.incrementButtonTapped)
           } label: {
@@ -126,7 +126,7 @@ struct Refreshable_Previews: PreviewProvider {
         reducer: refreshableReducer,
         environment: RefreshableEnvironment(
           fact: .live,
-            mainQueue: QueueScheduler.main
+          mainQueue: QueueScheduler.main
         )
       )
     )
