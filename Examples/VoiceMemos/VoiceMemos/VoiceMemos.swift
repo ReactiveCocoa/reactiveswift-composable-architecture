@@ -1,5 +1,6 @@
 import AVFoundation
 import ComposableArchitecture
+import IdentifiedCollections
 import Foundation
 import ReactiveSwift
 import SwiftUI
@@ -8,7 +9,7 @@ struct VoiceMemosState: Equatable {
   var alert: AlertState<VoiceMemosAction>?
   var audioRecorderPermission = RecorderPermission.undetermined
   var currentRecording: CurrentRecording?
-  var voiceMemos: IdentifiedArrayOf<VoiceMemo> = []
+  var voiceMemos: IdentifiedArrayOf<VoiceMemoState> = []
 
   struct CurrentRecording: Equatable {
     var date: Date
@@ -37,7 +38,7 @@ enum VoiceMemosAction: Equatable {
   case openSettingsButtonTapped
   case recordButtonTapped
   case recordPermissionResponse(Bool)
-  case voiceMemo(id: VoiceMemo.ID, action: VoiceMemoAction)
+  case voiceMemo(id: VoiceMemoState.ID, action: VoiceMemoAction)
 }
 
 struct VoiceMemosEnvironment {
@@ -98,7 +99,7 @@ let voiceMemosReducer = Reducer<VoiceMemosState, VoiceMemosAction, VoiceMemosEnv
 
       state.currentRecording = nil
       state.voiceMemos.insert(
-        VoiceMemo(
+        VoiceMemoState(
           date: currentRecording.date,
           duration: currentRecording.duration,
           url: currentRecording.url
@@ -260,14 +261,14 @@ struct VoiceMemos_Previews: PreviewProvider {
       store: Store(
         initialState: VoiceMemosState(
           voiceMemos: [
-            VoiceMemo(
+            VoiceMemoState(
               date: Date(),
               duration: 30,
               mode: .playing(progress: 0.3),
               title: "Functions",
               url: URL(string: "https://www.pointfree.co/functions")!
             ),
-            VoiceMemo(
+            VoiceMemoState(
               date: Date(),
               duration: 2,
               mode: .notPlaying,
