@@ -8,17 +8,14 @@ class SpeechRecognitionTests: XCTestCase {
   let recognitionTaskSubject = Signal<SpeechRecognitionResult, SpeechClient.Error>.pipe()
 
   func testDenyAuthorization() {
-    var speechClient = SpeechClient.unimplemented
-    speechClient.requestAuthorization = { Effect(value: .denied) }
-
     let store = TestStore(
       initialState: AppState(),
       reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: ImmediateScheduler(),
-        speechClient: speechClient
-      )
+      environment: .unimplemented
     )
+
+    store.environment.mainQueue = ImmediateScheduler()
+    store.environment.speechClient.requestAuthorization = { Effect(value: .denied) }
 
     store.send(.recordButtonTapped) {
       $0.isRecording = true
@@ -32,22 +29,18 @@ class SpeechRecognitionTests: XCTestCase {
         )
       )
       $0.isRecording = false
-      $0.speechRecognizerAuthorizationStatus = .denied
     }
   }
 
   func testRestrictedAuthorization() {
-    var speechClient = SpeechClient.unimplemented
-    speechClient.requestAuthorization = { Effect(value: .restricted) }
-
     let store = TestStore(
       initialState: AppState(),
       reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: ImmediateScheduler(),
-        speechClient: speechClient
-      )
+      environment: .unimplemented
     )
+
+    store.environment.mainQueue = ImmediateScheduler()
+    store.environment.speechClient.requestAuthorization = { Effect(value: .restricted) }
 
     store.send(.recordButtonTapped) {
       $0.isRecording = true
@@ -55,26 +48,22 @@ class SpeechRecognitionTests: XCTestCase {
     store.receive(.speechRecognizerAuthorizationStatusResponse(.restricted)) {
       $0.alert = AlertState(title: TextState("Your device does not allow speech recognition."))
       $0.isRecording = false
-      $0.speechRecognizerAuthorizationStatus = .restricted
     }
   }
 
   func testAllowAndRecord() {
-    var speechClient = SpeechClient.unimplemented
-    speechClient.finishTask = {
-      .fireAndForget { self.recognitionTaskSubject.input.sendCompleted() }
-    }
-    speechClient.startTask = { _ in self.recognitionTaskSubject.output.producer }
-    speechClient.requestAuthorization = { Effect(value: .authorized) }
-
     let store = TestStore(
       initialState: AppState(),
       reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: ImmediateScheduler(),
-        speechClient: speechClient
-      )
+      environment: .unimplemented
     )
+
+    store.environment.mainQueue = ImmediateScheduler()
+    store.environment.speechClient.finishTask = {
+      .fireAndForget { self.recognitionTaskSubject.input.sendCompleted() }
+    }
+    store.environment.speechClient.requestAuthorization = { Effect(value: .authorized) }
+    store.environment.speechClient.startTask = { _ in self.recognitionTaskSubject.output.producer }
 
     let result = SpeechRecognitionResult(
       bestTranscription: Transcription(
@@ -92,9 +81,7 @@ class SpeechRecognitionTests: XCTestCase {
       $0.isRecording = true
     }
 
-    store.receive(.speechRecognizerAuthorizationStatusResponse(.authorized)) {
-      $0.speechRecognizerAuthorizationStatus = .authorized
-    }
+    store.receive(.speechRecognizerAuthorizationStatusResponse(.authorized))
 
     self.recognitionTaskSubject.input.send(value: result)
     store.receive(.speech(.success(result))) {
@@ -108,26 +95,21 @@ class SpeechRecognitionTests: XCTestCase {
   }
 
   func testAudioSessionFailure() {
-    var speechClient = SpeechClient.unimplemented
-    speechClient.startTask = { _ in self.recognitionTaskSubject.output.producer }
-    speechClient.requestAuthorization = { Effect(value: .authorized) }
-
     let store = TestStore(
       initialState: AppState(),
       reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: ImmediateScheduler(),
-        speechClient: speechClient
-      )
+      environment: .unimplemented
     )
+
+    store.environment.mainQueue = ImmediateScheduler()
+    store.environment.speechClient.startTask = { _ in self.recognitionTaskSubject.output.producer }
+    store.environment.speechClient.requestAuthorization = { Effect(value: .authorized) }
 
     store.send(.recordButtonTapped) {
       $0.isRecording = true
     }
 
-    store.receive(.speechRecognizerAuthorizationStatusResponse(.authorized)) {
-      $0.speechRecognizerAuthorizationStatus = .authorized
-    }
+    store.receive(.speechRecognizerAuthorizationStatusResponse(.authorized))
 
     self.recognitionTaskSubject.input.send(error: .couldntConfigureAudioSession)
     store.receive(.speech(.failure(.couldntConfigureAudioSession))) {
@@ -138,26 +120,21 @@ class SpeechRecognitionTests: XCTestCase {
   }
 
   func testAudioEngineFailure() {
-    var speechClient = SpeechClient.unimplemented
-    speechClient.startTask = { _ in self.recognitionTaskSubject.output.producer }
-    speechClient.requestAuthorization = { Effect(value: .authorized) }
-
     let store = TestStore(
       initialState: AppState(),
       reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: ImmediateScheduler(),
-        speechClient: speechClient
-      )
+      environment: .unimplemented
     )
+
+    store.environment.mainQueue = ImmediateScheduler()
+    store.environment.speechClient.startTask = { _ in self.recognitionTaskSubject.output.producer }
+    store.environment.speechClient.requestAuthorization = { Effect(value: .authorized) }
 
     store.send(.recordButtonTapped) {
       $0.isRecording = true
     }
 
-    store.receive(.speechRecognizerAuthorizationStatusResponse(.authorized)) {
-      $0.speechRecognizerAuthorizationStatus = .authorized
-    }
+    store.receive(.speechRecognizerAuthorizationStatusResponse(.authorized)) 
 
     self.recognitionTaskSubject.input.send(error: .couldntStartAudioEngine)
     store.receive(.speech(.failure(.couldntStartAudioEngine))) {
@@ -166,4 +143,11 @@ class SpeechRecognitionTests: XCTestCase {
 
     self.recognitionTaskSubject.input.sendCompleted()
   }
+}
+
+extension AppEnvironment {
+  static let unimplemented = Self(
+    mainQueue: UnimplementedScheduler(),
+    speechClient: .unimplemented
+  )
 }

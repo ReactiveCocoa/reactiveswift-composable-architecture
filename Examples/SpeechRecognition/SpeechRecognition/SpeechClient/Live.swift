@@ -24,16 +24,6 @@ extension SpeechClient {
       },
       startTask: { request in
         Effect { subscriber, lifetime in
-          let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))!
-          let cancellable = AnyDisposable {
-            audioEngine?.stop()
-            audioEngine?.inputNode.removeTap(onBus: 0)
-            recognitionTask?.cancel()
-            _ = speechRecognizer
-          }
-
-          lifetime += cancellable
-
           audioEngine = AVAudioEngine()
           let audioSession = AVAudioSession.sharedInstance()
           do {
@@ -44,6 +34,7 @@ extension SpeechClient {
             return
           }
 
+          let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))!
           recognitionTask = speechRecognizer.recognitionTask(with: request) { result, error in
             switch (result, error) {
             case let (.some(result), _):
@@ -54,6 +45,13 @@ extension SpeechClient {
               fatalError("It should not be possible to have both a nil result and nil error.")
             }
           }
+
+          let cancellable = AnyDisposable {
+            audioEngine?.stop()
+            audioEngine?.inputNode.removeTap(onBus: 0)
+            recognitionTask?.cancel()
+          }
+          lifetime += cancellable
 
           audioEngine?.inputNode.installTap(
             onBus: 0,
