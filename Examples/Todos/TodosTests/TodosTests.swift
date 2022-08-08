@@ -20,7 +20,7 @@ class TodosTests: XCTestCase {
 
     await store.send(.addTodoButtonTapped) {
       $0.todos.insert(
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
@@ -33,7 +33,7 @@ class TodosTests: XCTestCase {
   func testEditTodo() async {
     let state = AppState(
       todos: [
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
@@ -59,12 +59,12 @@ class TodosTests: XCTestCase {
   func testCompleteTodo() async {
     let state = AppState(
       todos: [
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
         ),
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
           isComplete: false
@@ -95,12 +95,12 @@ class TodosTests: XCTestCase {
   func testCompleteTodoDebounces() async {
     let state = AppState(
       todos: [
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
         ),
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
           isComplete: false
@@ -130,12 +130,12 @@ class TodosTests: XCTestCase {
   func testClearCompleted() async {
     let state = AppState(
       todos: [
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
         ),
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
           isComplete: true
@@ -161,17 +161,17 @@ class TodosTests: XCTestCase {
   func testDelete() async {
     let state = AppState(
       todos: [
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
         ),
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
           isComplete: false
         ),
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
           isComplete: false
@@ -198,17 +198,17 @@ class TodosTests: XCTestCase {
   func testEditModeMoving() async {
     let state = AppState(
       todos: [
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
         ),
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
           isComplete: false
         ),
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
           isComplete: false
@@ -241,22 +241,22 @@ class TodosTests: XCTestCase {
   func testEditModeMovingWithFilter() async {
     let state = AppState(
       todos: [
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
         ),
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
           isComplete: true
         ),
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
           isComplete: false
         ),
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!,
           isComplete: true
@@ -293,12 +293,12 @@ class TodosTests: XCTestCase {
   func testFilteredEdit() async {
     let state = AppState(
       todos: [
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
         ),
-        Todo(
+        TodoState(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
           isComplete: true

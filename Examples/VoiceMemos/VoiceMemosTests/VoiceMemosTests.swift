@@ -64,7 +64,7 @@ class VoiceMemosTests: XCTestCase {
     await store.receive(.audioRecorderDidFinish(.success(true))) {
       $0.currentRecording = nil
       $0.voiceMemos = [
-        VoiceMemo(
+        VoiceMemoState(
           date: Date(timeIntervalSinceReferenceDate: 0),
           duration: 2.5,
           mode: .notPlaying,
@@ -153,7 +153,7 @@ class VoiceMemosTests: XCTestCase {
     let store = TestStore(
       initialState: VoiceMemosState(
         voiceMemos: [
-          VoiceMemo(
+          VoiceMemoState(
             date: Date(),
             duration: 1.25,
             mode: .notPlaying,
@@ -195,7 +195,7 @@ class VoiceMemosTests: XCTestCase {
     let store = TestStore(
       initialState: VoiceMemosState(
         voiceMemos: [
-          VoiceMemo(
+          VoiceMemoState(
             date: Date(),
             duration: 30,
             mode: .notPlaying,
@@ -223,7 +223,7 @@ class VoiceMemosTests: XCTestCase {
     let store = TestStore(
       initialState: VoiceMemosState(
         voiceMemos: [
-          VoiceMemo(
+          VoiceMemoState(
             date: Date(),
             duration: 30,
             mode: .playing(progress: 0.3),
@@ -246,7 +246,7 @@ class VoiceMemosTests: XCTestCase {
     let store = TestStore(
       initialState: VoiceMemosState(
         voiceMemos: [
-          VoiceMemo(
+          VoiceMemoState(
             date: Date(),
             duration: 30,
             mode: .playing(progress: 0.3),
@@ -273,7 +273,7 @@ class VoiceMemosTests: XCTestCase {
     let store = TestStore(
       initialState: VoiceMemosState(
         voiceMemos: [
-          VoiceMemo(
+          VoiceMemoState(
             date: Date(),
             duration: 10,
             mode: .notPlaying,
