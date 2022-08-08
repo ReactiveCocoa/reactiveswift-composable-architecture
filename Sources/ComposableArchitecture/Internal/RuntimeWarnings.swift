@@ -1,7 +1,7 @@
 #if DEBUG
+import XCTestDynamicOverlay
   #if canImport(os)
   import os
-  import XCTestDynamicOverlay
 
   // NB: Xcode runtime warnings offer a much better experience than traditional assertions and
   //     breakpoints, but Apple provides no means of creating custom runtime warnings ourselves.
