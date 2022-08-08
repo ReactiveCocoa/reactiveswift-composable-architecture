@@ -1,7 +1,7 @@
 import CustomDump
 
 #if canImport(SwiftUI)
-import SwiftUI
+  import SwiftUI
 #endif
 
 /// A property wrapper type that can designate properties of app state that can be directly
@@ -229,12 +229,12 @@ extension BindableState: CustomReflectable {
   }
 }
 
-  // Until we can use swift-custom-dump this has to be commented out
-  //  extension BindableState: CustomDumpRepresentable {
-  //    public var customDumpValue: Any {
-  //      self.wrappedValue
-  //    }
-  //  }
+// Until we can use swift-custom-dump this has to be commented out
+//  extension BindableState: CustomDumpRepresentable {
+//    public var customDumpValue: Any {
+//      self.wrappedValue
+//    }
+//  }
 
 extension BindableState: CustomDebugStringConvertible where Value: CustomDebugStringConvertible {
   public var debugDescription: String {
@@ -272,38 +272,38 @@ extension BindableAction {
   }
 }
 
-  #if canImport(SwiftUI)
-extension ViewStore where Action: BindableAction, Action.State == State {
-  /// Returns a binding to the resulting bindable state of a given key path.
-  ///
-  /// - Parameter keyPath: A key path to a specific bindable state.
-  /// - Returns: A new binding.
-  public func binding<Value: Equatable>(
-    _ keyPath: WritableKeyPath<State, BindableState<Value>>,
-    file: StaticString = #fileID,
-    line: UInt = #line
-  ) -> Binding<Value> {
-    self.binding(
-      get: { $0[keyPath: keyPath].wrappedValue },
-      send: { value in
-        #if DEBUG
-          let debugger = BindableActionViewStoreDebugger(
-            value: value, bindableActionType: Action.self, file: file, line: line
-          )
-          let set: (inout State) -> Void = {
-            $0[keyPath: keyPath].wrappedValue = value
-            debugger.wasCalled = true
-          }
-        #else
-          let set: (inout State) -> Void = { $0[keyPath: keyPath].wrappedValue = value }
-        #endif
-        return .binding(.init(keyPath: keyPath, set: set, value: value))
-      }
-    )
+#if canImport(SwiftUI)
+  extension ViewStore where Action: BindableAction, Action.State == State {
+    /// Returns a binding to the resulting bindable state of a given key path.
+    ///
+    /// - Parameter keyPath: A key path to a specific bindable state.
+    /// - Returns: A new binding.
+    public func binding<Value: Equatable>(
+      _ keyPath: WritableKeyPath<State, BindableState<Value>>,
+      file: StaticString = #fileID,
+      line: UInt = #line
+    ) -> Binding<Value> {
+      self.binding(
+        get: { $0[keyPath: keyPath].wrappedValue },
+        send: { value in
+          #if DEBUG
+            let debugger = BindableActionViewStoreDebugger(
+              value: value, bindableActionType: Action.self, file: file, line: line
+            )
+            let set: (inout State) -> Void = {
+              $0[keyPath: keyPath].wrappedValue = value
+              debugger.wasCalled = true
+            }
+          #else
+            let set: (inout State) -> Void = { $0[keyPath: keyPath].wrappedValue = value }
+          #endif
+          return .binding(.init(keyPath: keyPath, set: set, value: value))
+        }
+      )
+    }
   }
-}
 
-  #endif
+#endif
 
 /// An action that describes simple mutations to some root state at a writable key path.
 ///
@@ -596,4 +596,3 @@ extension Reducer where Action: BindableAction, State == Action.State {
     }
   }
 #endif
-

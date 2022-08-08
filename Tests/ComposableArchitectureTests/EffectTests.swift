@@ -184,7 +184,7 @@ final class EffectTests: XCTestCase {
     XCTAssertEqual(result, 42)
   }
 
-    #if !os(Linux)
+  #if !os(Linux)
     func testUnimplemented() {
       let effect = Effect<Never, Never>.failing("unimplemented")
       _ = XCTExpectFailure {
@@ -194,8 +194,7 @@ final class EffectTests: XCTestCase {
         issue.compactDescription == "unimplemented - An unimplemented effect ran."
       }
     }
-    #endif
-  
+  #endif
 
   #if canImport(_Concurrency) && compiler(>=5.5.2)
     func testTask() {
