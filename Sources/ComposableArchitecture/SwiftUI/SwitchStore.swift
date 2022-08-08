@@ -51,9 +51,9 @@
   /// }
   /// ```
   ///
-  /// - See also: ``Reducer/pullback(state:action:environment:file:line:)``, a method that aids in
-  ///   transforming reducers that operate on each case of an enum into reducers that operate on the
-  ///   entire enum.
+  /// - See also: ``Reducer/pullback(state:action:environment:file:fileID:line:)``, a method that aids
+  ///   in transforming reducers that operate on each case of an enum into reducers that operate on
+  ///   the entire enum.
   public struct SwitchStore<State, Action, Content: View>: View {
     public let store: Store<State, Action>
     public let content: () -> Content
@@ -186,7 +186,8 @@
 
     public init<State1, Action1, Content1>(
       _ store: Store<State, Action>,
-      file: StaticString = #fileID,
+      file: StaticString = #file,
+      fileID: StaticString = #fileID,
       line: UInt = #line,
       @ViewBuilder content: @escaping () -> CaseLet<State, Action, State1, Action1, Content1>
     )
@@ -202,7 +203,7 @@
     {
       self.init(store) {
         content()
-        Default { _ExhaustivityCheckView<State, Action>(file: file, line: line) }
+        Default { _ExhaustivityCheckView<State, Action>(file: file, fileID: fileID, line: line) }
       }
     }
 
@@ -245,7 +246,8 @@
 
     public init<State1, Action1, Content1, State2, Action2, Content2>(
       _ store: Store<State, Action>,
-      file: StaticString = #fileID,
+      file: StaticString = #file,
+      fileID: StaticString = #fileID,
       line: UInt = #line,
       @ViewBuilder content: @escaping () -> TupleView<
         (
@@ -271,7 +273,7 @@
       self.init(store) {
         content.value.0
         content.value.1
-        Default { _ExhaustivityCheckView<State, Action>(file: file, line: line) }
+        Default { _ExhaustivityCheckView<State, Action>(file: file, fileID: fileID, line: line) }
       }
     }
 
@@ -325,7 +327,8 @@
 
     public init<State1, Action1, Content1, State2, Action2, Content2, State3, Action3, Content3>(
       _ store: Store<State, Action>,
-      file: StaticString = #fileID,
+      file: StaticString = #file,
+      fileID: StaticString = #fileID,
       line: UInt = #line,
       @ViewBuilder content: @escaping () -> TupleView<
         (
@@ -356,7 +359,7 @@
         content.value.0
         content.value.1
         content.value.2
-        Default { _ExhaustivityCheckView<State, Action>(file: file, line: line) }
+        Default { _ExhaustivityCheckView<State, Action>(file: file, fileID: fileID, line: line) }
       }
     }
 
@@ -422,7 +425,8 @@
       State4, Action4, Content4
     >(
       _ store: Store<State, Action>,
-      file: StaticString = #fileID,
+      file: StaticString = #file,
+      fileID: StaticString = #fileID,
       line: UInt = #line,
       @ViewBuilder content: @escaping () -> TupleView<
         (
@@ -458,7 +462,7 @@
         content.value.1
         content.value.2
         content.value.3
-        Default { _ExhaustivityCheckView<State, Action>(file: file, line: line) }
+        Default { _ExhaustivityCheckView<State, Action>(file: file, fileID: fileID, line: line) }
       }
     }
 
@@ -532,7 +536,8 @@
       State5, Action5, Content5
     >(
       _ store: Store<State, Action>,
-      file: StaticString = #fileID,
+      file: StaticString = #file,
+      fileID: StaticString = #fileID,
       line: UInt = #line,
       @ViewBuilder content: @escaping () -> TupleView<
         (
@@ -573,7 +578,7 @@
         content.value.2
         content.value.3
         content.value.4
-        Default { _ExhaustivityCheckView<State, Action>(file: file, line: line) }
+        Default { _ExhaustivityCheckView<State, Action>(file: file, fileID: fileID, line: line) }
       }
     }
 
@@ -655,7 +660,8 @@
       State6, Action6, Content6
     >(
       _ store: Store<State, Action>,
-      file: StaticString = #fileID,
+      file: StaticString = #file,
+      fileID: StaticString = #fileID,
       line: UInt = #line,
       @ViewBuilder content: @escaping () -> TupleView<
         (
@@ -701,7 +707,7 @@
         content.value.3
         content.value.4
         content.value.5
-        Default { _ExhaustivityCheckView<State, Action>(file: file, line: line) }
+        Default { _ExhaustivityCheckView<State, Action>(file: file, fileID: fileID, line: line) }
       }
     }
 
@@ -791,7 +797,8 @@
       State7, Action7, Content7
     >(
       _ store: Store<State, Action>,
-      file: StaticString = #fileID,
+      file: StaticString = #file,
+      fileID: StaticString = #fileID,
       line: UInt = #line,
       @ViewBuilder content: @escaping () -> TupleView<
         (
@@ -842,7 +849,7 @@
         content.value.4
         content.value.5
         content.value.6
-        Default { _ExhaustivityCheckView<State, Action>(file: file, line: line) }
+        Default { _ExhaustivityCheckView<State, Action>(file: file, fileID: fileID, line: line) }
       }
     }
 
@@ -940,7 +947,8 @@
       State8, Action8, Content8
     >(
       _ store: Store<State, Action>,
-      file: StaticString = #fileID,
+      file: StaticString = #file,
+      fileID: StaticString = #fileID,
       line: UInt = #line,
       @ViewBuilder content: @escaping () -> TupleView<
         (
@@ -996,7 +1004,7 @@
         content.value.5
         content.value.6
         content.value.7
-        Default { _ExhaustivityCheckView<State, Action>(file: file, line: line) }
+        Default { _ExhaustivityCheckView<State, Action>(file: file, fileID: fileID, line: line) }
       }
     }
 
@@ -1102,7 +1110,8 @@
       State9, Action9, Content9
     >(
       _ store: Store<State, Action>,
-      file: StaticString = #fileID,
+      file: StaticString = #file,
+      fileID: StaticString = #fileID,
       line: UInt = #line,
       @ViewBuilder content: @escaping () -> TupleView<
         (
@@ -1163,7 +1172,7 @@
         content.value.6
         content.value.7
         content.value.8
-        Default { _ExhaustivityCheckView<State, Action>(file: file, line: line) }
+        Default { _ExhaustivityCheckView<State, Action>(file: file, fileID: fileID, line: line) }
       }
     }
   }
@@ -1171,6 +1180,7 @@
   public struct _ExhaustivityCheckView<State, Action>: View {
     @EnvironmentObject private var store: StoreObservableObject<State, Action>
     let file: StaticString
+    let fileID: StaticString
     let line: UInt
 
     public var body: some View {
@@ -1178,7 +1188,7 @@
         let message = """
           Warning: SwitchStore.body@\(self.file):\(self.line)
 
-                      "\(debugCaseOutput(self.store.wrappedValue.state))" was encountered by a \
+                        "\(debugCaseOutput(self.store.wrappedValue.state))" was encountered by a \
           "SwitchStore" that does not handle this case.
 
           Make sure that you exhaustively provide a "CaseLet" view for each case in "\(State.self)", \
@@ -1210,10 +1220,12 @@
             or provide a "Default" view at the end of the "SwitchStore".
             """,
             [
-              "\(self.file)",
+              "\(self.fileID)",
               self.line,
               debugCaseOutput(self.store.wrappedValue.state),
-            ]
+            ],
+            file: self.file,
+            line: self.line
           )
         }
       #else

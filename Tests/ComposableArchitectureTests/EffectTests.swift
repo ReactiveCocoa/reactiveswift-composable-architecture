@@ -7,6 +7,7 @@ import XCTest
   import let CDispatch.NSEC_PER_MSEC
 #endif
 
+@MainActor
 final class EffectTests: XCTestCase {
   let mainQueue = TestScheduler()
 
@@ -31,6 +32,7 @@ final class EffectTests: XCTestCase {
           return -1
         }
       }
+      .producer
       .startWithValues { XCTAssertNoDifference($0, 42) }
 
     SignalProducer<Int, Error>(result: .failure(Error()))
@@ -42,6 +44,7 @@ final class EffectTests: XCTestCase {
           return -1
         }
       }
+      .producer
       .startWithValues { XCTAssertNoDifference($0, -1) }
   }
 
@@ -49,12 +52,12 @@ final class EffectTests: XCTestCase {
     var values: [Int] = []
 
     let effect = Effect<Int, Never>.concatenate(
-      Effect(value: 1).delay(1, on: mainQueue),
-      Effect(value: 2).delay(2, on: mainQueue),
-      Effect(value: 3).delay(3, on: mainQueue)
+      Effect(value: 1).deferred(for: 1, scheduler: mainQueue),
+      Effect(value: 2).deferred(for: 2, scheduler: mainQueue),
+      Effect(value: 3).deferred(for: 3, scheduler: mainQueue)
     )
 
-    effect.startWithValues { values.append($0) }
+    effect.producer.startWithValues { values.append($0) }
 
     XCTAssertNoDifference(values, [])
 
@@ -75,10 +78,10 @@ final class EffectTests: XCTestCase {
     var values: [Int] = []
 
     let effect = Effect<Int, Never>.concatenate(
-      Effect(value: 1).delay(1, on: mainQueue)
+      Effect(value: 1).deferred(for: 1, scheduler: mainQueue)
     )
 
-    effect.startWithValues { values.append($0) }
+    effect.producer.startWithValues { values.append($0) }
 
     XCTAssertNoDifference(values, [])
 
@@ -91,13 +94,13 @@ final class EffectTests: XCTestCase {
 
   func testMerge() {
     let effect = Effect<Int, Never>.merge(
-      Effect(value: 1).delay(1, on: mainQueue),
-      Effect(value: 2).delay(2, on: mainQueue),
-      Effect(value: 3).delay(3, on: mainQueue)
+      Effect(value: 1).deferred(for: 1, scheduler: mainQueue),
+      Effect(value: 2).deferred(for: 2, scheduler: mainQueue),
+      Effect(value: 3).deferred(for: 3, scheduler: mainQueue)
     )
 
     var values: [Int] = []
-    effect.startWithValues { values.append($0) }
+    effect.producer.startWithValues { values.append($0) }
 
     XCTAssertNoDifference(values, [])
 
@@ -111,22 +114,25 @@ final class EffectTests: XCTestCase {
     XCTAssertNoDifference(values, [1, 2, 3])
   }
 
-  func testEffectSubscriberInitializer() {
-    let effect = Effect<Int, Never> { subscriber, _ in
-      subscriber.send(value: 1)
-      subscriber.send(value: 2)
+  func testEffectRunInitializer() {
+    let effect = Effect<Int, Never>.run { observer in
+      observer.send(value: 1)
+      observer.send(value: 2)
       self.mainQueue.schedule(after: self.mainQueue.currentDate.addingTimeInterval(1)) {
-        subscriber.send(value: 3)
+        observer.send(value: 3)
       }
       self.mainQueue.schedule(after: self.mainQueue.currentDate.addingTimeInterval(2)) {
-        subscriber.send(value: 4)
-        subscriber.sendCompleted()
+        observer.send(value: 4)
+        observer.sendCompleted()
       }
+
+      return AnyDisposable()
     }
 
     var values: [Int] = []
     var isComplete = false
     effect
+      .producer
       .on(completed: { isComplete = true }, value: { values.append($0) })
       .start()
 
@@ -144,27 +150,30 @@ final class EffectTests: XCTestCase {
     XCTAssertNoDifference(isComplete, true)
   }
 
-  func testEffectSubscriberInitializer_WithCancellation() {
-    enum CancelId {}
+  func testEffectRunInitializer_WithCancellation() {
+    enum CancelID {}
 
-    let effect = Effect<Int, Never> { subscriber, _ in
+    let effect = Effect<Int, Never>.run { subscriber in
       subscriber.send(value: 1)
       self.mainQueue.schedule(after: self.mainQueue.currentDate.addingTimeInterval(1)) {
         subscriber.send(value: 2)
       }
+      return AnyDisposable()
     }
-    .cancellable(id: CancelId.self)
+    .cancellable(id: CancelID.self)
 
     var values: [Int] = []
     var isComplete = false
     effect
+      .producer
       .on(completed: { isComplete = true })
       .startWithValues { values.append($0) }
 
     XCTAssertNoDifference(values, [1])
     XCTAssertNoDifference(isComplete, false)
 
-    Effect<Void, Never>.cancel(id: CancelId.self)
+    Effect<Void, Never>.cancel(id: CancelID.self)
+      .producer
       .startWithValues { _ in }
 
     self.mainQueue.advance(by: 1)
@@ -179,6 +188,7 @@ final class EffectTests: XCTestCase {
     _ = Effect(value: 42)
       .cancellable(id: "id", cancelInFlight: true)
       .cancellable(id: "id", cancelInFlight: true)
+      .producer
       .startWithValues { result = $0 }
 
     XCTAssertEqual(result, 42)
@@ -189,6 +199,7 @@ final class EffectTests: XCTestCase {
       let effect = Effect<Never, Never>.failing("unimplemented")
       _ = XCTExpectFailure {
         effect
+          .producer
           .start()
       } issueMatcher: { issue in
         issue.compactDescription == "unimplemented - An unimplemented effect ran."
@@ -204,58 +215,13 @@ final class EffectTests: XCTestCase {
         expectation.fulfill()
         return 42
       }
+      .producer
       .startWithValues { result = $0 }
       self.wait(for: [expectation], timeout: 1)
       XCTAssertNoDifference(result, 42)
     }
 
-    func testThrowingTask() {
-      let expectation = self.expectation(description: "Complete")
-      struct MyError: Error {}
-      var result: Error?
-      let disposable = Effect<Int, Error>.task { @MainActor in
-        expectation.fulfill()
-        throw MyError()
-      }
-      .on(
-        failed: { error in
-          result = error
-        },
-        completed: {
-          XCTFail()
-        },
-        value: { _ in
-          XCTFail()
-        }
-      )
-      .start()
-
-      self.wait(for: [expectation], timeout: 1)
-      XCTAssertNotNil(result)
-      disposable.dispose()
-    }
-
-    func testCancellingTask_Failable() {
-      @Sendable func work() async throws -> Int {
-        try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
-        XCTFail()
-        return 42
-      }
-
-      let disposable = Effect<Int, Error>.task { try await work() }
-        .on(
-          completed: { XCTFail() },
-          value: { _ in XCTFail() }
-        )
-        .start(on: QueueScheduler.main)
-        .start()
-
-      disposable.dispose()
-
-      _ = XCTWaiter.wait(for: [.init()], timeout: 1.1)
-    }
-
-    func testCancellingTask_Infalable() {
+    func testCancellingTask_Infallible() {
       @Sendable func work() async -> Int {
         do {
           try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
@@ -266,6 +232,7 @@ final class EffectTests: XCTestCase {
       }
 
       let disposable = Effect<Int, Never>.task { await work() }
+        .producer
         .on(
           completed: { XCTFail() },
           value: { _ in XCTFail() }

@@ -1,6 +1,7 @@
-import ComposableArchitecture
 import ReactiveSwift
 import XCTest
+
+@testable import ComposableArchitecture
 
 // `XCTExpectFailure` is not supported on Linux
 #if !os(Linux)
@@ -43,10 +44,14 @@ import XCTest
         reducer: Reducer<Int, Action, Void> { state, action, _ in
           switch action {
           case .tap:
-            return SignalProducer.none
+            return Effect.none
+              .producer
               .observe(
                 on: QueueScheduler(
-                  qos: .userInitiated, name: "test", targeting: DispatchQueue(label: "background")))
+                  qos: .userInitiated, name: "test", targeting: DispatchQueue(label: "background")
+                )
+              )
+              .eraseToEffect()
           case .response:
             return .none
           }
@@ -115,6 +120,76 @@ import XCTest
       _ = XCTWaiter.wait(for: [.init()], timeout: 2)
     }
 
+    @MainActor
+    func testEffectEmitMainThread() async {
+      XCTExpectFailure {
+        [
+          """
+          An effect completed on a non-main thread. …
+
+            Effect returned from:
+              Action.response
+
+          Make sure to use ".receive(on:)" on any effects that execute on background threads to \
+          receive their output on the main thread.
+
+          The "Store" class is not thread-safe, and so all interactions with an instance of "Store" \
+          (including all of its scopes and derived view stores) must be done on the main thread.
+          """,
+          """
+          An effect completed on a non-main thread. …
+
+            Effect returned from:
+              Action.tap
+
+          Make sure to use ".receive(on:)" on any effects that execute on background threads to \
+          receive their output on the main thread.
+
+          The "Store" class is not thread-safe, and so all interactions with an instance of "Store" \
+          (including all of its scopes and derived view stores) must be done on the main thread.
+          """,
+          """
+          An effect published an action on a non-main thread. …
+
+            Effect published:
+              Action.response
+
+            Effect returned from:
+              Action.tap
+
+          Make sure to use ".receive(on:)" on any effects that execute on background threads to \
+          receive their output on the main thread.
+
+          The "Store" class is not thread-safe, and so all interactions with an instance of "Store" \
+          (including all of its scopes and derived view stores) must be done on the main thread.
+          """,
+        ]
+        .contains($0.compactDescription)
+      }
+
+      enum Action { case tap, response }
+      let store = Store(
+        initialState: 0,
+        reducer: Reducer<Int, Action, Void> { state, action, _ in
+          switch action {
+          case .tap:
+            return .run { observer in
+              Thread.detachNewThread {
+                XCTAssertFalse(Thread.isMainThread, "Effect should send on non-main thread.")
+                observer.send(value: .response)
+                observer.sendCompleted()
+              }
+              return AnyDisposable {}
+            }
+          case .response:
+            return .none
+          }
+        },
+        environment: ()
+      )
+      await ViewStore(store).send(.tap).finish()
+    }
+
     func testBindingUnhandledAction() {
       struct State: Equatable {
         @BindableState var value = 0
@@ -134,7 +209,8 @@ import XCTest
         ViewStore(store).binding(\.$value).wrappedValue = 42
       } issueMatcher: {
         $0.compactDescription == """
-          A binding action sent from a view store at "ComposableArchitectureTests/RuntimeWarningTests.swift:\(line+1)" was not handled:
+          A binding action sent from a view store at \
+          "ComposableArchitectureTests/RuntimeWarningTests.swift:\(line+1)" was not handled. …
 
             Action:
               Action.binding(.set(_, 42))

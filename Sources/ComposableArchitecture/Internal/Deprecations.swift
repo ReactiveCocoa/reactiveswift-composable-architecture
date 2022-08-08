@@ -1,4 +1,5 @@
 import CasePaths
+import ReactiveSwift
 import XCTestDynamicOverlay
 
 #if canImport(SwiftUI)
@@ -11,6 +12,41 @@ import XCTestDynamicOverlay
 
 // NB: Deprecated after 0.38.2:
 
+extension Effect where Failure == Error {
+  @_disfavoredOverload
+  @available(
+    *,
+    deprecated,
+    message: "Use the non-failing version of 'Effect.task'"
+  )
+  public static func task(
+    priority: TaskPriority? = nil,
+    operation: @escaping @Sendable () async throws -> Output
+  ) -> Self where Error == Swift.Error {
+    SignalProducer.deferred {
+      var task: Task<(), Never>?
+      let producer = SignalProducer<Output, Failure> { observer, lifetime in
+        task = Task(priority: priority) { @MainActor in
+          do {
+            try Task.checkCancellation()
+            let output = try await operation()
+            try Task.checkCancellation()
+            observer.send(value: output)
+            observer.sendCompleted()
+          } catch is CancellationError {
+            observer.sendCompleted()
+          } catch {
+            observer.send(error: error)
+          }
+        }
+      }
+
+      return producer.on(disposed: task?.cancel)
+    }
+    .eraseToEffect()
+  }
+}
+
 /// Initializes a store from an initial state, a reducer, and an environment, and the main thread
 /// check is disabled for all interactions with this store.
 ///
@@ -19,7 +55,8 @@ import XCTestDynamicOverlay
 ///   - reducer: The reducer that powers the business logic of the application.
 ///   - environment: The environment of dependencies for the application.
 @available(
-  *, deprecated,
+  *,
+  deprecated,
   message:
     """
     If you use this initializer, please open a discussion on GitHub and let us know how: \
@@ -57,6 +94,7 @@ extension Effect {
 
 extension ViewStore {
   @available(*, deprecated, renamed: "yield(while:)")
+  @MainActor
   public func suspend(while predicate: @escaping (State) -> Bool) async {
     await self.yield(while: predicate)
   }
@@ -169,7 +207,7 @@ extension Reducer {
 #if DEBUG
   extension TestStore where LocalState: Equatable, Action: Equatable {
     @available(
-      *, deprecated, message: "Use 'TestStore.send' and 'TestStore.receive' directly, instead"
+      *, deprecated, message: "Use 'TestStore.send' and 'TestStore.receive' directly, instead."
     )
     public func assert(
       _ steps: Step...,
@@ -180,7 +218,7 @@ extension Reducer {
     }
 
     @available(
-      *, deprecated, message: "Use 'TestStore.send' and 'TestStore.receive' directly, instead"
+      *, deprecated, message: "Use 'TestStore.send' and 'TestStore.receive' directly, instead."
     )
     public func assert(
       _ steps: [Step],
@@ -261,7 +299,7 @@ extension Reducer {
         self.line = line
       }
 
-      @available(*, deprecated, message: "Call 'TestStore.send' directly, instead")
+      @available(*, deprecated, message: "Call 'TestStore.send' directly, instead.")
       public static func send(
         _ action: LocalAction,
         file: StaticString = #file,
@@ -271,7 +309,7 @@ extension Reducer {
         Step(.send(action, update), file: file, line: line)
       }
 
-      @available(*, deprecated, message: "Call 'TestStore.receive' directly, instead")
+      @available(*, deprecated, message: "Call 'TestStore.receive' directly, instead.")
       public static func receive(
         _ action: Action,
         file: StaticString = #file,
@@ -281,7 +319,7 @@ extension Reducer {
         Step(.receive(action, update), file: file, line: line)
       }
 
-      @available(*, deprecated, message: "Mutate 'TestStore.environment' directly, instead")
+      @available(*, deprecated, message: "Mutate 'TestStore.environment' directly, instead.")
       public static func environment(
         file: StaticString = #file,
         line: UInt = #line,
@@ -290,7 +328,7 @@ extension Reducer {
         Step(.environment(update), file: file, line: line)
       }
 
-      @available(*, deprecated, message: "Perform this work directly in your test, instead")
+      @available(*, deprecated, message: "Perform this work directly in your test, instead.")
       public static func `do`(
         file: StaticString = #file,
         line: UInt = #line,
@@ -299,7 +337,7 @@ extension Reducer {
         Step(.do(work), file: file, line: line)
       }
 
-      @available(*, deprecated, message: "Perform this work directly in your test, instead")
+      @available(*, deprecated, message: "Perform this work directly in your test, instead.")
       public static func sequence(
         _ steps: [Step],
         file: StaticString = #file,
@@ -308,7 +346,7 @@ extension Reducer {
         Step(.sequence(steps), file: file, line: line)
       }
 
-      @available(*, deprecated, message: "Perform this work directly in your test, instead")
+      @available(*, deprecated, message: "Perform this work directly in your test, instead.")
       public static func sequence(
         _ steps: Step...,
         file: StaticString = #file,
@@ -373,18 +411,20 @@ extension Reducer {
       *, deprecated,
       message:
         """
-      If you use this method, please open a discussion on GitHub and let us know how: \
-      https://github.com/pointfreeco/swift-composable-architecture/discussions/new
-      """
+        If you use this method, please open a discussion on GitHub and let us know how: \
+        https://github.com/pointfreeco/swift-composable-architecture/discussions/new
+        """
     )
     public func producerScope<LocalState, LocalAction>(
-      state toLocalState: @escaping (Effect<State, Never>) -> Effect<LocalState, Never>,
+      state toLocalState: @escaping (SignalProducer<State, Never>) -> SignalProducer<
+        LocalState, Never
+      >,
       action fromLocalAction: @escaping (LocalAction) -> Action
-    ) -> Effect<Store<LocalState, LocalAction>, Never> {
+    ) -> SignalProducer<Store<LocalState, LocalAction>, Never> {
 
       func extractLocalState(_ state: State) -> LocalState? {
         var localState: LocalState?
-        _ = toLocalState(Effect(value: state))
+        _ = toLocalState(SignalProducer(value: state))
           .startWithValues { localState = $0 }
         return localState
       }
@@ -394,9 +434,13 @@ extension Reducer {
           let localStore = Store<LocalState, LocalAction>(
             initialState: localState,
             reducer: .init { localState, localAction, _ in
-              self.send(fromLocalAction(localAction))
+              let task = self.send(fromLocalAction(localAction))
               localState = extractLocalState(self.state) ?? localState
-              return .none
+              if let task = task {
+                return .fireAndForget { await task.cancellableValue }
+              } else {
+                return .none
+              }
             },
             environment: ()
           )
@@ -419,13 +463,15 @@ extension Reducer {
       *, deprecated,
       message:
         """
-      If you use this method, please open a discussion on GitHub and let us know how: \
-      https://github.com/pointfreeco/swift-composable-architecture/discussions/new
-      """
+        If you use this method, please open a discussion on GitHub and let us know how: \
+        https://github.com/pointfreeco/swift-composable-architecture/discussions/new
+        """
     )
     public func producerScope<LocalState>(
-      state toLocalState: @escaping (Effect<State, Never>) -> Effect<LocalState, Never>
-    ) -> Effect<Store<LocalState, Action>, Never> {
+      state toLocalState: @escaping (SignalProducer<State, Never>) -> SignalProducer<
+        LocalState, Never
+      >
+    ) -> SignalProducer<Store<LocalState, Action>, Never> {
       self.producerScope(state: toLocalState, action: { $0 })
     }
 
@@ -436,11 +482,11 @@ extension Reducer {
       *, deprecated,
       message:
         """
-      Dynamic member lookup is no longer supported for bindable state. Instead of dot-chaining on \
-      the view store, e.g. 'viewStore.$value', invoke the 'binding' method on view store with a \
-      key path to the value, e.g. 'viewStore.binding(\\.$value)'. For more on this change, see: \
-      https://github.com/pointfreeco/swift-composable-architecture/pull/810
-      """
+        Dynamic member lookup is no longer supported for bindable state. Instead of dot-chaining on \
+        the view store, e.g. 'viewStore.$value', invoke the 'binding' method on view store with a \
+        key path to the value, e.g. 'viewStore.binding(\\.$value)'. For more on this change, see: \
+        https://github.com/pointfreeco/swift-composable-architecture/pull/810
+        """
     )
     public subscript<Value: Equatable>(
       dynamicMember keyPath: WritableKeyPath<State, BindableState<Value>>
@@ -459,9 +505,9 @@ extension Reducer {
       *, deprecated,
       message:
         """
-      For improved safety, bindable properties must now be wrapped explicitly in 'BindableState', \
-      and accessed via key paths to that 'BindableState', like '\\.$value'
-      """
+        For improved safety, bindable properties must now be wrapped explicitly in 'BindableState', \
+        and accessed via key paths to that 'BindableState', like '\\.$value'
+        """
     )
     public static func set<Value: Equatable>(
       _ keyPath: WritableKeyPath<Root, Value>,
@@ -479,9 +525,9 @@ extension Reducer {
       *, deprecated,
       message:
         """
-      For improved safety, bindable properties must now be wrapped explicitly in 'BindableState', \
-      and accessed via key paths to that 'BindableState', like '\\.$value'
-      """
+        For improved safety, bindable properties must now be wrapped explicitly in 'BindableState', \
+        and accessed via key paths to that 'BindableState', like '\\.$value'
+        """
     )
     public static func ~= <Value>(
       keyPath: WritableKeyPath<Root, Value>,
@@ -496,9 +542,9 @@ extension Reducer {
       *, deprecated,
       message:
         """
-      'Reducer.binding()' no longer takes an explicit extract function and instead the reducer's \
-      'Action' type must conform to 'BindableAction'
-      """
+        'Reducer.binding()' no longer takes an explicit extract function and instead the reducer's \
+        'Action' type must conform to 'BindableAction'
+        """
     )
     public func binding(action toBindingAction: @escaping (Action) -> BindingAction<State>?)
       -> Self
@@ -516,11 +562,11 @@ extension Reducer {
         *, deprecated,
         message:
           """
-      For improved safety, bindable properties must now be wrapped explicitly in 'BindableState'. \
-      Bindings are now derived via 'ViewStore.binding' with a key path to that 'BindableState' \
-      (for example, 'viewStore.binding(\\.$value)'). For dynamic member lookup to be available, \
-      the view store's 'Action' type must also conform to 'BindableAction'.
-      """
+          For improved safety, bindable properties must now be wrapped explicitly in 'BindableState'. \
+          Bindings are now derived via 'ViewStore.binding' with a key path to that 'BindableState' \
+          (for example, 'viewStore.binding(\\.$value)'). For dynamic member lookup to be available, \
+          the view store's 'Action' type must also conform to 'BindableAction'.
+          """
       )
       public func binding<LocalState: Equatable>(
         keyPath: WritableKeyPath<State, LocalState>,
@@ -572,13 +618,14 @@ extension Reducer {
   // NB: Deprecated after 0.20.0:
 
   extension Reducer {
-    @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead")
+    @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead.")
     public func forEach<GlobalState, GlobalAction, GlobalEnvironment>(
       state toLocalState: WritableKeyPath<GlobalState, [State]>,
       action toLocalAction: CasePath<GlobalAction, (Int, Action)>,
       environment toLocalEnvironment: @escaping (GlobalEnvironment) -> Environment,
       breakpointOnNil: Bool = true,
-      file: StaticString = #fileID,
+      file: StaticString = #file,
+      fileID: StaticString = #fileID,
       line: UInt = #line
     ) -> Reducer<GlobalState, GlobalAction, GlobalEnvironment> {
       .init { globalState, globalAction, globalEnvironment in
@@ -617,11 +664,13 @@ extension Reducer {
             "ForEachStore".
             """,
             [
-              "\(file)",
+              "\(fileID)",
               line,
               debugCaseOutput(localAction),
               index,
-            ]
+            ],
+            file: file,
+            line: line
           )
           return .none
         }
@@ -636,7 +685,7 @@ extension Reducer {
   }
 
   extension ForEachStore {
-    @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead")
+    @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead.")
     public init<EachContent>(
       _ store: Store<Data, (Data.Index, EachAction)>,
       id: KeyPath<EachState, ID>,
@@ -664,7 +713,7 @@ extension Reducer {
       }
     }
 
-    @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead")
+    @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead.")
     public init<EachContent>(
       _ store: Store<Data, (Data.Index, EachAction)>,
       @ViewBuilder content: @escaping (Store<EachState, EachAction>) -> EachContent

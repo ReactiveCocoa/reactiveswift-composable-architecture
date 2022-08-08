@@ -118,20 +118,10 @@ import ReactiveSwift
 /// #### Thread safety checks
 ///
 /// The store performs some basic thread safety checks in order to help catch mistakes. Stores
-/// constructed via the initializer ``Store/init(initialState:reducer:environment:)`` are assumed
-/// to run only on the main thread, and so a check is executed immediately to make sure that is the
-/// case. Further, all actions sent to the store and all scopes (see ``Store/scope(state:action:)``)
-/// of the store are also checked to make sure that work is performed on the main thread.
-///
-/// If you need a store that runs on a non-main thread, which should be very rare and you should
-/// have a very good reason to do so, then you can construct a store via the
-/// ``Store/unchecked(initialState:reducer:environment:)`` static method to opt out of all main
-/// thread checks.
-///
-/// ---
-///
-/// See also: ``ViewStore`` to understand how one observes changes to the state in a ``Store`` and
-/// sends user actions.
+/// constructed via the initializer ``init(initialState:reducer:environment:)`` are assumed to run
+/// only on the main thread, and so a check is executed immediately to make sure that is the case.
+/// Further, all actions sent to the store and all scopes (see ``scope(state:action:)``) of the
+/// store are also checked to make sure that work is performed on the main thread.
 public final class Store<State, Action> {
   var state: State {
     didSet {
@@ -139,7 +129,7 @@ public final class Store<State, Action> {
     }
   }
   private let statePipe = Signal<State, Never>.reentrantUnserializedPipe()
-  var producer: Effect<State, Never> {
+  var producer: SignalProducer<State, Never> {
     Property<State>(initial: state, then: self.statePipe.output).producer
   }
   var effectDisposables: [UUID: Disposable] = [:]
@@ -323,9 +313,13 @@ public final class Store<State, Action> {
       reducer: .init { localState, localAction, _ in
         isSending = true
         defer { isSending = false }
-        self.send(fromLocalAction(localAction))
+        let task = self.send(fromLocalAction(localAction))
         localState = toLocalState(self.state)
-        return .none
+        if let task = task {
+          return .fireAndForget { await task.cancellableValue }
+        } else {
+          return .none
+        }
       },
       environment: ()
     )
@@ -352,11 +346,14 @@ public final class Store<State, Action> {
     self.scope(state: toLocalState, action: { $0 })
   }
 
-  func send(_ action: Action, originatingFrom originatingAction: Action? = nil) {
+  func send(
+    _ action: Action,
+    originatingFrom originatingAction: Action? = nil
+  ) -> Task<Void, Never>? {
     self.threadCheck(status: .send(action, originatingAction: originatingAction))
 
     self.bufferedActions.append(action)
-    guard !self.isSending else { return }
+    guard !self.isSending else { return nil }
 
     self.isSending = true
     var currentState = self.state
@@ -365,30 +362,66 @@ public final class Store<State, Action> {
       self.state = currentState
     }
 
+    let tasks = Box<[Task<Void, Never>]>(wrappedValue: [])
+
     while !self.bufferedActions.isEmpty {
       let action = self.bufferedActions.removeFirst()
       let effect = self.reducer(&currentState, action)
 
       var didComplete = false
+      let boxedTask = Box<Task<Void, Never>?>(wrappedValue: nil)
       let uuid = UUID()
       let observer = Signal<Action, Never>.Observer(
         value: { [weak self] effectAction in
-          self?.send(effectAction, originatingFrom: action)
+          guard let self = self else { return }
+          if let task = self.send(effectAction, originatingFrom: action) {
+            tasks.wrappedValue.append(task)
+          }
         },
         completed: { [weak self] in
           self?.threadCheck(status: .effectCompletion(action))
+          boxedTask.wrappedValue?.cancel()
           didComplete = true
           self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
         },
         interrupted: { [weak self] in
+          boxedTask.wrappedValue?.cancel()
           didComplete = true
           self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
         }
       )
-      let effectDisposable = effect.start(observer)
+
+      let effectDisposable = CompositeDisposable()
+      effectDisposable += effect.producer.start(observer)
+      effectDisposable += AnyDisposable { [weak self] in
+        self?.threadCheck(status: .effectCompletion(action))
+        self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
+      }
 
       if !didComplete {
+        let task = Task<Void, Never> { @MainActor in
+          for await _ in AsyncStream<Void>.never {}
+          effectDisposable.dispose()
+        }
+        boxedTask.wrappedValue = task
+        tasks.wrappedValue.append(task)
         self.effectDisposables[uuid] = effectDisposable
+      }
+    }
+
+    return Task {
+      await withTaskCancellationHandler {
+        var index = tasks.wrappedValue.startIndex
+        while index < tasks.wrappedValue.endIndex {
+          defer { index += 1 }
+          tasks.wrappedValue[index].cancel()
+        }
+      } operation: {
+        var index = tasks.wrappedValue.startIndex
+        while index < tasks.wrappedValue.endIndex {
+          defer { index += 1 }
+          await tasks.wrappedValue[index].value
+        }
       }
     }
   }

@@ -1,12 +1,14 @@
-import ComposableArchitecture
 import CustomDump
 import ReactiveSwift
 import XCTest
+
+@testable import ComposableArchitecture
 
 #if canImport(os)
   import os.signpost
 #endif
 
+@MainActor
 final class ReducerTests: XCTestCase {
   func testCallableAsFunction() {
     let reducer = Reducer<Int, Void, Void> { state, _, _ in
@@ -19,7 +21,7 @@ final class ReducerTests: XCTestCase {
     XCTAssertNoDifference(state, 1)
   }
 
-  func testCombine_EffectsAreMerged() {
+  func testCombine_EffectsAreMerged() async {
     typealias Scheduler = DateScheduler
     enum Action: Equatable {
       case increment
@@ -29,14 +31,14 @@ final class ReducerTests: XCTestCase {
     let fastReducer = Reducer<Int, Action, Scheduler> { state, _, scheduler in
       state += 1
       return Effect.fireAndForget { fastValue = 42 }
-        .delay(1, on: scheduler)
+        .deferred(for: 1, scheduler: scheduler)
     }
 
     var slowValue: Int?
     let slowReducer = Reducer<Int, Action, Scheduler> { state, _, scheduler in
       state += 1
       return Effect.fireAndForget { slowValue = 1729 }
-        .delay(2, on: scheduler)
+        .deferred(for: 2, scheduler: scheduler)
     }
 
     let mainQueue = TestScheduler()
@@ -46,19 +48,19 @@ final class ReducerTests: XCTestCase {
       environment: mainQueue
     )
 
-    store.send(.increment) {
+    await store.send(.increment) {
       $0 = 2
     }
     // Waiting a second causes the fast effect to fire.
-    mainQueue.advance(by: 1)
+    await mainQueue.advance(by: 1)
     XCTAssertNoDifference(fastValue, 42)
     // Waiting one more second causes the slow effect to fire. This proves that the effects
     // are merged together, as opposed to concatenated.
-    mainQueue.advance(by: 1)
+    await mainQueue.advance(by: 1)
     XCTAssertNoDifference(slowValue, 1729)
   }
 
-  func testCombine() {
+  func testCombine() async {
     enum Action: Equatable {
       case increment
     }
@@ -82,7 +84,7 @@ final class ReducerTests: XCTestCase {
       environment: ()
     )
 
-    store.send(.increment) {
+    await store.send(.increment) {
       $0 = 2
     }
 
@@ -90,7 +92,7 @@ final class ReducerTests: XCTestCase {
     XCTAssertTrue(mainEffectExecuted)
   }
 
-  func testDebug() {
+  func testDebug() async {
     var logs: [String] = []
     let logsExpectation = self.expectation(description: "logs")
     logsExpectation.expectedFulfillmentCount = 2
@@ -120,8 +122,8 @@ final class ReducerTests: XCTestCase {
       reducer: reducer,
       environment: ()
     )
-    store.send(.incr) { $0.count = 1 }
-    store.send(.noop)
+    await store.send(.incr) { $0.count = 1 }
+    await store.send(.noop)
 
     self.wait(for: [logsExpectation], timeout: 5)
 
@@ -200,6 +202,7 @@ final class ReducerTests: XCTestCase {
       let effect = reducer.run(&n, (), ())
       let expectation = self.expectation(description: "effect")
       effect
+        .producer
         .startWithCompleted {
           expectation.fulfill()
         }
@@ -213,6 +216,7 @@ final class ReducerTests: XCTestCase {
       let effect = reducer.run(&n, (), ())
       let expectation = self.expectation(description: "effect")
       effect
+        .producer
         .startWithCompleted {
           expectation.fulfill()
         }

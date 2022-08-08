@@ -6,6 +6,7 @@ import XCTest
   import Combine
 #endif
 
+@MainActor
 final class ViewStoreTests: XCTestCase {
   override func setUp() {
     super.setUp()
@@ -173,7 +174,7 @@ final class ViewStoreTests: XCTestCase {
 
   #if canImport(_Concurrency) && compiler(>=5.5.2)
     func testSendWhile() async {
-      Task { @MainActor in
+      Task {
         enum Action {
           case response
           case tapped
@@ -185,8 +186,9 @@ final class ViewStoreTests: XCTestCase {
             return .none
           case .tapped:
             state = true
-            return Effect(value: .response)
+            return SignalProducer(value: .response)
               .observe(on: QueueScheduler.main)
+              .eraseToEffect()
           }
         }
 
@@ -200,7 +202,8 @@ final class ViewStoreTests: XCTestCase {
     }
 
     func testSuspend() async {
-      Task { @MainActor in
+      let expectation = self.expectation(description: "await")
+      Task {
         enum Action {
           case response
           case tapped
@@ -212,8 +215,9 @@ final class ViewStoreTests: XCTestCase {
             return .none
           case .tapped:
             state = true
-            return Effect(value: .response)
+            return SignalProducer(value: .response)
               .observe(on: QueueScheduler.main)
+              .eraseToEffect()
           }
         }
 
@@ -221,11 +225,71 @@ final class ViewStoreTests: XCTestCase {
         let viewStore = ViewStore(store)
 
         XCTAssertNoDifference(viewStore.state, false)
-        viewStore.send(.tapped)
+        _ = { viewStore.send(.tapped) }()
         XCTAssertNoDifference(viewStore.state, true)
         await viewStore.yield(while: { $0 })
         XCTAssertNoDifference(viewStore.state, false)
       }
+      _ = XCTWaiter.wait(for: [expectation], timeout: 1)
+    }
+
+    func testAsyncSend() async throws {
+      enum Action {
+        case tap
+        case response(Int)
+      }
+      let store = Store(
+        initialState: 0,
+        reducer: Reducer<Int, Action, Void> { state, action, _ in
+          switch action {
+          case .tap:
+            return .task {
+              return .response(42)
+            }
+          case let .response(value):
+            state = value
+            return .none
+          }
+        },
+        environment: ()
+      )
+
+      let viewStore = ViewStore(store)
+
+      XCTAssertEqual(viewStore.state, 0)
+      await viewStore.send(.tap).finish()
+      XCTAssertEqual(viewStore.state, 42)
+    }
+
+    func testAsyncSendCancellation() async throws {
+      enum Action {
+        case tap
+        case response(Int)
+      }
+      let store = Store(
+        initialState: 0,
+        reducer: Reducer<Int, Action, Void> { state, action, _ in
+          switch action {
+          case .tap:
+            return .task {
+              try await Task.sleep(nanoseconds: NSEC_PER_SEC)
+              return .response(42)
+            }
+          case let .response(value):
+            state = value
+            return .none
+          }
+        },
+        environment: ()
+      )
+
+      let viewStore = ViewStore(store)
+
+      XCTAssertEqual(viewStore.state, 0)
+      let task = viewStore.send(.tap)
+      await task.cancel()
+      try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
+      XCTAssertEqual(viewStore.state, 0)
     }
   #endif
 }

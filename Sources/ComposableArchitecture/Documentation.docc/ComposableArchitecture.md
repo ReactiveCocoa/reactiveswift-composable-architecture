@@ -1,6 +1,9 @@
 ### Essentials
 
 - <doc:GettingStarted>
+- <doc:GettingReadyForSwiftConcurrency>
+- <doc:Performance>
+- <doc:Testing>
 
 ### State Management
 
@@ -17,6 +20,7 @@
 ### Testing
 
 - ``TestStore``
+- ``ActorIsolated``
 
 ## See Also
 

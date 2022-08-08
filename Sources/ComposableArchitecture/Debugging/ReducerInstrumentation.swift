@@ -53,33 +53,35 @@
     }
   }
 
-  extension Effect where Error == Never {
+  extension Effect where Failure == Never {
     func effectSignpost(
       _ prefix: String,
       log: OSLog,
       actionOutput: String
-    ) -> Effect<Value, Error> {
+    ) -> Effect<Output, Failure> {
       let sid = OSSignpostID(log: log)
 
-      return self.on(
-        starting: {
-          os_signpost(
-            .begin, log: log, name: "Effect", signpostID: sid, "%sStarted from %s", prefix,
-            actionOutput
-          )
-        },
-        completed: {
-          os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sFinished", prefix)
-        },
-        disposed: {
-          os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sCancelled", prefix)
-        },
-        value: { value in
-          os_signpost(
-            .event, log: log, name: "Effect Output", "%sOutput from %s", prefix, actionOutput
-          )
-        }
-      )
+      return self.producer
+        .on(
+          starting: {
+            os_signpost(
+              .begin, log: log, name: "Effect", signpostID: sid, "%sStarted from %s", prefix,
+              actionOutput
+            )
+          },
+          completed: {
+            os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sFinished", prefix)
+          },
+          disposed: {
+            os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sCancelled", prefix)
+          },
+          value: { value in
+            os_signpost(
+              .event, log: log, name: "Effect Output", "%sOutput from %s", prefix, actionOutput
+            )
+          }
+        )
+        .eraseToEffect()
     }
   }
 #endif

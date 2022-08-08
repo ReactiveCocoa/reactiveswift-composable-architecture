@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import Foundation
 import ReactiveSwift
 import SwiftUI
 
@@ -54,30 +55,31 @@ let loadThenNavigateListReducer =
       LoadThenNavigateListState, LoadThenNavigateListAction, LoadThenNavigateListEnvironment
     > { state, action, environment in
 
-      enum CancelId {}
+      enum CancelID {}
 
       switch action {
       case .counter:
         return .none
 
       case .onDisappear:
-        return .cancel(id: CancelId.self)
+        return .cancel(id: CancelID.self)
 
       case let .setNavigation(selection: .some(navigatedId)):
         for row in state.rows {
           state.rows[id: row.id]?.isActivityIndicatorVisible = row.id == navigatedId
         }
-
-        return Effect(value: .setNavigationSelectionDelayCompleted(navigatedId))
-          .delay(1, on: environment.mainQueue)
-          .cancellable(id: CancelId.self, cancelInFlight: true)
+        return .task {
+          try await environment.mainQueue.sleep(for: .seconds(1))
+          return .setNavigationSelectionDelayCompleted(navigatedId)
+        }
+        .cancellable(id: CancelID.self, cancelInFlight: true)
 
       case .setNavigation(selection: .none):
         if let selection = state.selection {
           state.rows[id: selection.id]?.count = selection.count
         }
         state.selection = nil
-        return .cancel(id: CancelId.self)
+        return .cancel(id: CancelID.self)
 
       case let .setNavigationSelectionDelayCompleted(id):
         state.rows[id: id]?.isActivityIndicatorVisible = false

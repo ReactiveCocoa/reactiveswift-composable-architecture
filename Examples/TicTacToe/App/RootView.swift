@@ -3,7 +3,6 @@ import AppSwiftUI
 import AppUIKit
 import AuthenticationClientLive
 import ComposableArchitecture
-import ReactiveSwift
 import SwiftUI
 
 private let readMe = """
@@ -33,8 +32,7 @@ struct RootView: View {
     initialState: AppState(),
     reducer: appReducer,
     environment: AppEnvironment(
-      authenticationClient: .live,
-      mainQueue: QueueScheduler.main
+      authenticationClient: .live
     )
   )
 

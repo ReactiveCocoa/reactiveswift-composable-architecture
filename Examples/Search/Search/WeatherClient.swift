@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import Foundation
+import XCTestDynamicOverlay
 
 // MARK: - API models
 
@@ -38,10 +39,8 @@ struct Forecast: Decodable, Equatable {
 // This allows the search feature to compile faster since it only depends on the interface.
 
 struct WeatherClient {
-  var forecast: (Search.Result) -> Effect<Forecast, Failure>
-  var search: (String) -> Effect<Search, Failure>
-
-  struct Failure: Error, Equatable {}
+  var forecast: @Sendable (Search.Result) async throws -> Forecast
+  var search: @Sendable (String) async throws -> Search
 }
 
 // MARK: - Live API implementation
@@ -57,23 +56,16 @@ extension WeatherClient {
         URLQueryItem(name: "timezone", value: TimeZone.autoupdatingCurrent.identifier),
       ]
 
-      return URLSession.shared.reactive.data(with: URLRequest(url: components.url!))
-        .map { data, _ in data }
-        .attemptMap { data in
-          try jsonDecoder.decode(Forecast.self, from: data)
-        }
-        .mapError { _ in Failure() }
+      let (data, _) = try await URLSession.shared.data(from: components.url!)
+      return try jsonDecoder.decode(Forecast.self, from: data)
     },
     search: { query in
       var components = URLComponents(string: "https://geocoding-api.open-meteo.com/v1/search")!
       components.queryItems = [URLQueryItem(name: "name", value: query)]
 
-      return URLSession.shared.reactive.data(with: URLRequest(url: components.url!))
-        .map { data, _ in data }
-        .attemptMap { data in
-          try jsonDecoder.decode(Search.self, from: data)
+      let (data, _) = try await URLSession.shared.data(from: components.url!)
+      return try jsonDecoder.decode(Search.self, from: data)
         }
-        .mapError { _ in Failure() }
     }
   )
 }
@@ -82,8 +74,8 @@ extension WeatherClient {
 
 extension WeatherClient {
   static let unimplemented = Self(
-    forecast: { _ in .unimplemented("\(Self.self).forecast") },
-    search: { _ in .unimplemented("\(Self.self).search") }
+    forecast: XCTUnimplemented("\(Self.self).forecast"),
+    search: XCTUnimplemented("\(Self.self).search")
   )
 }
 

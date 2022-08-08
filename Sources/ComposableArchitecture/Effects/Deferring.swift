@@ -12,7 +12,6 @@ extension Effect {
   /// ```
   ///
   /// - Parameters:
-  ///   - upstream: the effect you want to defer.
   ///   - dueTime: The duration you want to defer for.
   ///   - scheduler: The scheduler you want to deliver the defer output to.
   ///   - options: Scheduler options that customize the effect's delivery of elements.
@@ -21,8 +20,10 @@ extension Effect {
     for dueTime: TimeInterval,
     scheduler: DateScheduler
   ) -> Self {
-    SignalProducer<Void, Never>(value: ())
-      .delay(dueTime, on: scheduler)
-      .flatMap(.latest) { self.observe(on: scheduler) }
+    .init(
+      producer: SignalProducer<Void, Never>(value: ())
+        .delay(dueTime, on: scheduler)
+        .flatMap(.latest) { self.producer.observe(on: scheduler) }
+    )
   }
 }

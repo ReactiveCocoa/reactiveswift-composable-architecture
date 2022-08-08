@@ -1,7 +1,6 @@
 import AuthenticationClient
 import ComposableArchitecture
 import Dispatch
-import ReactiveSwift
 
 public struct TwoFactorState: Equatable {
   public var alert: AlertState<TwoFactorAction>?
@@ -19,21 +18,18 @@ public enum TwoFactorAction: Equatable {
   case alertDismissed
   case codeChanged(String)
   case submitButtonTapped
-  case twoFactorResponse(Result<AuthenticationResponse, AuthenticationError>)
+  case twoFactorResponse(TaskResult<AuthenticationResponse>)
 }
 
 public enum TwoFactorTearDownToken {}
 
-public struct TwoFactorEnvironment {
+public struct TwoFactorEnvironment: Sendable {
   public var authenticationClient: AuthenticationClient
-  public var mainQueue: DateScheduler
 
   public init(
-    authenticationClient: AuthenticationClient,
-    mainQueue: DateScheduler
+    authenticationClient: AuthenticationClient
   ) {
     self.authenticationClient = authenticationClient
-    self.mainQueue = mainQueue
   }
 }
 
@@ -52,11 +48,14 @@ public let twoFactorReducer = Reducer<TwoFactorState, TwoFactorAction, TwoFactor
 
   case .submitButtonTapped:
     state.isTwoFactorRequestInFlight = true
-    return environment.authenticationClient
-      .twoFactor(TwoFactorRequest(code: state.code, token: state.token))
-      .observe(on: environment.mainQueue)
-      .catchToEffect(TwoFactorAction.twoFactorResponse)
-      .cancellable(id: TwoFactorTearDownToken.self)
+    return .task { [code = state.code, token = state.token] in
+      .twoFactorResponse(
+        await TaskResult {
+          try await environment.authenticationClient.twoFactor(.init(code: code, token: token))
+        }
+      )
+    }
+    .cancellable(id: TwoFactorTearDownToken.self)
 
   case let .twoFactorResponse(.failure(error)):
     state.alert = AlertState(title: TextState(error.localizedDescription))
