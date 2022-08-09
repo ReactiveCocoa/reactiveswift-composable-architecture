@@ -1,7 +1,7 @@
 import AVFoundation
 import ComposableArchitecture
-import IdentifiedCollections
 import Foundation
+import IdentifiedCollections
 import ReactiveSwift
 import SwiftUI
 
@@ -48,21 +48,21 @@ let voiceMemosReducer = Reducer<VoiceMemosState, VoiceMemosAction, VoiceMemosEnv
     ),
   voiceMemoReducer
     .forEach(
-    state: \.voiceMemos,
-    action: /VoiceMemosAction.voiceMemo(id:action:),
-    environment: {
-      VoiceMemoEnvironment(audioPlayerClient: $0.audioPlayer, mainRunLoop: $0.mainRunLoop)
-    }
-  ),
+      state: \.voiceMemos,
+      action: /VoiceMemosAction.voiceMemo(id:action:),
+      environment: {
+        VoiceMemoEnvironment(audioPlayerClient: $0.audioPlayer, mainRunLoop: $0.mainRunLoop)
+      }
+    ),
   Reducer { state, action, environment in
     var newRecordingMemo: RecordingMemoState {
       RecordingMemoState(
         date: environment.mainRunLoop.now.date,
         url: environment.temporaryDirectory()
-        .appendingPathComponent(environment.uuid().uuidString)
-        .appendingPathExtension("m4a")
-        )
-        }
+          .appendingPathComponent(environment.uuid().uuidString)
+          .appendingPathExtension("m4a")
+      )
+    }
 
     switch action {
     case .alertDismissed:
@@ -88,7 +88,7 @@ let voiceMemosReducer = Reducer<VoiceMemosState, VoiceMemosAction, VoiceMemosEnv
       case .allowed:
         state.recordingMemo = newRecordingMemo
         return .none
-        }
+      }
 
     case let .recordingMemo(.delegate(.didFinish(.success(recordingMemo)))):
       state.recordingMemo = nil
@@ -100,7 +100,7 @@ let voiceMemosReducer = Reducer<VoiceMemosState, VoiceMemosAction, VoiceMemosEnv
         ),
         at: 0
       )
-          return .none
+      return .none
 
     case .recordingMemo(.delegate(.didFinish(.failure))):
       state.alert = AlertState(title: TextState("Voice memo recording failed."))
@@ -192,28 +192,28 @@ struct RecordButton: View {
   let settingsAction: () -> Void
 
   var body: some View {
-            ZStack {
+    ZStack {
       Group {
-              Circle()
-                .foregroundColor(Color(.label))
-                .frame(width: 74, height: 74)
+        Circle()
+          .foregroundColor(Color(.label))
+          .frame(width: 74, height: 74)
 
         Button(action: self.action) {
           RoundedRectangle(cornerRadius: 35)
-                  .foregroundColor(Color(.systemRed))
+            .foregroundColor(Color(.systemRed))
             .padding(2)
-              }
-              .frame(width: 70, height: 70)
+        }
+        .frame(width: 70, height: 70)
       }
       .opacity(self.permission == .denied ? 0.1 : 1)
 
       if self.permission == .denied {
-                VStack(spacing: 10) {
-                  Text("Recording requires microphone access.")
-                    .multilineTextAlignment(.center)
+        VStack(spacing: 10) {
+          Text("Recording requires microphone access.")
+            .multilineTextAlignment(.center)
           Button("Open Settings", action: self.settingsAction)
-                }
-                .frame(maxWidth: .infinity, maxHeight: 74)
+        }
+        .frame(maxWidth: .infinity, maxHeight: 74)
       }
     }
   }
