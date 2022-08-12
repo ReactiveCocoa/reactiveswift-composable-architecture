@@ -78,7 +78,7 @@ let voiceMemosReducer = Reducer<VoiceMemosState, VoiceMemosAction, VoiceMemosEnv
 
       case .allowed:
         state.recordingMemo = RecordingMemoState(
-          date: environment.mainRunLoop.now.date,
+          date: environment.mainRunLoop.currentDate,
           url: environment.temporaryDirectory()
             .appendingPathComponent(environment.uuid().uuidString)
             .appendingPathExtension("m4a")
@@ -110,7 +110,7 @@ let voiceMemosReducer = Reducer<VoiceMemosState, VoiceMemosAction, VoiceMemosEnv
       state.audioRecorderPermission = permission ? .allowed : .denied
       if permission {
         state.recordingMemo = RecordingMemoState(
-          date: environment.mainRunLoop.now.date,
+          date: environment.mainRunLoop.currentDate,
           url: environment.temporaryDirectory()
             .appendingPathComponent(environment.uuid().uuidString)
             .appendingPathExtension("m4a")

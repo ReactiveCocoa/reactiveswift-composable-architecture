@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import ReactiveSwift
 import SwiftUI
 
 struct RecordingMemoState: Equatable {
@@ -30,7 +31,7 @@ enum RecordingMemoAction: Equatable {
 
 struct RecordingMemoEnvironment {
   var audioRecorder: AudioRecorderClient
-  var mainRunLoop: AnySchedulerOf<RunLoop>
+  var mainRunLoop: DateScheduler
 }
 
 let recordingMemoReducer = Reducer<
