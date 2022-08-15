@@ -7,7 +7,7 @@ import XCTestDynamicOverlay
 @testable import VoiceMemos
 
 @MainActor
-class VoiceMemosTests: XCTestCase {
+final class VoiceMemosTests: XCTestCase {
   let mainRunLoop = TestScheduler()
 
   func testRecordMemoHappyPath() async {

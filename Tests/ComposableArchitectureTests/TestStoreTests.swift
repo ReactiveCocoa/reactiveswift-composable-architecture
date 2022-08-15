@@ -5,7 +5,7 @@ import XCTest
 // `@MainActor` introduces issues gathering tests on Linux
 #if !os(Linux)
   @MainActor
-  class TestStoreTests: XCTestCase {
+  final class TestStoreTests: XCTestCase {
     func testEffectConcatenation() async {
       struct State: Equatable {}
 
