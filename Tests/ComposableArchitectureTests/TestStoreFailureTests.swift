@@ -4,7 +4,7 @@ import XCTest
 // `XCTExpectFailure` is not supported on Linux / `@MainActor` introduces issues gathering tests on Linux
 #if !os(Linux)
   @MainActor
-  class TestStoreFailureTests: XCTestCase {
+  final class TestStoreFailureTests: XCTestCase {
     func testNoStateChangeFailure() {
       enum Action { case first, second }
       let store = TestStore(

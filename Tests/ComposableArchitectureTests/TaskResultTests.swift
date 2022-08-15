@@ -1,7 +1,7 @@
 import ComposableArchitecture
 import XCTest
 
-class TaskResultTests: XCTestCase {
+final class TaskResultTests: XCTestCase {
 
   // `XCTExpectFailure` is not supported on Linux
   #if !os(Linux)

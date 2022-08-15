@@ -5,7 +5,7 @@ import XCTest
 @testable import Todos
 
 @MainActor
-class TodosTests: XCTestCase {
+final class TodosTests: XCTestCase {
   let mainQueue = TestScheduler()
 
   func testAddTodo() async {
