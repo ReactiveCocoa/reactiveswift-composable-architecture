@@ -15,8 +15,10 @@ struct VoiceMemosApp: App {
             audioPlayer: .live,
             audioRecorder: .live,
             mainRunLoop: QueueScheduler.main,
-            openSettings: { @MainActor in
+            openSettings: {
+              await MainActor.run {
               UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+              }
             },
             temporaryDirectory: { URL(fileURLWithPath: NSTemporaryDirectory()) },
             uuid: { UUID() }

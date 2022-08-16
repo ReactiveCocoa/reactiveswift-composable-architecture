@@ -10,14 +10,40 @@ import XCTestDynamicOverlay
   import os
 #endif
 
+// NB: Deprecated after 0.39.0:
+
+extension CaseLet {
+  @available(*, deprecated, renamed: "EnumState")
+  public typealias GlobalState = EnumState
+
+  @available(*, deprecated, renamed: "EnumAction")
+  public typealias GlobalAction = EnumAction
+
+  @available(*, deprecated, renamed: "CaseState")
+  public typealias LocalState = CaseState
+
+  @available(*, deprecated, renamed: "CaseAction")
+  public typealias LocalAction = CaseAction
+}
+
+#if DEBUG
+extension TestStore {
+  @available(*, deprecated, renamed: "ScopedState")
+  public typealias LocalState = ScopedState
+
+  @available(*, deprecated, renamed: "ScopedAction")
+  public typealias LocalAction = ScopedAction
+}
+#endif
+
 // NB: Deprecated after 0.38.2:
 
 extension Effect where Failure == Error {
   @_disfavoredOverload
   @available(
     *,
-    deprecated,
-    message: "Use the non-failing version of 'Effect.task'"
+     deprecated,
+     message: "Use the non-failing version of 'Effect.task'"
   )
   public static func task(
     priority: TaskPriority? = nil,
@@ -56,8 +82,8 @@ extension Effect where Failure == Error {
 ///   - environment: The environment of dependencies for the application.
 @available(
   *,
-  deprecated,
-  message:
+   deprecated,
+   message:
     """
     If you use this initializer, please open a discussion on GitHub and let us know how: \
     https://github.com/pointfreeco/swift-composable-architecture/discussions/new
@@ -105,8 +131,8 @@ extension ViewStore {
 extension Effect {
   @available(
     *,
-    deprecated,
-    message:
+     deprecated,
+     message:
       """
       Using a variadic list is no longer supported. Use an array of identifiers instead. For more \
       on this change, see: https://github.com/pointfreeco/swift-composable-architecture/pull/1041
@@ -123,21 +149,21 @@ extension Effect {
 extension Reducer {
   @available(
     *,
-    deprecated,
-    message: "'pullback' no longer takes a 'breakpointOnNil' argument"
+     deprecated,
+     message: "'pullback' no longer takes a 'breakpointOnNil' argument"
   )
-  public func pullback<GlobalState, GlobalAction, GlobalEnvironment>(
-    state toLocalState: CasePath<GlobalState, State>,
-    action toLocalAction: CasePath<GlobalAction, Action>,
-    environment toLocalEnvironment: @escaping (GlobalEnvironment) -> Environment,
+  public func pullback<ParentState, ParentAction, ParentEnvironment>(
+    state toChildState: CasePath<ParentState, State>,
+    action toChildAction: CasePath<ParentAction, Action>,
+    environment toChildEnvironment: @escaping (ParentEnvironment) -> Environment,
     breakpointOnNil: Bool,
     file: StaticString = #fileID,
     line: UInt = #line
-  ) -> Reducer<GlobalState, GlobalAction, GlobalEnvironment> {
+  ) -> Reducer<ParentState, ParentAction, ParentEnvironment> {
     self.pullback(
-      state: toLocalState,
-      action: toLocalAction,
-      environment: toLocalEnvironment,
+      state: toChildState,
+      action: toChildAction,
+      environment: toChildEnvironment,
       file: file,
       line: line
     )
@@ -145,8 +171,8 @@ extension Reducer {
 
   @available(
     *,
-    deprecated,
-    message: "'optional' no longer takes a 'breakpointOnNil' argument"
+     deprecated,
+     message: "'optional' no longer takes a 'breakpointOnNil' argument"
   )
   public func optional(
     breakpointOnNil: Bool,
@@ -160,21 +186,21 @@ extension Reducer {
 
   @available(
     *,
-    deprecated,
-    message: "'forEach' no longer takes a 'breakpointOnNil' argument"
+     deprecated,
+     message: "'forEach' no longer takes a 'breakpointOnNil' argument"
   )
-  public func forEach<GlobalState, GlobalAction, GlobalEnvironment, ID>(
-    state toLocalState: WritableKeyPath<GlobalState, IdentifiedArray<ID, State>>,
-    action toLocalAction: CasePath<GlobalAction, (ID, Action)>,
-    environment toLocalEnvironment: @escaping (GlobalEnvironment) -> Environment,
+  public func forEach<ParentState, ParentAction, ParentEnvironment, ID>(
+    state toElementsState: WritableKeyPath<ParentState, IdentifiedArray<ID, State>>,
+    action toElementAction: CasePath<ParentAction, (ID, Action)>,
+    environment toElementEnvironment: @escaping (ParentEnvironment) -> Environment,
     breakpointOnNil: Bool,
     file: StaticString = #fileID,
     line: UInt = #line
-  ) -> Reducer<GlobalState, GlobalAction, GlobalEnvironment> {
+  ) -> Reducer<ParentState, ParentAction, ParentEnvironment> {
     self.forEach(
-      state: toLocalState,
-      action: toLocalAction,
-      environment: toLocalEnvironment,
+      state: toElementsState,
+      action: toElementAction,
+      environment: toElementEnvironment,
       file: file,
       line: line
     )
@@ -182,21 +208,21 @@ extension Reducer {
 
   @available(
     *,
-    deprecated,
-    message: "'forEach' no longer takes a 'breakpointOnNil' argument"
+     deprecated,
+     message: "'forEach' no longer takes a 'breakpointOnNil' argument"
   )
-  public func forEach<GlobalState, GlobalAction, GlobalEnvironment, Key>(
-    state toLocalState: WritableKeyPath<GlobalState, [Key: State]>,
-    action toLocalAction: CasePath<GlobalAction, (Key, Action)>,
-    environment toLocalEnvironment: @escaping (GlobalEnvironment) -> Environment,
+  public func forEach<ParentState, ParentAction, ParentEnvironment, Key>(
+    state toElementsState: WritableKeyPath<ParentState, [Key: State]>,
+    action toElementAction: CasePath<ParentAction, (Key, Action)>,
+    environment toElementEnvironment: @escaping (ParentEnvironment) -> Environment,
     breakpointOnNil: Bool,
     file: StaticString = #fileID,
     line: UInt = #line
-  ) -> Reducer<GlobalState, GlobalAction, GlobalEnvironment> {
+  ) -> Reducer<ParentState, ParentAction, ParentEnvironment> {
     self.forEach(
-      state: toLocalState,
-      action: toLocalAction,
-      environment: toLocalEnvironment,
+      state: toElementsState,
+      action: toElementAction,
+      environment: toElementEnvironment,
       file: file,
       line: line
     )
@@ -205,7 +231,7 @@ extension Reducer {
 
 // NB: Deprecated after 0.29.0:
 #if DEBUG
-  extension TestStore where LocalState: Equatable, Action: Equatable {
+  extension TestStore where ScopedState: Equatable, Action: Equatable {
     @available(
       *, deprecated, message: "Use 'TestStore.send' and 'TestStore.receive' directly, instead."
     )
@@ -239,13 +265,13 @@ extension Reducer {
             var actions = ""
             customDump(self.receivedActions.map(\.action), to: &actions)
             XCTFail(
-              """
-              Must handle \(self.receivedActions.count) received \
-              action\(self.receivedActions.count == 1 ? "" : "s") before performing this work: …
+                """
+                Must handle \(self.receivedActions.count) received \
+                action\(self.receivedActions.count == 1 ? "" : "s") before performing this work: …
 
-              Unhandled actions: \(actions)
-              """,
-              file: step.file, line: step.line
+                Unhandled actions: \(actions)
+                """,
+                file: step.file, line: step.line
             )
           }
           do {
@@ -259,13 +285,13 @@ extension Reducer {
             var actions = ""
             customDump(self.receivedActions.map(\.action), to: &actions)
             XCTFail(
-              """
-              Must handle \(self.receivedActions.count) received \
-              action\(self.receivedActions.count == 1 ? "" : "s") before performing this work: …
+                """
+                Must handle \(self.receivedActions.count) received \
+                action\(self.receivedActions.count == 1 ? "" : "s") before performing this work: …
 
-              Unhandled actions: \(actions)
-              """,
-              file: step.file, line: step.line
+                Unhandled actions: \(actions)
+                """,
+                file: step.file, line: step.line
             )
           }
           do {
@@ -301,10 +327,10 @@ extension Reducer {
 
       @available(*, deprecated, message: "Call 'TestStore.send' directly, instead.")
       public static func send(
-        _ action: LocalAction,
+        _ action: ScopedAction,
         file: StaticString = #file,
         line: UInt = #line,
-        _ update: ((inout LocalState) throws -> Void)? = nil
+        _ update: ((inout ScopedState) throws -> Void)? = nil
       ) -> Step {
         Step(.send(action, update), file: file, line: line)
       }
@@ -314,7 +340,7 @@ extension Reducer {
         _ action: Action,
         file: StaticString = #file,
         line: UInt = #line,
-        _ update: ((inout LocalState) throws -> Void)? = nil
+        _ update: ((inout ScopedState) throws -> Void)? = nil
       ) -> Step {
         Step(.receive(action, update), file: file, line: line)
       }
@@ -356,22 +382,22 @@ extension Reducer {
       }
 
       fileprivate indirect enum StepType {
-        case send(LocalAction, ((inout LocalState) throws -> Void)?)
-        case receive(Action, ((inout LocalState) throws -> Void)?)
+        case send(ScopedAction, ((inout ScopedState) throws -> Void)?)
+        case receive(Action, ((inout ScopedState) throws -> Void)?)
         case environment((inout Environment) throws -> Void)
         case `do`(() throws -> Void)
         case sequence([Step])
       }
     }
   }
-#endif
+  #endif
 
-// NB: Deprecated after 0.27.1:
-#if canImport(SwiftUI)
+  // NB: Deprecated after 0.27.1:
+  #if canImport(SwiftUI)
   extension AlertState.Button {
     @available(
       *, deprecated,
-      message: "Cancel buttons must be given an explicit label as their first argument"
+       message: "Cancel buttons must be given an explicit label as their first argument"
     )
     public static func cancel(action: AlertState.ButtonAction? = nil) -> Self {
       .init(action: action, label: TextState("Cancel"), role: .cancel)
@@ -400,42 +426,33 @@ extension Reducer {
   }
 
   extension Store {
-    /// Scopes the store to a producer of stores of more local state and local actions.
-    ///
-    /// - Parameters:
-    ///   - toLocalState: A function that transforms a producer of `State` into a producer of
-    ///     `LocalState`.
-    ///   - fromLocalAction: A function that transforms `LocalAction` into `Action`.
-    /// - Returns: A producer of stores with its domain (state and action) transformed.
     @available(
       *, deprecated,
-      message:
+       message:
         """
         If you use this method, please open a discussion on GitHub and let us know how: \
         https://github.com/pointfreeco/swift-composable-architecture/discussions/new
         """
     )
-    public func producerScope<LocalState, LocalAction>(
-      state toLocalState: @escaping (SignalProducer<State, Never>) -> SignalProducer<
-        LocalState, Never
-      >,
-      action fromLocalAction: @escaping (LocalAction) -> Action
-    ) -> SignalProducer<Store<LocalState, LocalAction>, Never> {
+    public func producerScope<ChildState, ChildAction>(
+      state toChildState: @escaping (SignalProducer<State, Never>) -> SignalProducer<ChildState, Never>,
+      action fromChildAction: @escaping (ChildAction) -> Action
+    ) -> SignalProducer<Store<ChildState, ChildAction>, Never> {
 
-      func extractLocalState(_ state: State) -> LocalState? {
-        var localState: LocalState?
-        _ = toLocalState(SignalProducer(value: state))
-          .startWithValues { localState = $0 }
-        return localState
+      func extractChildState(_ state: State) -> ChildState? {
+        var childState: ChildState?
+        _ = toChildState(SignalProducer(value: state))
+          .startWithValues { childState = $0 }
+        return childState
       }
 
-      return toLocalState(self.producer)
-        .map { localState in
-          let localStore = Store<LocalState, LocalAction>(
-            initialState: localState,
-            reducer: .init { localState, localAction, _ in
-              let task = self.send(fromLocalAction(localAction))
-              localState = extractLocalState(self.state) ?? localState
+      return toChildState(self.producer)
+        .map { childState in
+          let localStore = Store<ChildState, ChildAction>(
+            initialState: childState,
+            reducer: .init { childState, childAction, _ in
+              let task = self.send(fromChildAction(childAction))
+              childState = extractChildState(self.state) ?? childState
               if let task = task {
                 return .fireAndForget { await task.cancellableValue }
               } else {
@@ -447,40 +464,31 @@ extension Reducer {
           localStore.parentDisposable = self.producer.startWithValues {
             [weak localStore] state in
             guard let localStore = localStore else { return }
-            localStore.state = extractLocalState(state) ?? localStore.state
+            localStore.state = extractChildState(state) ?? localStore.state
           }
           return localStore
         }
     }
 
-    /// Scopes the store to a producer of stores of more local state and local actions.
-    ///
-    /// - Parameter toLocalState: A function that transforms a producer of `State` into a producer
-    ///   of `LocalState`.
-    /// - Returns: A producer of stores with its domain (state and action)
-    ///   transformed.
     @available(
       *, deprecated,
-      message:
+       message:
         """
         If you use this method, please open a discussion on GitHub and let us know how: \
         https://github.com/pointfreeco/swift-composable-architecture/discussions/new
         """
     )
-    public func producerScope<LocalState>(
-      state toLocalState: @escaping (SignalProducer<State, Never>) -> SignalProducer<
-        LocalState, Never
-      >
-    ) -> SignalProducer<Store<LocalState, Action>, Never> {
-      self.producerScope(state: toLocalState, action: { $0 })
+    public func producerScope<ChildState>(
+      state toChildState: @escaping (SignalProducer<State, Never>) -> SignalProducer<ChildState, Never>
+    ) -> SignalProducer<Store<ChildState, Action>, Never> {
+      self.producerScope(state: toChildState, action: { $0 })
     }
-
   }
 
   extension ViewStore where Action: BindableAction, Action.State == State {
     @available(
       *, deprecated,
-      message:
+       message:
         """
         Dynamic member lookup is no longer supported for bindable state. Instead of dot-chaining on \
         the view store, e.g. 'viewStore.$value', invoke the 'binding' method on view store with a \
@@ -503,7 +511,7 @@ extension Reducer {
   extension BindingAction {
     @available(
       *, deprecated,
-      message:
+       message:
         """
         For improved safety, bindable properties must now be wrapped explicitly in 'BindableState', \
         and accessed via key paths to that 'BindableState', like '\\.$value'
@@ -523,7 +531,7 @@ extension Reducer {
 
     @available(
       *, deprecated,
-      message:
+       message:
         """
         For improved safety, bindable properties must now be wrapped explicitly in 'BindableState', \
         and accessed via key paths to that 'BindableState', like '\\.$value'
@@ -540,14 +548,14 @@ extension Reducer {
   extension Reducer {
     @available(
       *, deprecated,
-      message:
+       message:
         """
         'Reducer.binding()' no longer takes an explicit extract function and instead the reducer's \
         'Action' type must conform to 'BindableAction'
         """
     )
     public func binding(action toBindingAction: @escaping (Action) -> BindingAction<State>?)
-      -> Self
+    -> Self
     {
       Self { state, action, environment in
         toBindingAction(action)?.set(&state)
@@ -557,27 +565,27 @@ extension Reducer {
   }
 
   #if canImport(SwiftUI)
-    extension ViewStore {
-      @available(
-        *, deprecated,
-        message:
-          """
-          For improved safety, bindable properties must now be wrapped explicitly in 'BindableState'. \
-          Bindings are now derived via 'ViewStore.binding' with a key path to that 'BindableState' \
-          (for example, 'viewStore.binding(\\.$value)'). For dynamic member lookup to be available, \
-          the view store's 'Action' type must also conform to 'BindableAction'.
-          """
+  extension ViewStore {
+    @available(
+      *, deprecated,
+       message:
+        """
+        For improved safety, bindable properties must now be wrapped explicitly in 'BindableState'. \
+        Bindings are now derived via 'ViewStore.binding' with a key path to that 'BindableState' \
+        (for example, 'viewStore.binding(\\.$value)'). For dynamic member lookup to be available, \
+        the view store's 'Action' type must also conform to 'BindableAction'.
+        """
+    )
+    public func binding<Value: Equatable>(
+      keyPath: WritableKeyPath<State, Value>,
+      send action: @escaping (BindingAction<State>) -> Action
+    ) -> Binding<Value> {
+      self.binding(
+        get: { $0[keyPath: keyPath] },
+        send: { action(.set(keyPath, $0)) }
       )
-      public func binding<LocalState: Equatable>(
-        keyPath: WritableKeyPath<State, LocalState>,
-        send action: @escaping (BindingAction<State>) -> Action
-      ) -> Binding<LocalState> {
-        self.binding(
-          get: { $0[keyPath: keyPath] },
-          send: { action(.set(keyPath, $0)) }
-        )
-      }
     }
+  }
   #endif
 
   // NB: Deprecated after 0.23.0:
@@ -619,20 +627,20 @@ extension Reducer {
 
   extension Reducer {
     @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead.")
-    public func forEach<GlobalState, GlobalAction, GlobalEnvironment>(
-      state toLocalState: WritableKeyPath<GlobalState, [State]>,
-      action toLocalAction: CasePath<GlobalAction, (Int, Action)>,
-      environment toLocalEnvironment: @escaping (GlobalEnvironment) -> Environment,
+    public func forEach<ParentState, ParentAction, ParentEnvironment>(
+      state toElementsState: WritableKeyPath<ParentState, [State]>,
+      action toElementAction: CasePath<ParentAction, (Int, Action)>,
+      environment toElementEnvironment: @escaping (ParentEnvironment) -> Environment,
       breakpointOnNil: Bool = true,
       file: StaticString = #file,
       fileID: StaticString = #fileID,
       line: UInt = #line
-    ) -> Reducer<GlobalState, GlobalAction, GlobalEnvironment> {
-      .init { globalState, globalAction, globalEnvironment in
-        guard let (index, localAction) = toLocalAction.extract(from: globalAction) else {
+    ) -> Reducer<ParentState, ParentAction, ParentEnvironment> {
+      .init { parentState, parentAction, parentEnvironment in
+        guard let (index, action) = toElementAction.extract(from: parentAction) else {
           return .none
         }
-        if index >= globalState[keyPath: toLocalState].endIndex {
+        if index >= parentState[keyPath: toElementsState].endIndex {
           runtimeWarning(
             """
             A "forEach" reducer at "%@:%d" received an action when state contained no element at \
@@ -666,7 +674,7 @@ extension Reducer {
             [
               "\(fileID)",
               line,
-              debugCaseOutput(localAction),
+              debugCaseOutput(action),
               index,
             ],
             file: file,
@@ -675,11 +683,11 @@ extension Reducer {
           return .none
         }
         return self.run(
-          &globalState[keyPath: toLocalState][index],
-          localAction,
-          toLocalEnvironment(globalEnvironment)
+          &parentState[keyPath: toElementsState][index],
+          action,
+          toElementEnvironment(parentEnvironment)
         )
-        .map { toLocalAction.embed((index, $0)) }
+        .map { toElementAction.embed((index, $0)) }
       }
     }
   }
@@ -692,10 +700,10 @@ extension Reducer {
       @ViewBuilder content: @escaping (Store<EachState, EachAction>) -> EachContent
     )
     where
-      Data == [EachState],
-      Content == WithViewStore<
-        [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
-      >
+    Data == [EachState],
+    Content == WithViewStore<
+      [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
+    >
     {
       let data = store.state
       self.data = data
@@ -719,12 +727,12 @@ extension Reducer {
       @ViewBuilder content: @escaping (Store<EachState, EachAction>) -> EachContent
     )
     where
-      Data == [EachState],
-      Content == WithViewStore<
-        [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
-      >,
-      EachState: Identifiable,
-      EachState.ID == ID
+    Data == [EachState],
+    Content == WithViewStore<
+      [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
+    >,
+  EachState: Identifiable,
+    EachState.ID == ID
     {
       self.init(store, id: \.id, content: content)
     }
