@@ -30,7 +30,7 @@ import ReactiveSwift
 /// ### Scoping
 ///
 /// The most important operation defined on ``Store`` is the ``scope(state:action:)`` method, which
-/// allows you to transform a store into one that deals with local state and actions. This is
+/// allows you to transform a store into one that deals with child state and actions. This is
 /// necessary for passing stores to subviews that only care about a small portion of the entire
 /// application's domain.
 ///
@@ -162,13 +162,13 @@ public final class Store<State, Action> {
     self.threadCheck(status: .`init`)
   }
 
-  /// Scopes the store to one that exposes local state and actions.
+  /// Scopes the store to one that exposes child state and actions.
   ///
   /// This can be useful for deriving new stores to hand to child views in an application. For
   /// example:
   ///
   /// ```swift
-  /// // Application state made from local states.
+  /// // Application state made from child states.
   /// struct AppState { var login: LoginState, ... }
   /// enum AppAction { case login(LoginAction), ... }
   ///
@@ -299,22 +299,22 @@ public final class Store<State, Action> {
   /// when non-view state changes), and is incapable of sending any actions but view actions.
   ///
   /// - Parameters:
-  ///   - toLocalState: A function that transforms `State` into `LocalState`.
-  ///   - fromLocalAction: A function that transforms `LocalAction` into `Action`.
+  ///   - toChildState: A function that transforms `State` into `ChildState`.
+  ///   - fromChildAction: A function that transforms `ChildAction` into `Action`.
   /// - Returns: A new store with its domain (state and action) transformed.
-  public func scope<LocalState, LocalAction>(
-    state toLocalState: @escaping (State) -> LocalState,
-    action fromLocalAction: @escaping (LocalAction) -> Action
-  ) -> Store<LocalState, LocalAction> {
+  public func scope<ChildState, ChildAction>(
+    state toChildState: @escaping (State) -> ChildState,
+    action fromChildAction: @escaping (ChildAction) -> Action
+  ) -> Store<ChildState, ChildAction> {
     self.threadCheck(status: .scope)
     var isSending = false
-    let localStore = Store<LocalState, LocalAction>(
-      initialState: toLocalState(self.state),
-      reducer: .init { localState, localAction, _ in
+    let childStore = Store<ChildState, ChildAction>(
+      initialState: toChildState(self.state),
+      reducer: .init { childState, childAction, _ in
         isSending = true
         defer { isSending = false }
-        let task = self.send(fromLocalAction(localAction))
-        localState = toLocalState(self.state)
+        let task = self.send(fromChildAction(childAction))
+        childState = toChildState(self.state)
         if let task = task {
           return .fireAndForget { await task.cancellableValue }
         } else {
@@ -323,27 +323,25 @@ public final class Store<State, Action> {
       },
       environment: ()
     )
-
-    localStore.parentDisposable = self.producer
+    childStore.parentDisposable = self.producer
       .skip(first: 1)
-      .startWithValues { [weak localStore] newValue in
+      .startWithValues { [weak childStore] newValue in
         guard !isSending else { return }
-        localStore?.state = toLocalState(newValue)
+        childStore?.state = toChildState(newValue)
       }
-
-    return localStore
+    return childStore
   }
 
-  /// Scopes the store to one that exposes local state.
+  /// Scopes the store to one that exposes child state.
   ///
   /// A version of ``scope(state:action:)`` that leaves the action type unchanged.
   ///
-  /// - Parameter toLocalState: A function that transforms `State` into `LocalState`.
+  /// - Parameter toChildState: A function that transforms `State` into `ChildState`.
   /// - Returns: A new store with its domain (state and action) transformed.
-  public func scope<LocalState>(
-    state toLocalState: @escaping (State) -> LocalState
-  ) -> Store<LocalState, Action> {
-    self.scope(state: toLocalState, action: { $0 })
+  public func scope<ChildState>(
+    state toChildState: @escaping (State) -> ChildState
+  ) -> Store<ChildState, Action> {
+    self.scope(state: toChildState, action: { $0 })
   }
 
   func send(
@@ -379,16 +377,16 @@ public final class Store<State, Action> {
           }
         },
         completed: { [weak self] in
-          self?.threadCheck(status: .effectCompletion(action))
-          boxedTask.wrappedValue?.cancel()
-          didComplete = true
+            self?.threadCheck(status: .effectCompletion(action))
+            boxedTask.wrappedValue?.cancel()
+            didComplete = true
           self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
-        },
+          },
         interrupted: { [weak self] in
           boxedTask.wrappedValue?.cancel()
           didComplete = true
           self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
-        }
+            }
       )
 
       let effectDisposable = CompositeDisposable()
@@ -396,7 +394,7 @@ public final class Store<State, Action> {
       effectDisposable += AnyDisposable { [weak self] in
         self?.threadCheck(status: .effectCompletion(action))
         self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
-      }
+          }
 
       if !didComplete {
         let task = Task<Void, Never> { @MainActor in

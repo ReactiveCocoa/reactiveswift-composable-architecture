@@ -2,6 +2,8 @@ import ComposableArchitecture
 import ReactiveSwift
 import SwiftUI
 
+struct RecordingMemoFailed: Equatable, Error {}
+
 struct RecordingMemoState: Equatable {
   var date: Date
   var duration: TimeInterval = 0
@@ -12,8 +14,6 @@ struct RecordingMemoState: Equatable {
     case recording
     case encoding
   }
-
-  struct Failed: Equatable, Error {}
 }
 
 enum RecordingMemoAction: Equatable {
@@ -44,7 +44,7 @@ let recordingMemoReducer = Reducer<
     return .task { [state] in .delegate(.didFinish(.success(state))) }
 
   case .audioRecorderDidFinish(.success(false)):
-    return .task { .delegate(.didFinish(.failure(RecordingMemoState.Failed()))) }
+    return .task { .delegate(.didFinish(.failure(RecordingMemoFailed()))) }
 
   case let .audioRecorderDidFinish(.failure(error)):
     return .task { .delegate(.didFinish(.failure(error))) }
