@@ -1,8 +1,8 @@
 # A Reactive Swift fork of The Composable Architecture
 
-[![CI](https://github.com/trading-point/reactiveswift-composable-architecture/workflows/CI/badge.svg)](https://github.com/trading-point/reactiveswift-composable-architecture/actions?query=workflow%3ACI)
-[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Ftrading-point%2Freactiveswift-composable-architecture%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/trading-point/reactiveswift-composable-architecture)
-[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Ftrading-point%2Freactiveswift-composable-architecture%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/trading-point/reactiveswift-composable-architecture)
+[![CI](https://github.com/ReactiveCocoa/reactiveswift-composable-architecture/workflows/CI/badge.svg)](https://github.com/ReactiveCocoa/reactiveswift-composable-architecture/actions?query=workflow%3ACI)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FReactiveCocoa%2Freactiveswift-composable-architecture%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/ReactiveCocoa/reactiveswift-composable-architecture)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FReactiveCocoa%2Freactiveswift-composable-architecture%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/ReactiveCocoa/reactiveswift-composable-architecture)
 
 [Point-Free's](https://github.com/pointfreeco) [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) uses Apple's Combine framework as the basis of its `Effect` type.
 
@@ -265,20 +265,21 @@ Once we are ready to display this view, for example in the app's entry point, we
 ```swift
 @main
 struct CaseStudiesApp: App {
-var body: some Scene {
-  AppView(
-  store: Store(
-    initialState: AppState(),
-    reducer: appReducer,
-    environment: AppEnvironment(
-        numberFact: { number in 
-          let (data, _) = try await URLSession.shared
-            .data(from: .init(string: "http://numbersapi.com/\(number)")!)
-          return String(decoding: data, using: UTF8.self)
-        }
+  var body: some Scene {
+    AppView(
+      store: Store(
+        initialState: AppState(),
+        reducer: appReducer,
+        environment: AppEnvironment(
+          numberFact: { number in 
+            let (data, _) = try await URLSession.shared
+              .data(from: .init(string: "http://numbersapi.com/\(number)")!)
+            return String(decoding: data, using: UTF8.self)
+          }
+        )
+      )
     )
-  )
-)
+  }
 }
 ```
 
@@ -291,13 +292,13 @@ To test, you first create a `TestStore` with the same information that you would
 ```swift
 @MainActor
 func testFeature() async {
-let store = TestStore(
-  initialState: AppState(),
-  reducer: appReducer,
-  environment: AppEnvironment(
+  let store = TestStore(
+    initialState: AppState(),
+    reducer: appReducer,
+    environment: AppEnvironment(
       numberFact: { "\($0) is a good number Brent" }
+    )
   )
-)
 }
 ```
 
