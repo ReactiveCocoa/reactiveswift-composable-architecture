@@ -58,30 +58,59 @@
       _ prefix: String,
       log: OSLog,
       actionOutput: String
-    ) -> Effect<Output, Failure> {
+    ) -> Self {
       let sid = OSSignpostID(log: log)
 
-      return self.producer
-        .on(
-          starting: {
+      switch self.operation {
+      case .none:
+        return self
+      case let .producer(producer):
+        return .init(
+          operation: .producer(
+            producer
+              .on(
+                starting: {
+                  os_signpost(
+                    .begin, log: log, name: "Effect", signpostID: sid, "%sStarted from %s", prefix,
+                    actionOutput
+                  )
+                },
+                completed: {
+                  os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sFinished", prefix)
+                },
+                disposed: {
+                  os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sCancelled", prefix)
+                },
+                value: { value in
+                  os_signpost(
+                    .event, log: log, name: "Effect Output", "%sOutput from %s", prefix, actionOutput
+                  )
+                }
+              )
+          )
+        )
+      case let .run(priority, operation):
+        return .init(
+          operation: .run(priority) { send in
             os_signpost(
               .begin, log: log, name: "Effect", signpostID: sid, "%sStarted from %s", prefix,
               actionOutput
             )
-          },
-          completed: {
-            os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sFinished", prefix)
-          },
-          disposed: {
-            os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sCancelled", prefix)
-          },
-          value: { value in
-            os_signpost(
-              .event, log: log, name: "Effect Output", "%sOutput from %s", prefix, actionOutput
+            await operation(
+              Send { output in
+                os_signpost(
+                  .event, log: log, name: "Effect Output", "%sOutput from %s", prefix, actionOutput
+                )
+                send(output)
+              }
             )
+            if Task.isCancelled {
+              os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sCancelled", prefix)
+            }
+            os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sFinished", prefix)
           }
         )
-        .eraseToEffect()
+      }
     }
   }
 #endif

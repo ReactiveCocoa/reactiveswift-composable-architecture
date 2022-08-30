@@ -20,10 +20,26 @@ extension Effect {
     for dueTime: TimeInterval,
     scheduler: DateScheduler
   ) -> Self {
-    .init(
-      producer: SignalProducer<Void, Never>(value: ())
-        .delay(dueTime, on: scheduler)
-        .flatMap(.latest) { self.producer.observe(on: scheduler) }
-    )
+    switch self.operation {
+    case .none:
+      return .none
+    case let .producer(producer):
+      return Self(
+        operation: .producer(
+          SignalProducer<Void, Never>(value: ())
+            .delay(dueTime, on: scheduler)
+            .flatMap(.latest) { producer.observe(on: scheduler) }
+        )
+      )
+    case let .run(priority, operation):
+      return Self(
+        operation: .run(priority) { send in
+          do {
+            try await scheduler.sleep(for: .nanoseconds(Int(dueTime * TimeInterval(NSEC_PER_SEC))))
+            await operation(send)
+          } catch {}
+        }
+      )
+    }
   }
 }
