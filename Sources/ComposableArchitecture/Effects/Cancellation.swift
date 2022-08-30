@@ -39,56 +39,68 @@ extension Effect {
   ///     canceled before starting this new one.
   /// - Returns: A new effect that is capable of being canceled by an identifier.
   public func cancellable(id: AnyHashable, cancelInFlight: Bool = false) -> Self {
-    SignalProducer.deferred { () -> SignalProducer<Output, Failure> in
-      cancellablesLock.lock()
-      defer { cancellablesLock.unlock() }
+    switch self.operation {
+    case .none:
+      return .none
+    case let .producer(producer):
+      return Self(
+        operation: .producer(
+          SignalProducer.deferred { () -> SignalProducer<Output, Failure> in
+            cancellablesLock.lock()
+            defer { cancellablesLock.unlock() }
 
-      let id = CancelToken(id: id)
-      if cancelInFlight {
-        cancellationCancellables[id]?.forEach { $0.dispose() }
-      }
+            let id = CancelToken(id: id)
+            if cancelInFlight {
+              cancellationCancellables[id]?.forEach { $0.dispose() }
+            }
 
-      let subject = Signal<Output, Failure>.pipe()
+            let subject = Signal<Output, Failure>.pipe()
+            let values = Atomic<[Output]>([])
+            var isCaching = true
+            let disposable =
+            producer
+              .on(value: { value in
+                guard isCaching else { return }
+                values.modify { $0.append(value) }
+              })
+              .start(subject.input)
+            var cancellationDisposable: AnyDisposable!
+            cancellationDisposable = AnyDisposable {
+              cancellablesLock.sync {
+                subject.input.sendCompleted()
+                disposable.dispose()
+                cancellationCancellables[id]?.remove(cancellationDisposable)
+                if cancellationCancellables[id]?.isEmpty == .some(true) {
+                  cancellationCancellables[id] = nil
+                }
+              }
+            }
 
-      var values: [Output] = []
-      var isCaching = true
+            cancellationCancellables[id, default: []].insert(
+              cancellationDisposable
+            )
 
-      let disposable =
-        self
-        .producer
-        .on(value: {
-          guard isCaching else { return }
-          values.append($0)
-        })
-        .start(subject.input)
-
-      var cancellationDisposable: AnyDisposable!
-      cancellationDisposable = AnyDisposable {
-        cancellablesLock.sync {
-          subject.input.sendCompleted()
-          disposable.dispose()
-          cancellationCancellables[id]?.remove(cancellationDisposable)
-          if cancellationCancellables[id]?.isEmpty == .some(true) {
-            cancellationCancellables[id] = nil
+            return SignalProducer(values.value)
+              .concat(subject.output.producer)
+              .on(
+                started: { isCaching = false },
+                completed: cancellationDisposable.dispose,
+                interrupted: cancellationDisposable.dispose,
+                terminated: cancellationDisposable.dispose,
+                disposed: cancellationDisposable.dispose
+              )
+          }
+        )
+      )
+    case let .run(priority, operation):
+      return Self(
+        operation: .run(priority) { send in
+          await withTaskCancellation(id: id, cancelInFlight: cancelInFlight) {
+            await operation(send)
           }
         }
-      }
-
-      cancellationCancellables[id, default: []].insert(
-        cancellationDisposable
       )
-
-      return SignalProducer(values)
-        .concat(subject.output.producer)
-        .on(
-          started: { isCaching = false },
-          completed: cancellationDisposable.dispose,
-          interrupted: cancellationDisposable.dispose,
-          terminated: cancellationDisposable.dispose,
-          disposed: cancellationDisposable.dispose
-        )
     }
-    .eraseToEffect()
   }
 
   /// Turns an effect into one that is capable of being canceled.

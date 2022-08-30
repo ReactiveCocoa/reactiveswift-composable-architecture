@@ -112,8 +112,9 @@ extension Reducer {
         guard let debugAction = toDebugAction.extract(from: action) else { return effects }
         let nextState = toDebugState(state)
         let debugEnvironment = toDebugEnvironment(environment)
-        return .concatenate(
-          .fireAndForget {
+
+        @Sendable
+        func print() {
             debugEnvironment.queue.async {
               var actionOutput = ""
               if actionFormat == .prettyPrint {
@@ -133,9 +134,16 @@ extension Reducer {
                 """
               )
             }
-          },
-          effects
-        )
+        }
+
+        switch effects.operation {
+        case .none:
+          return .fireAndForget { print() }
+        case .producer:
+          return .fireAndForget { print() }.merge(with: effects)
+        case .run:
+          return .fireAndForget { () async in print() }.merge(with: effects)
+        }
       }
     #else
       return self

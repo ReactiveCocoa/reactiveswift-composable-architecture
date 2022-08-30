@@ -10,7 +10,8 @@ struct VoiceMemosApp: App {
       VoiceMemosView(
         store: Store(
           initialState: VoiceMemosState(),
-          reducer: voiceMemosReducer.debug(),
+          reducer: voiceMemosReducer
+            .debug(),
           environment: VoiceMemosEnvironment(
             audioPlayer: .live,
             audioRecorder: .live,

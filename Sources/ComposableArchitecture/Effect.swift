@@ -35,7 +35,20 @@ import XCTestDynamicOverlay
 /// If you you are using Swift's concurrency tools and the `.task`, `.run` and `.fireAndForget`
 /// functions on ``Effect``, then threading is automatically handled for you.
 public struct Effect<Output, Failure: Error> {
-  let producer: SignalProducer<Output, Failure>
+  @usableFromInline
+  enum Operation {
+    case none
+    case producer(SignalProducer<Output, Failure>)
+    case run(TaskPriority? = nil, @Sendable (Send<Output>) async -> Void)
+  }
+
+  @usableFromInline
+  let operation: Operation
+
+  @usableFromInline
+  init(operation: Operation) {
+    self.operation = operation
+  }
 }
 
 // MARK: - Creating Effects
@@ -44,7 +57,7 @@ extension Effect {
   /// An effect that does nothing and completes immediately. Useful for situations where you must
   /// return an effect, but you don't need to do anything.
   public static var none: Self {
-    Effect(producer: .empty)
+    Self(operation: .none)
   }
 }
 
@@ -109,15 +122,10 @@ extension Effect where Failure == Never {
     fileID: StaticString = #fileID,
     line: UInt = #line
   ) -> Self {
-
-    SignalProducer<Output, Failure> { observer, lifetime in
-      let task = Task(priority: priority) { @MainActor in
-        defer { observer.sendCompleted() }
+    Self(
+      operation: .run(priority) { send in
         do {
-          try Task.checkCancellation()
-          let output = try await operation()
-          try Task.checkCancellation()
-          observer.send(value: output)
+          try await send(operation())
         } catch is CancellationError {
           return
         } catch {
@@ -145,13 +153,11 @@ extension Effect where Failure == Never {
             #endif
             return
           }
-          await observer.send(value: handler(error))
+          await send(handler(error))
         }
       }
-      lifetime += AnyDisposable(task.cancel)
+    )
     }
-    .eraseToEffect()
-  }
 
   /// Wraps an asynchronous unit of work that can emit any number of times in an effect.
   ///
@@ -200,11 +206,8 @@ extension Effect where Failure == Never {
     fileID: StaticString = #fileID,
     line: UInt = #line
   ) -> Self {
-
-    .run { observer in
-      let task = Task(priority: priority) { @MainActor in
-        defer { observer.sendCompleted() }
-        let send = Send(send: { observer.send(value: $0) })
+    Self(
+      operation: .run(priority) { send in
         do {
           try await operation(send)
         } catch is CancellationError {
@@ -237,10 +240,7 @@ extension Effect where Failure == Never {
           await handler(error, send)
         }
       }
-      return AnyDisposable {
-        task.cancel()
-      }
-    }
+    )
   }
 
   /// Creates an effect that executes some work in the real world that doesn't need to feed data
@@ -269,9 +269,7 @@ extension Effect where Failure == Never {
     priority: TaskPriority? = nil,
     _ work: @escaping @Sendable () async throws -> Void
   ) -> Self {
-    Effect<Void, Never>.task(priority: priority) { try? await work() }
-      .producer
-      .fireAndForget()
+    Self.run(priority: priority) { _ in try? await work() }
   }
 }
 
@@ -342,8 +340,9 @@ extension Effect {
   ///
   /// - Parameter effects: A list of effects.
   /// - Returns: A new effect
+  @inlinable
   public static func merge(_ effects: Self...) -> Self {
-    .merge(effects)
+    Self.merge(effects)
   }
 
   /// Merges a sequence of effects together into a single effect, which runs the effects at the same
@@ -351,8 +350,38 @@ extension Effect {
   ///
   /// - Parameter effects: A sequence of effects.
   /// - Returns: A new effect
-  public static func merge<S: Sequence>(_ effects: S) -> Self where S.Element == Effect {
-    SignalProducer.merge(effects.map(\.producer)).eraseToEffect()
+  @inlinable
+  public static func merge<S: Sequence>(_ effects: S) -> Self where S.Element == Self {
+    effects.reduce(.none) { $0.merge(with: $1) }
+  }
+
+  /// Merges this effect and another into a single effect that runs both at the same time.
+  ///
+  /// - Parameter other: Another effect.
+  /// - Returns: An effect that runs this effect and the other at the same time.
+  @inlinable
+  public func merge(with other: Self) -> Self {
+    switch (self.operation, other.operation) {
+    case (_, .none):
+      return self
+    case (.none, _):
+      return other
+    case (.producer, .producer), (.run, .producer), (.producer, .run):
+        return Self(operation: .producer(.merge(self.producer, other.producer)))
+    case let (.run(lhsPriority, lhsOperation), .run(rhsPriority, rhsOperation)):
+      return Self(
+        operation: .run { send in
+          await withTaskGroup(of: Void.self) { group in
+            group.addTask(priority: lhsPriority) {
+              await lhsOperation(send)
+            }
+            group.addTask(priority: rhsPriority) {
+              await rhsOperation(send)
+            }
+          }
+        }
+      )
+    }
   }
 
   /// Concatenates a variadic list of effects together into a single effect, which runs the effects
@@ -360,8 +389,9 @@ extension Effect {
   ///
   /// - Parameter effects: A variadic list of effects.
   /// - Returns: A new effect
+  @inlinable
   public static func concatenate(_ effects: Self...) -> Self {
-    .concatenate(effects)
+    Self.concatenate(effects)
   }
 
   /// Concatenates a collection of effects together into a single effect, which runs the effects one
@@ -369,8 +399,47 @@ extension Effect {
   ///
   /// - Parameter effects: A collection of effects.
   /// - Returns: A new effect
-  public static func concatenate<C: Collection>(_ effects: C) -> Self where C.Element == Effect {
-    SignalProducer.concatenate(effects.map(\.producer)).eraseToEffect()
+  @inlinable
+  public static func concatenate<C: Collection>(_ effects: C) -> Self where C.Element == Self {
+    effects.reduce(.none) { $0.concatenate(with: $1) }
+  }
+
+  /// Concatenates this effect and another into a single effect that first runs this effect, and
+  /// after it completes or is cancelled, runs the other.
+  ///
+  /// - Parameter other: Another effect.
+  /// - Returns: An effect that runs this effect, and after it completes or is cancelled, runs the
+  ///   other.
+  @inlinable
+  @_disfavoredOverload
+  public func concatenate(with other: Self) -> Self {
+    switch (self.operation, other.operation) {
+    case (_, .none):
+      return self
+    case (.none, _):
+      return other
+    case (.producer, .producer), (.run, .producer), (.producer, .run):
+      return Self(
+        operation: .producer(
+            SignalProducer.concatenate(self.producer, other.producer)
+        )
+      )
+    case let (.run(lhsPriority, lhsOperation), .run(rhsPriority, rhsOperation)):
+      return Self(
+        operation: .run { send in
+          if let lhsPriority = lhsPriority {
+            await Task(priority: lhsPriority) { await lhsOperation(send) }.cancellableValue
+          } else {
+            await lhsOperation(send)
+          }
+          if let rhsPriority = rhsPriority {
+            await Task(priority: rhsPriority) { await rhsOperation(send) }.cancellableValue
+          } else {
+            await rhsOperation(send)
+          }
+        }
+      )
+    }
   }
 
   /// Transforms all elements from the upstream effect with a provided closure.
@@ -378,8 +447,26 @@ extension Effect {
   /// - Parameter transform: A closure that transforms the upstream effect's output to a new output.
   /// - Returns: An effect that uses the provided closure to map elements from the upstream effect
   ///   to new elements that it then publishes.
+  @inlinable
   public func map<T>(_ transform: @escaping (Output) -> T) -> Effect<T, Failure> {
-    self.producer.map(transform).eraseToEffect()
+    switch self.operation {
+    case .none:
+      return .none
+    case let .producer(producer):
+      return .init(operation: .producer(producer.map(transform)))
+    case let .run(priority, operation):
+      return .init(
+        operation: .run(priority) { send in
+          await operation(
+            .init(
+              send: { output in
+                send(transform(output))
+              }
+            )
+          )
+        }
+      )
+    }
   }
 }
 

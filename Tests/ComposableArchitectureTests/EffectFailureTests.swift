@@ -1,56 +1,54 @@
-import ReactiveSwift
-import XCTest
-
 @testable import ComposableArchitecture
+import XCTest
 
 // `XCTExpectFailure` is not supported on Linux
 #if !os(Linux)
   @MainActor
   final class EffectFailureTests: XCTestCase {
-    func testTaskUnexpectedThrows() {
+    func testTaskUnexpectedThrows() async {
+      guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
+
       XCTExpectFailure {
-        Effect<Void, Never>.task {
-          struct Unexpected: Error {}
-          throw Unexpected()
-        }
-        .producer
-        .start()
-
-        _ = XCTWaiter.wait(for: [.init()], timeout: 0.1)
-      } issueMatcher: {
         $0.compactDescription == """
-          An 'Effect.task' returned from "ComposableArchitectureTests/EffectFailureTests.swift:12" \
-          threw an unhandled error. …
+            An 'Effect.task' returned from "ComposableArchitectureTests/EffectFailureTests.swift:23" \
+            threw an unhandled error. …
 
-              EffectFailureTests.Unexpected()
+                EffectFailureTests.Unexpected()
 
-          All non-cancellation errors must be explicitly handled via the 'catch' parameter on \
-          'Effect.task', or via a 'do' block.
-          """
+            All non-cancellation errors must be explicitly handled via the 'catch' parameter on \
+            'Effect.task', or via a 'do' block.
+            """
       }
+
+      let effect = Effect<Void, Never>.task {
+        struct Unexpected: Error {}
+        throw Unexpected()
+      }
+
+      for await _ in effect.producer.values {}
     }
 
-    func testRunUnexpectedThrows() {
+    func testRunUnexpectedThrows() async {
+      guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
+
       XCTExpectFailure {
-        Effect<Void, Never>.run { _ in
-          struct Unexpected: Error {}
-          throw Unexpected()
-        }
-        .producer
-        .start()
-
-        _ = XCTWaiter.wait(for: [.init()], timeout: 0.1)
-      } issueMatcher: {
         $0.compactDescription == """
-          An 'Effect.run' returned from "ComposableArchitectureTests/EffectFailureTests.swift:35" \
-          threw an unhandled error. …
+            An 'Effect.run' returned from "ComposableArchitectureTests/EffectFailureTests.swift:46" \
+            threw an unhandled error. …
 
-              EffectFailureTests.Unexpected()
+                EffectFailureTests.Unexpected()
 
-          All non-cancellation errors must be explicitly handled via the 'catch' parameter on \
-          'Effect.run', or via a 'do' block.
-          """
+            All non-cancellation errors must be explicitly handled via the 'catch' parameter on \
+            'Effect.run', or via a 'do' block.
+            """
       }
+
+      let effect = Effect<Void, Never>.run { _ in
+        struct Unexpected: Error {}
+        throw Unexpected()
+      }
+
+      for await _ in effect.producer.values {}
     }
   }
 #endif

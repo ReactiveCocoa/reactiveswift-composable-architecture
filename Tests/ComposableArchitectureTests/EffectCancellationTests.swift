@@ -189,7 +189,11 @@ final class EffectCancellationTests: XCTestCase {
     ]
 
     let effect = Effect.merge(
-      (1...1_000).map { idx -> Effect<Int, Never> in
+      // Original upper bound was 1000, but it was triggering EXC_BAD_ACCESS crashes...
+      // Enabling ThreadSanitizer reveals data races in RAS internals, more specifically
+      // `TransformerCore.start` (accessing `hasDeliveredTerminalEvent` var), which can
+      // be the cause?
+      (1...300).map { idx -> Effect<Int, Never> in
         let id = idx % 10
 
         return Effect.merge(

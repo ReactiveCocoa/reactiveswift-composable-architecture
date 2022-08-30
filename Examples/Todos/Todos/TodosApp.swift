@@ -9,7 +9,8 @@ struct TodosApp: App {
       AppView(
         store: Store(
           initialState: AppState(),
-          reducer: appReducer.debug(),
+          reducer: appReducer
+            .debug(),
           environment: AppEnvironment(
             mainQueue: QueueScheduler.main,
             uuid: { UUID() }

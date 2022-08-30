@@ -366,44 +366,61 @@ public final class Store<State, Action> {
       let action = self.bufferedActions.removeFirst()
       let effect = self.reducer(&currentState, action)
 
-      var didComplete = false
-      let boxedTask = Box<Task<Void, Never>?>(wrappedValue: nil)
-      let uuid = UUID()
-      let observer = Signal<Action, Never>.Observer(
-        value: { [weak self] effectAction in
-          guard let self = self else { return }
-          if let task = self.send(effectAction, originatingFrom: action) {
-            tasks.wrappedValue.append(task)
-          }
-        },
-        completed: { [weak self] in
+      switch effect.operation {
+      case .none:
+        break
+      case let .producer(producer):
+        var didComplete = false
+        let boxedTask = Box<Task<Void, Never>?>(wrappedValue: nil)
+        let uuid = UUID()
+        let observer = Signal<Action, Never>.Observer(
+          value: { [weak self] effectAction in
+            guard let self = self else { return }
+            if let task = self.send(effectAction, originatingFrom: action) {
+              tasks.wrappedValue.append(task)
+            }
+          },
+          completed: { [weak self] in
+              self?.threadCheck(status: .effectCompletion(action))
+              boxedTask.wrappedValue?.cancel()
+              didComplete = true
+            self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
+            },
+          interrupted: { [weak self] in
+            boxedTask.wrappedValue?.cancel()
+            didComplete = true
+            self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
+              }
+        )
+
+        let effectDisposable = CompositeDisposable()
+        effectDisposable += producer.start(observer)
+        effectDisposable += AnyDisposable { [weak self] in
           self?.threadCheck(status: .effectCompletion(action))
-          boxedTask.wrappedValue?.cancel()
-          didComplete = true
           self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
-        },
-        interrupted: { [weak self] in
-          boxedTask.wrappedValue?.cancel()
-          didComplete = true
-          self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
-        }
-      )
+            }
 
-      let effectDisposable = CompositeDisposable()
-      effectDisposable += effect.producer.start(observer)
-      effectDisposable += AnyDisposable { [weak self] in
-        self?.threadCheck(status: .effectCompletion(action))
-        self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
-      }
-
-      if !didComplete {
-        let task = Task<Void, Never> { @MainActor in
-          for await _ in AsyncStream<Void>.never {}
-          effectDisposable.dispose()
+        if !didComplete {
+          let task = Task<Void, Never> { @MainActor in
+            for await _ in AsyncStream<Void>.never {}
+            effectDisposable.dispose()
+          }
+          boxedTask.wrappedValue = task
+          tasks.wrappedValue.append(task)
+          self.effectDisposables[uuid] = effectDisposable
         }
-        boxedTask.wrappedValue = task
-        tasks.wrappedValue.append(task)
-        self.effectDisposables[uuid] = effectDisposable
+      case let .run(priority, operation):
+        tasks.wrappedValue.append(
+          Task(priority: priority) {
+            await operation(
+              Send {
+                if let task = self.send($0, originatingFrom: action) {
+                  tasks.wrappedValue.append(task)
+                }
+              }
+            )
+          }
+        )
       }
     }
 

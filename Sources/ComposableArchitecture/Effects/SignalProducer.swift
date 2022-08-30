@@ -1,5 +1,32 @@
 import ReactiveSwift
 
+@available(iOS, deprecated: 9999.0)
+@available(macOS, deprecated: 9999.0)
+@available(tvOS, deprecated: 9999.0)
+@available(watchOS, deprecated: 9999.0)
+extension Effect {
+  @inlinable
+  var producer: SignalProducer<Output, Failure> {
+    switch self.operation {
+    case .none:
+      return .empty
+    case let .producer(producer):
+      return producer
+    case let .run(priority, operation):
+      return SignalProducer { observer, lifetime in
+        let task = Task(priority: priority) { @MainActor in
+          defer { observer.sendCompleted() }
+          let send = Send { observer.send(value: $0) }
+          await operation(send)
+        }
+        lifetime += AnyDisposable {
+          task.cancel()
+        }
+      }
+    }
+  }
+}
+
 extension Effect {
   /// Initializes an effect that wraps a producer.
   ///
@@ -33,9 +60,8 @@ extension Effect {
     watchOS, deprecated: 9999.0,
     message: "Iterate over 'SignalProducer.values' in an 'Effect.run', instead."
   )
-  public init<P: SignalProducerConvertible>(_ producer: P)
-  where P.Value == Output, P.Error == Failure {
-    self.producer = producer.producer
+  public init<P: SignalProducerConvertible>(_ producer: P) where P.Value == Output, P.Error == Failure {
+    self.operation = .producer(producer.producer)
   }
 
   /// Initializes an effect that immediately emits the value passed in.
@@ -113,7 +139,7 @@ extension Effect {
     _ attemptToFulfill: @escaping (@escaping (Result<Output, Failure>) -> Void) -> Void
   ) -> Self {
     self.init(
-      producer: SignalProducer { observer, _ in
+      SignalProducer { observer, _ in
         attemptToFulfill { result in
           switch result {
           case let .success(value):
@@ -158,7 +184,7 @@ extension Effect {
   @available(watchOS, deprecated: 9999.0, message: "Use 'Effect.task', instead.")
   public static func result(_ attemptToFulfill: @escaping () -> Result<Output, Failure>) -> Self {
     Effect(
-      producer: SignalProducer { () -> Result<Output, Failure> in
+      SignalProducer { () -> Result<Output, Failure> in
         attemptToFulfill()
       }
     )
@@ -499,7 +525,7 @@ extension SignalProducer {
     outputType: NewValue.Type = NewValue.self,
     failureType: NewError.Type = NewError.self
   ) -> Effect<NewValue, NewError> {
-    self
+      self
       .flatMapError { _ in .empty }
       .flatMap(.latest) { _ in .empty }
       .eraseToEffect()
