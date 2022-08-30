@@ -138,6 +138,7 @@ public final class Store<State, Action> {
   private var isSending = false
   private let reducer: (inout State, Action) -> Effect<Action, Never>
   private var bufferedActions: [Action] = []
+  fileprivate var scope: AnyScope?
   #if DEBUG
     private let mainThreadChecksEnabled: Bool
   #endif
@@ -307,29 +308,9 @@ public final class Store<State, Action> {
     action fromChildAction: @escaping (ChildAction) -> Action
   ) -> Store<ChildState, ChildAction> {
     self.threadCheck(status: .scope)
-    var isSending = false
-    let childStore = Store<ChildState, ChildAction>(
-      initialState: toChildState(self.state),
-      reducer: .init { childState, childAction, _ in
-        isSending = true
-        defer { isSending = false }
-        let task = self.send(fromChildAction(childAction))
-        childState = toChildState(self.state)
-        if let task = task {
-          return .fireAndForget { await task.cancellableValue }
-        } else {
-          return .none
-        }
-      },
-      environment: ()
-    )
-    childStore.parentDisposable = self.producer
-      .skip(first: 1)
-      .startWithValues { [weak childStore] newValue in
-        guard !isSending else { return }
-        childStore?.state = toChildState(newValue)
-      }
-    return childStore
+
+    return (self.scope ?? Scope(root: self))
+      .rescope(self, state: toChildState, action: fromChildAction)
   }
 
   /// Scopes the store to one that exposes child state.
@@ -564,5 +545,71 @@ public final class Store<State, Action> {
     #if DEBUG
       self.mainThreadChecksEnabled = mainThreadChecksEnabled
     #endif
+  }
+}
+
+private protocol AnyScope {
+  func rescope<State, Action, ChildState, ChildAction>(
+    _ store: Store<State, Action>,
+    state toNewChildState: @escaping (State) -> ChildState,
+    action fromNewChildAction: @escaping (ChildAction) -> Action
+  ) -> Store<ChildState, ChildAction>
+}
+
+private struct Scope<RootState, RootAction>: AnyScope {
+  let root: Store<RootState, RootAction>
+  let toChildState: Any
+  let fromChildAction: Any
+
+  init(root: Store<RootState, RootAction>) {
+    self.init(root: root, toChildState: { $0 }, fromChildAction: { $0 })
+  }
+
+  private init<State, Action>(
+    root: Store<RootState, RootAction>,
+    toChildState: @escaping (RootState) -> State,
+    fromChildAction: @escaping (Action) -> RootAction
+  ) {
+    self.root = root
+    self.toChildState = toChildState
+    self.fromChildAction = fromChildAction
+  }
+
+  func rescope<State, Action, ChildState, ChildAction>(
+    _ store: Store<State, Action>,
+    state toChildState: @escaping (State) -> ChildState,
+    action fromChildAction: @escaping (ChildAction) -> Action
+  ) -> Store<ChildState, ChildAction> {
+    let toState = self.toChildState as! (RootState) -> State
+    let fromAction = self.fromChildAction as! (Action) -> RootAction
+
+    var isSending = false
+    let childStore = Store<ChildState, ChildAction>(
+      initialState: toChildState(store.state),
+      reducer: .init { childState, childAction, _ in
+        isSending = true
+        defer { isSending = false }
+        let task = self.root.send(fromAction(fromChildAction(childAction)))
+        childState = toChildState(store.state)
+        if let task = task {
+          return .fireAndForget { await task.cancellableValue }
+        } else {
+          return .none
+        }
+      },
+      environment: ()
+    )
+    childStore.parentDisposable = store.producer
+      .skip(first: 1)
+      .startWithValues { [weak childStore] newValue in
+        guard !isSending else { return }
+        childStore?.state = toChildState(newValue)
+      }
+    childStore.scope = Scope<RootState, RootAction>(
+      root: self.root,
+      toChildState: { toChildState(toState($0)) },
+      fromChildAction: { fromAction(fromChildAction($0)) }
+    )
+    return childStore
   }
 }
