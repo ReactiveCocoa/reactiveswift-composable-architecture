@@ -124,7 +124,9 @@
     }
   }
 
-  private func areOrderedSetsDuplicates<ID: Hashable>(lhs: OrderedSet<ID>, rhs: OrderedSet<ID>) -> Bool {
+  private func areOrderedSetsDuplicates<ID: Hashable>(lhs: OrderedSet<ID>, rhs: OrderedSet<ID>)
+    -> Bool
+  {
     var lhs = lhs
     var rhs = rhs
     if memcmp(&lhs, &rhs, MemoryLayout<OrderedSet<ID>>.size) == 0 {
