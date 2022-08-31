@@ -14,7 +14,7 @@ final class TodosTests: XCTestCase {
       reducer: appReducer,
       environment: AppEnvironment(
         mainQueue: self.mainQueue,
-        uuid: { UUID.incrementing() }
+        uuid: UUID.incrementing
       )
     )
 
@@ -27,6 +27,21 @@ final class TodosTests: XCTestCase {
         ),
         at: 0
       )
+    }
+      
+    await store.send(.addTodoButtonTapped) {
+      $0.todos = [
+        TodoState(
+          description: "",
+          id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+          isComplete: false
+        ),
+        TodoState(
+          description: "",
+          id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
+          isComplete: false
+        )
+      ]
     }
   }
 
@@ -45,7 +60,7 @@ final class TodosTests: XCTestCase {
       reducer: appReducer,
       environment: AppEnvironment(
         mainQueue: self.mainQueue,
-        uuid: { UUID.incrementing() }
+        uuid: UUID.incrementing
       )
     )
 
@@ -76,7 +91,7 @@ final class TodosTests: XCTestCase {
       reducer: appReducer,
       environment: AppEnvironment(
         mainQueue: self.mainQueue,
-        uuid: { UUID.incrementing() }
+        uuid: UUID.incrementing
       )
     )
 
@@ -112,7 +127,7 @@ final class TodosTests: XCTestCase {
       reducer: appReducer,
       environment: AppEnvironment(
         mainQueue: self.mainQueue,
-        uuid: { UUID.incrementing() }
+        uuid: UUID.incrementing
       )
     )
 
@@ -147,7 +162,7 @@ final class TodosTests: XCTestCase {
       reducer: appReducer,
       environment: AppEnvironment(
         mainQueue: self.mainQueue,
-        uuid: { UUID.incrementing() }
+        uuid: UUID.incrementing
       )
     )
 
@@ -183,7 +198,7 @@ final class TodosTests: XCTestCase {
       reducer: appReducer,
       environment: AppEnvironment(
         mainQueue: self.mainQueue,
-        uuid: { UUID.incrementing() }
+        uuid: UUID.incrementing
       )
     )
 
@@ -220,7 +235,7 @@ final class TodosTests: XCTestCase {
       reducer: appReducer,
       environment: AppEnvironment(
         mainQueue: self.mainQueue,
-        uuid: { UUID.incrementing() }
+        uuid: UUID.incrementing
       )
     )
 
@@ -268,7 +283,7 @@ final class TodosTests: XCTestCase {
       reducer: appReducer,
       environment: AppEnvironment(
         mainQueue: self.mainQueue,
-        uuid: { UUID.incrementing() }
+        uuid: UUID.incrementing
       )
     )
 
@@ -310,7 +325,7 @@ final class TodosTests: XCTestCase {
       reducer: appReducer,
       environment: AppEnvironment(
         mainQueue: self.mainQueue,
-        uuid: { UUID.incrementing() }
+        uuid: UUID.incrementing
       )
     )
 
@@ -325,11 +340,15 @@ final class TodosTests: XCTestCase {
 
 extension UUID {
   // A deterministic, auto-incrementing "UUID" generator for testing.
-  static var incrementing: () -> UUID {
-    var uuid = 0
+  static var incrementing: @Sendable () -> UUID {
+    class UncheckedCount: @unchecked Sendable {
+      var value = 0
+      func increment() { self.value += 1 }
+    }
+    let count = UncheckedCount()
     return {
-      defer { uuid += 1 }
-      return UUID(uuidString: "00000000-0000-0000-0000-\(String(format: "%012x", uuid))")!
+      defer { count.increment() }
+      return UUID(uuidString: "00000000-0000-0000-0000-\(String(format: "%012x", count.value))")!
     }
   }
 }
