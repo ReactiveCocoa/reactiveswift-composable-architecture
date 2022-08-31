@@ -28,7 +28,7 @@ final class TodosTests: XCTestCase {
         at: 0
       )
     }
-      
+
     await store.send(.addTodoButtonTapped) {
       $0.todos = [
         TodoState(
@@ -40,7 +40,7 @@ final class TodosTests: XCTestCase {
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
-        )
+        ),
       ]
     }
   }
