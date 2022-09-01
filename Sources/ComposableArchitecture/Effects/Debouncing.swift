@@ -32,13 +32,13 @@ extension Effect {
     switch self.operation {
     case .none:
       return .none
-    case let .producer(producer):
+    case .producer:
       return Self(
         operation: .producer(
           SignalProducer<Void, Never>.init(value: ())
             .promoteError(Failure.self)
             .delay(dueTime, on: scheduler)
-            .flatMap(.latest) { producer.observe(on: scheduler) }
+            .flatMap(.latest) { self.producer.observe(on: scheduler) }
         )
       )
       .cancellable(id: id, cancelInFlight: true)
@@ -48,7 +48,13 @@ extension Effect {
           await withTaskCancellation(id: id, cancelInFlight: true) {
             do {
               try await scheduler.sleep(for: .nanoseconds(Int(dueTime * TimeInterval(NSEC_PER_SEC))))
-              await operation(send)
+              await operation(
+                Send { output in
+                  scheduler.schedule {
+                    send(output)
+                  }
+                }
+              )
             } catch {}
           }
         }
