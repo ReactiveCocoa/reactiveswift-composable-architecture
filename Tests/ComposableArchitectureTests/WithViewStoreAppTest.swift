@@ -16,6 +16,7 @@
       environment: ()
     )
 
+    @available(*, deprecated)
     var body: some Scene {
       WithViewStore(self.store) { viewStore in
         WindowGroup {
@@ -26,6 +27,7 @@
     }
 
     #if os(iOS) || os(macOS)
+      @available(*, deprecated)
       var commands: some Scene {
         self.body.commands {
           WithViewStore(self.store) { viewStore in
@@ -39,6 +41,7 @@
       }
     #endif
 
+    @available(*, deprecated)
     @ViewBuilder
     func checkToolbar() -> some View {
       Color.clear
@@ -51,6 +54,7 @@
         }
     }
 
+    @available(*, deprecated)
     @ViewBuilder
     func checkAccessibilityRotor() -> some View {
       if #available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *) {
