@@ -16,6 +16,12 @@ extension Effect {
   ///   - scheduler: The scheduler you want to deliver the defer output to.
   ///   - options: Scheduler options that customize the effect's delivery of elements.
   /// - Returns: An effect that will be executed after `dueTime`
+  @available(iOS, deprecated: 9999.0, message: "Use 'scheduler.sleep' in 'Effect.run', instead.")
+  @available(macOS, deprecated: 9999.0, message: "Use 'scheduler.sleep' in 'Effect.run', instead.")
+  @available(tvOS, deprecated: 9999.0, message: "Use 'scheduler.sleep' in 'Effect.run', instead.")
+  @available(
+    watchOS, deprecated: 9999.0, message: "Use 'scheduler.sleep' in 'Effect.run', instead."
+  )
   public func deferred(
     for dueTime: TimeInterval,
     scheduler: DateScheduler
@@ -23,12 +29,12 @@ extension Effect {
     switch self.operation {
     case .none:
       return .none
-    case let .producer(producer):
+    case .producer:
       return Self(
         operation: .producer(
           SignalProducer<Void, Never>(value: ())
             .delay(dueTime, on: scheduler)
-            .flatMap(.latest) { producer.observe(on: scheduler) }
+            .flatMap(.latest) { self.producer.observe(on: scheduler) }
         )
       )
     case let .run(priority, operation):
@@ -36,7 +42,13 @@ extension Effect {
         operation: .run(priority) { send in
           do {
             try await scheduler.sleep(for: .nanoseconds(Int(dueTime * TimeInterval(NSEC_PER_SEC))))
-            await operation(send)
+            await operation(
+              Send { output in
+                scheduler.schedule {
+                  send(output)
+                }
+              }
+            )
           } catch {}
         }
       )
