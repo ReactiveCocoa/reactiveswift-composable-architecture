@@ -10,14 +10,14 @@ import XCTest
 
       XCTExpectFailure {
         $0.compactDescription == """
-            An 'Effect.task' returned from "ComposableArchitectureTests/EffectFailureTests.swift:23" \
-            threw an unhandled error. …
+          An 'Effect.task' returned from "ComposableArchitectureTests/EffectFailureTests.swift:24" \
+          threw an unhandled error. …
 
-                EffectFailureTests.Unexpected()
+              EffectFailureTests.Unexpected()
 
-            All non-cancellation errors must be explicitly handled via the 'catch' parameter on \
-            'Effect.task', or via a 'do' block.
-            """
+          All non-cancellation errors must be explicitly handled via the 'catch' parameter on \
+          'Effect.task', or via a 'do' block.
+          """
       }
 
       let effect = Effect<Void, Never>.task {
@@ -33,14 +33,14 @@ import XCTest
 
       XCTExpectFailure {
         $0.compactDescription == """
-            An 'Effect.run' returned from "ComposableArchitectureTests/EffectFailureTests.swift:46" \
-            threw an unhandled error. …
+          An 'Effect.run' returned from "ComposableArchitectureTests/EffectFailureTests.swift:47" \
+          threw an unhandled error. …
 
-                EffectFailureTests.Unexpected()
+              EffectFailureTests.Unexpected()
 
-            All non-cancellation errors must be explicitly handled via the 'catch' parameter on \
-            'Effect.run', or via a 'do' block.
-            """
+          All non-cancellation errors must be explicitly handled via the 'catch' parameter on \
+          'Effect.run', or via a 'do' block.
+          """
       }
 
       let effect = Effect<Void, Never>.run { _ in

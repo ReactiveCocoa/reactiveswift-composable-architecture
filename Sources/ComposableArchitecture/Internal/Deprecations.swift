@@ -708,7 +708,13 @@ extension Reducer {
     where
       Data == [EachState],
       Content == WithViewStore<
-        [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
+        [ID], (Data.Index, EachAction),
+        _ConditionalContent<
+          AnyView,
+          _ObservedObjectViewStore<
+            [ID], (Int, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
+          >
+        >
       >
     {
       let data = store.state
@@ -735,7 +741,13 @@ extension Reducer {
     where
       Data == [EachState],
       Content == WithViewStore<
-        [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
+        [ID], (Data.Index, EachAction),
+        _ConditionalContent<
+          AnyView,
+          _ObservedObjectViewStore<
+            [ID], (Int, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
+          >
+        >
       >,
       EachState: Identifiable,
       EachState.ID == ID
