@@ -29,28 +29,13 @@ extension Effect {
     switch self.operation {
     case .none:
       return .none
-    case .producer:
+    case .producer, .run:
       return Self(
         operation: .producer(
           SignalProducer<Void, Never>(value: ())
             .delay(dueTime, on: scheduler)
             .flatMap(.latest) { self.producer.observe(on: scheduler) }
         )
-      )
-    case let .run(priority, operation):
-      return Self(
-        operation: .run(priority) { send in
-          do {
-            try await scheduler.sleep(for: .nanoseconds(Int(dueTime * TimeInterval(NSEC_PER_SEC))))
-            await operation(
-              Send { output in
-                scheduler.schedule {
-                  send(output)
-                }
-              }
-            )
-          } catch {}
-        }
       )
     }
   }
