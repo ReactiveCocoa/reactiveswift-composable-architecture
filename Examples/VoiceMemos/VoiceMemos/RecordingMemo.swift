@@ -88,7 +88,7 @@ struct RecordingMemoView: View {
   let store: Store<RecordingMemoState, RecordingMemoAction>
 
   var body: some View {
-    WithViewStore(self.store) { viewStore in
+    WithViewStore(self.store, observe: { $0 }) { viewStore in
       VStack(spacing: 12) {
         Text("Recording")
           .font(.title)

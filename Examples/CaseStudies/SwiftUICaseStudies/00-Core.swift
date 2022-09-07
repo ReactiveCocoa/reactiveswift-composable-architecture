@@ -3,7 +3,7 @@ import ReactiveSwift
 import UIKit
 import XCTestDynamicOverlay
 
-struct RootState {
+struct RootState: Equatable {
   var alertAndConfirmationDialog = AlertAndConfirmationDialogState()
   var animation = AnimationsState()
   var bindingBasics = BindingBasicsState()
