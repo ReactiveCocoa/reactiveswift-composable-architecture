@@ -10,6 +10,16 @@ import XCTestDynamicOverlay
   import os
 #endif
 
+// NB: Deprecated after 0.39.1:
+
+extension WithViewStore {
+  @available(*, deprecated, renamed: "ViewState")
+  public typealias State = ViewState
+
+  @available(*, deprecated, renamed: "ViewAction")
+  public typealias Action = ViewAction
+}
+
 // NB: Deprecated after 0.39.0:
 
 #if canImport(SwiftUI)
