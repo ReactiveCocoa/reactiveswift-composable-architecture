@@ -212,6 +212,7 @@
     /// ``finish(timeout:file:line:)-53gi5``.
     public var timeout: UInt64
 
+    private let effectDidSubscribe = AsyncStream<Void>.streamWithContinuation()
     private let file: StaticString
     private let fromScopedAction: (ScopedAction) -> Action
     private var line: UInt
@@ -237,7 +238,7 @@
       self.reducer = reducer
       self.state = initialState
       self.toScopedState = toScopedState
-      self.timeout = 100 * NSEC_PER_MSEC
+      self.timeout = NSEC_PER_SEC
 
       self.store = Store(
         initialState: initialState,
@@ -259,7 +260,10 @@
             effects
             .producer
             .on(
-              starting: { [weak self] in self?.inFlightEffects.insert(effect) },
+              starting: { [weak self] in 
+                self?.inFlightEffects.insert(effect)
+                self?.effectDidSubscribe.continuation.yield()
+              },
               completed: { [weak self] in self?.inFlightEffects.remove(effect) },
               disposed: { [weak self] in self?.inFlightEffects.remove(effect) }
             )
@@ -279,11 +283,11 @@
       @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
       @MainActor
       public func finish(
-        timeout duration: Duration,
+        timeout duration: Duration? = nil,
         file: StaticString = #file,
         line: UInt = #line
       ) async {
-        await self.finish(timeout: duration.nanoseconds, file: file, line: line)
+        await self.finish(timeout: duration?.nanoseconds, file: file, line: line)
       }
     #endif
 
@@ -292,6 +296,7 @@
     /// Can be used to assert that all effects have finished.
     ///
     /// - Parameter nanoseconds: The amount of time to wait before asserting.
+    @_disfavoredOverload
     @MainActor
     public func finish(
       timeout nanoseconds: UInt64? = nil,
@@ -530,7 +535,7 @@
       var expectedState = self.toScopedState(self.state)
       let previousState = self.state
       let task = self.store.send(.init(origin: .send(action), file: file, line: line))
-      await Task.megaYield()
+      await self.effectDidSubscribe.stream.first(where: { _ in true })
       do {
         let currentState = self.state
         self.state = previousState
@@ -941,22 +946,23 @@
     }
 
     #if swift(>=5.7)
-      @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
       /// Asserts the underlying task finished.
       ///
       /// - Parameter duration: The amount of time to wait before asserting.
+      @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
       public func finish(
-        timeout duration: Duration,
+        timeout duration: Duration? = nil,
         file: StaticString = #file,
         line: UInt = #line
       ) async {
-        await self.finish(timeout: duration.nanoseconds, file: file, line: line)
+        await self.finish(timeout: duration?.nanoseconds, file: file, line: line)
       }
     #endif
 
     /// Asserts the underlying task finished.
     ///
     /// - Parameter nanoseconds: The amount of time to wait before asserting.
+    @_disfavoredOverload
     public func finish(
       timeout nanoseconds: UInt64? = nil,
       file: StaticString = #file,
@@ -1012,7 +1018,7 @@
   }
 
   extension Task where Success == Never, Failure == Never {
-    static func megaYield(count: Int = 3) async {
+    static func megaYield(count: Int = 6) async {
       for _ in 1...count {
         await Task<Void, Never>.detached(priority: .low) { await Task.yield() }.value
       }
