@@ -22,9 +22,9 @@ final class EffectFailureTests: XCTestCase {
     }
 
     let effect = Effect<Void, Never>.task {
-        struct Unexpected: Error {}
-        throw Unexpected()
-      }
+      struct Unexpected: Error {}
+      throw Unexpected()
+    }
 
     for await _ in effect.producer.values {}
   }
