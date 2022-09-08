@@ -58,7 +58,7 @@ extension Effect {
             let values = Atomic<[Output]>([])
             var isCaching = true
             let disposable =
-            producer
+              producer
               .on(value: { value in
                 guard isCaching else { return }
                 values.modify { $0.append(value) }

@@ -338,7 +338,7 @@ extension WithViewStore where ViewState: Equatable, Content: View {
       file: file,
       line: line
     )
-}
+  }
 
   /// Initializes a structure that transforms a store into an observable view store in order to
   /// compute views from equatable store state.

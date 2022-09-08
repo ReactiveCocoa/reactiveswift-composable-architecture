@@ -51,7 +51,7 @@ extension Effect {
           return SignalProducer(value: value)
             .delay(
               throttleTime.addingTimeInterval(interval).timeIntervalSince1970
-              - scheduler.currentDate.timeIntervalSince1970,
+                - scheduler.currentDate.timeIntervalSince1970,
               on: scheduler
             ).on(
               value: { _ in

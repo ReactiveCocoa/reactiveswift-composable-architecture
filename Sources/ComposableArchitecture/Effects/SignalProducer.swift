@@ -60,7 +60,8 @@ extension Effect {
     watchOS, deprecated: 9999.0,
     message: "Iterate over 'SignalProducer.values' in an 'Effect.run', instead."
   )
-  public init<P: SignalProducerConvertible>(_ producer: P) where P.Value == Output, P.Error == Failure {
+  public init<P: SignalProducerConvertible>(_ producer: P)
+  where P.Value == Output, P.Error == Failure {
     self.operation = .producer(producer.producer)
   }
 
@@ -525,7 +526,7 @@ extension SignalProducer {
     outputType: NewValue.Type = NewValue.self,
     failureType: NewError.Type = NewError.self
   ) -> Effect<NewValue, NewError> {
-      self
+    self
       .flatMapError { _ in .empty }
       .flatMap(.latest) { _ in .empty }
       .eraseToEffect()
