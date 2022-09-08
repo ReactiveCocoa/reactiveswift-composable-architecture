@@ -336,15 +336,24 @@ public final class Store<State, Action> {
 
     self.isSending = true
     var currentState = self.state
+    let tasks = Box<[Task<Void, Never>]>(wrappedValue: [])
     defer {
+      withExtendedLifetime(self.bufferedActions) {
+        self.bufferedActions.removeAll()
+      }
       self.isSending = false
       self.state = currentState
+      // NB: Handle any re-entrant actions
+      if !self.bufferedActions.isEmpty {
+        if let task = self.send(
+          self.bufferedActions.removeLast(), originatingFrom: originatingAction
+        ) {
+          tasks.wrappedValue.append(task)
+        }
+      }
     }
 
-    let tasks = Box<[Task<Void, Never>]>(wrappedValue: [])
-
     var index = self.bufferedActions.startIndex
-    defer { self.bufferedActions = [] }
     while index < self.bufferedActions.endIndex {
       defer { index += 1 }
       let action = self.bufferedActions[index]
@@ -582,7 +591,7 @@ private struct Scope<RootState, RootAction>: AnyScope {
     action fromRescopedAction: @escaping (RescopedAction) -> ScopedAction
   ) -> Store<RescopedState, RescopedAction> {
     let fromScopedAction = self.fromScopedAction as! (ScopedAction) -> RootAction
-    
+
     var isSending = false
     let rescopedStore = Store<RescopedState, RescopedAction>(
       initialState: toRescopedState(scopedStore.state),
