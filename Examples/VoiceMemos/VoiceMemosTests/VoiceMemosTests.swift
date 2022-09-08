@@ -294,6 +294,7 @@ final class VoiceMemosTests: XCTestCase {
     await store.send(.voiceMemo(id: url, action: .delete)) {
       $0.voiceMemos = []
     }
+    await store.finish()
   }
 }
 
