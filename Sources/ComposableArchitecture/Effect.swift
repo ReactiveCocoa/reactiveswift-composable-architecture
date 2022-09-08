@@ -158,7 +158,7 @@ extension Effect where Failure == Never {
         }
       }
     )
-    }
+  }
 
   /// Wraps an asynchronous unit of work that can emit any number of times in an effect.
   ///
@@ -368,7 +368,7 @@ extension Effect {
     case (.none, _):
       return other
     case (.producer, .producer), (.run, .producer), (.producer, .run):
-        return Self(operation: .producer(.merge(self.producer, other.producer)))
+      return Self(operation: .producer(.merge(self.producer, other.producer)))
     case let (.run(lhsPriority, lhsOperation), .run(rhsPriority, rhsOperation)):
       return Self(
         operation: .run { send in
@@ -422,7 +422,7 @@ extension Effect {
     case (.producer, .producer), (.run, .producer), (.producer, .run):
       return Self(
         operation: .producer(
-            SignalProducer.concatenate(self.producer, other.producer)
+          SignalProducer.concatenate(self.producer, other.producer)
         )
       )
     case let (.run(lhsPriority, lhsOperation), .run(rhsPriority, rhsOperation)):

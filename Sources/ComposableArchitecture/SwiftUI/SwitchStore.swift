@@ -196,10 +196,10 @@ extension SwitchStore {
       State,
       Action,
       _ConditionalContent<
-            CaseLet<State, Action, State1, Action1, Content1>,
-            Default<_ExhaustivityCheckView<State, Action>>
-          >
-        >
+        CaseLet<State, Action, State1, Action1, Content1>,
+        Default<_ExhaustivityCheckView<State, Action>>
+      >
+    >
   {
     self.init(store) {
       content()
@@ -222,13 +222,13 @@ extension SwitchStore {
       State,
       Action,
       _ConditionalContent<
-          _ConditionalContent<
-              CaseLet<State, Action, State1, Action1, Content1>,
-              CaseLet<State, Action, State2, Action2, Content2>
-            >,
-            Default<DefaultContent>
-          >
-        >
+        _ConditionalContent<
+          CaseLet<State, Action, State1, Action1, Content1>,
+          CaseLet<State, Action, State2, Action2, Content2>
+        >,
+        Default<DefaultContent>
+      >
+    >
   {
     self.init(store: store) {
       let content = content().value
@@ -261,13 +261,13 @@ extension SwitchStore {
       State,
       Action,
       _ConditionalContent<
-            _ConditionalContent<
-              CaseLet<State, Action, State1, Action1, Content1>,
-              CaseLet<State, Action, State2, Action2, Content2>
-            >,
-            Default<_ExhaustivityCheckView<State, Action>>
-          >
-        >
+        _ConditionalContent<
+          CaseLet<State, Action, State1, Action1, Content1>,
+          CaseLet<State, Action, State2, Action2, Content2>
+        >,
+        Default<_ExhaustivityCheckView<State, Action>>
+      >
+    >
   {
     let content = content()
     self.init(store) {
@@ -298,16 +298,16 @@ extension SwitchStore {
       State,
       Action,
       _ConditionalContent<
-          _ConditionalContent<
-              CaseLet<State, Action, State1, Action1, Content1>,
-              CaseLet<State, Action, State2, Action2, Content2>
-            >,
-            _ConditionalContent<
+        _ConditionalContent<
+          CaseLet<State, Action, State1, Action1, Content1>,
+          CaseLet<State, Action, State2, Action2, Content2>
+        >,
+        _ConditionalContent<
           CaseLet<State, Action, State3, Action3, Content3>,
           Default<DefaultContent>
-          >
         >
       >
+    >
   {
     self.init(store: store) {
       let content = content().value
@@ -343,16 +343,16 @@ extension SwitchStore {
       State,
       Action,
       _ConditionalContent<
-          _ConditionalContent<
-              CaseLet<State, Action, State1, Action1, Content1>,
-              CaseLet<State, Action, State2, Action2, Content2>
-            >,
-            _ConditionalContent<
-              CaseLet<State, Action, State3, Action3, Content3>,
-              Default<_ExhaustivityCheckView<State, Action>>
-            >
-          >
+        _ConditionalContent<
+          CaseLet<State, Action, State1, Action1, Content1>,
+          CaseLet<State, Action, State2, Action2, Content2>
+        >,
+        _ConditionalContent<
+          CaseLet<State, Action, State3, Action3, Content3>,
+          Default<_ExhaustivityCheckView<State, Action>>
         >
+      >
+    >
   {
     let content = content()
     self.init(store) {
@@ -386,19 +386,19 @@ extension SwitchStore {
       State,
       Action,
       _ConditionalContent<
-            _ConditionalContent<
-              _ConditionalContent<
-                CaseLet<State, Action, State1, Action1, Content1>,
-                CaseLet<State, Action, State2, Action2, Content2>
-              >,
-              _ConditionalContent<
-                CaseLet<State, Action, State3, Action3, Content3>,
-                CaseLet<State, Action, State4, Action4, Content4>
-              >
+        _ConditionalContent<
+          _ConditionalContent<
+            CaseLet<State, Action, State1, Action1, Content1>,
+            CaseLet<State, Action, State2, Action2, Content2>
+          >,
+          _ConditionalContent<
+            CaseLet<State, Action, State3, Action3, Content3>,
+            CaseLet<State, Action, State4, Action4, Content4>
+          >
         >,
         Default<DefaultContent>
-          >
-        >
+      >
+    >
   {
     self.init(store: store) {
       let content = content().value
@@ -442,19 +442,19 @@ extension SwitchStore {
       State,
       Action,
       _ConditionalContent<
-            _ConditionalContent<
-              _ConditionalContent<
-                CaseLet<State, Action, State1, Action1, Content1>,
-                CaseLet<State, Action, State2, Action2, Content2>
-              >,
-              _ConditionalContent<
-                CaseLet<State, Action, State3, Action3, Content3>,
-                CaseLet<State, Action, State4, Action4, Content4>
-              >
-            >,
-            Default<_ExhaustivityCheckView<State, Action>>
+        _ConditionalContent<
+          _ConditionalContent<
+            CaseLet<State, Action, State1, Action1, Content1>,
+            CaseLet<State, Action, State2, Action2, Content2>
+          >,
+          _ConditionalContent<
+            CaseLet<State, Action, State3, Action3, Content3>,
+            CaseLet<State, Action, State4, Action4, Content4>
           >
-        >
+        >,
+        Default<_ExhaustivityCheckView<State, Action>>
+      >
+    >
   {
     let content = content()
     self.init(store) {
@@ -490,18 +490,18 @@ extension SwitchStore {
     Content == WithViewStore<
       State,
       Action,
+      _ConditionalContent<
+        _ConditionalContent<
           _ConditionalContent<
-            _ConditionalContent<
-              _ConditionalContent<
-                CaseLet<State, Action, State1, Action1, Content1>,
-                CaseLet<State, Action, State2, Action2, Content2>
-              >,
-              _ConditionalContent<
-                CaseLet<State, Action, State3, Action3, Content3>,
-                CaseLet<State, Action, State4, Action4, Content4>
-              >
-            >,
-            _ConditionalContent<
+            CaseLet<State, Action, State1, Action1, Content1>,
+            CaseLet<State, Action, State2, Action2, Content2>
+          >,
+          _ConditionalContent<
+            CaseLet<State, Action, State3, Action3, Content3>,
+            CaseLet<State, Action, State4, Action4, Content4>
+          >
+        >,
+        _ConditionalContent<
           CaseLet<State, Action, State5, Action5, Content5>,
           Default<DefaultContent>
         >
@@ -554,22 +554,22 @@ extension SwitchStore {
       State,
       Action,
       _ConditionalContent<
-            _ConditionalContent<
-              _ConditionalContent<
-                CaseLet<State, Action, State1, Action1, Content1>,
-                CaseLet<State, Action, State2, Action2, Content2>
-              >,
-              _ConditionalContent<
-                CaseLet<State, Action, State3, Action3, Content3>,
-                CaseLet<State, Action, State4, Action4, Content4>
-              >
-            >,
-            _ConditionalContent<
-              CaseLet<State, Action, State5, Action5, Content5>,
-              Default<_ExhaustivityCheckView<State, Action>>
-            >
+        _ConditionalContent<
+          _ConditionalContent<
+            CaseLet<State, Action, State1, Action1, Content1>,
+            CaseLet<State, Action, State2, Action2, Content2>
+          >,
+          _ConditionalContent<
+            CaseLet<State, Action, State3, Action3, Content3>,
+            CaseLet<State, Action, State4, Action4, Content4>
           >
+        >,
+        _ConditionalContent<
+          CaseLet<State, Action, State5, Action5, Content5>,
+          Default<_ExhaustivityCheckView<State, Action>>
         >
+      >
+    >
   {
     let content = content()
     self.init(store) {
@@ -609,20 +609,20 @@ extension SwitchStore {
       State,
       Action,
       _ConditionalContent<
+        _ConditionalContent<
           _ConditionalContent<
-            _ConditionalContent<
-                CaseLet<State, Action, State1, Action1, Content1>,
-                CaseLet<State, Action, State2, Action2, Content2>
-              >,
-              _ConditionalContent<
-                CaseLet<State, Action, State3, Action3, Content3>,
-                CaseLet<State, Action, State4, Action4, Content4>
-              >
-            >,
-            _ConditionalContent<
-              _ConditionalContent<
-                CaseLet<State, Action, State5, Action5, Content5>,
-                CaseLet<State, Action, State6, Action6, Content6>
+            CaseLet<State, Action, State1, Action1, Content1>,
+            CaseLet<State, Action, State2, Action2, Content2>
+          >,
+          _ConditionalContent<
+            CaseLet<State, Action, State3, Action3, Content3>,
+            CaseLet<State, Action, State4, Action4, Content4>
+          >
+        >,
+        _ConditionalContent<
+          _ConditionalContent<
+            CaseLet<State, Action, State5, Action5, Content5>,
+            CaseLet<State, Action, State6, Action6, Content6>
           >,
           Default<DefaultContent>
         >
@@ -679,25 +679,25 @@ extension SwitchStore {
       State,
       Action,
       _ConditionalContent<
+        _ConditionalContent<
           _ConditionalContent<
-            _ConditionalContent<
-                CaseLet<State, Action, State1, Action1, Content1>,
-                CaseLet<State, Action, State2, Action2, Content2>
-              >,
-              _ConditionalContent<
-                CaseLet<State, Action, State3, Action3, Content3>,
-                CaseLet<State, Action, State4, Action4, Content4>
-              >
-            >,
-            _ConditionalContent<
-              _ConditionalContent<
-                CaseLet<State, Action, State5, Action5, Content5>,
-                CaseLet<State, Action, State6, Action6, Content6>
-              >,
-              Default<_ExhaustivityCheckView<State, Action>>
-            >
+            CaseLet<State, Action, State1, Action1, Content1>,
+            CaseLet<State, Action, State2, Action2, Content2>
+          >,
+          _ConditionalContent<
+            CaseLet<State, Action, State3, Action3, Content3>,
+            CaseLet<State, Action, State4, Action4, Content4>
           >
+        >,
+        _ConditionalContent<
+          _ConditionalContent<
+            CaseLet<State, Action, State5, Action5, Content5>,
+            CaseLet<State, Action, State6, Action6, Content6>
+          >,
+          Default<_ExhaustivityCheckView<State, Action>>
         >
+      >
+    >
   {
     let content = content()
     self.init(store) {
@@ -739,29 +739,29 @@ extension SwitchStore {
     Content == WithViewStore<
       State,
       Action,
+      _ConditionalContent<
+        _ConditionalContent<
           _ConditionalContent<
-            _ConditionalContent<
-              _ConditionalContent<
-                CaseLet<State, Action, State1, Action1, Content1>,
-                CaseLet<State, Action, State2, Action2, Content2>
-              >,
-              _ConditionalContent<
-                CaseLet<State, Action, State3, Action3, Content3>,
-                CaseLet<State, Action, State4, Action4, Content4>
-              >
-            >,
-            _ConditionalContent<
-              _ConditionalContent<
-                CaseLet<State, Action, State5, Action5, Content5>,
-                CaseLet<State, Action, State6, Action6, Content6>
-              >,
-              _ConditionalContent<
+            CaseLet<State, Action, State1, Action1, Content1>,
+            CaseLet<State, Action, State2, Action2, Content2>
+          >,
+          _ConditionalContent<
+            CaseLet<State, Action, State3, Action3, Content3>,
+            CaseLet<State, Action, State4, Action4, Content4>
+          >
+        >,
+        _ConditionalContent<
+          _ConditionalContent<
+            CaseLet<State, Action, State5, Action5, Content5>,
+            CaseLet<State, Action, State6, Action6, Content6>
+          >,
+          _ConditionalContent<
             CaseLet<State, Action, State7, Action7, Content7>,
             Default<DefaultContent>
-            >
           >
         >
       >
+    >
   {
     self.init(store: store) {
       let content = content().value
@@ -817,28 +817,28 @@ extension SwitchStore {
       State,
       Action,
       _ConditionalContent<
-            _ConditionalContent<
-              _ConditionalContent<
-                CaseLet<State, Action, State1, Action1, Content1>,
-                CaseLet<State, Action, State2, Action2, Content2>
-              >,
-              _ConditionalContent<
-                CaseLet<State, Action, State3, Action3, Content3>,
-                CaseLet<State, Action, State4, Action4, Content4>
-              >
-            >,
-            _ConditionalContent<
-              _ConditionalContent<
-                CaseLet<State, Action, State5, Action5, Content5>,
-                CaseLet<State, Action, State6, Action6, Content6>
-              >,
-              _ConditionalContent<
-                CaseLet<State, Action, State7, Action7, Content7>,
-                Default<_ExhaustivityCheckView<State, Action>>
-              >
-            >
+        _ConditionalContent<
+          _ConditionalContent<
+            CaseLet<State, Action, State1, Action1, Content1>,
+            CaseLet<State, Action, State2, Action2, Content2>
+          >,
+          _ConditionalContent<
+            CaseLet<State, Action, State3, Action3, Content3>,
+            CaseLet<State, Action, State4, Action4, Content4>
+          >
+        >,
+        _ConditionalContent<
+          _ConditionalContent<
+            CaseLet<State, Action, State5, Action5, Content5>,
+            CaseLet<State, Action, State6, Action6, Content6>
+          >,
+          _ConditionalContent<
+            CaseLet<State, Action, State7, Action7, Content7>,
+            Default<_ExhaustivityCheckView<State, Action>>
           >
         >
+      >
+    >
   {
     let content = content()
     self.init(store) {
@@ -883,32 +883,32 @@ extension SwitchStore {
     Content == WithViewStore<
       State,
       Action,
+      _ConditionalContent<
+        _ConditionalContent<
           _ConditionalContent<
             _ConditionalContent<
-              _ConditionalContent<
-                _ConditionalContent<
-                  CaseLet<State, Action, State1, Action1, Content1>,
-                  CaseLet<State, Action, State2, Action2, Content2>
-                >,
-                _ConditionalContent<
-                  CaseLet<State, Action, State3, Action3, Content3>,
-                  CaseLet<State, Action, State4, Action4, Content4>
-                >
-              >,
-              _ConditionalContent<
-                _ConditionalContent<
-                  CaseLet<State, Action, State5, Action5, Content5>,
-                  CaseLet<State, Action, State6, Action6, Content6>
-                >,
-                _ConditionalContent<
-                  CaseLet<State, Action, State7, Action7, Content7>,
-                  CaseLet<State, Action, State8, Action8, Content8>
-                >
-              >
+              CaseLet<State, Action, State1, Action1, Content1>,
+              CaseLet<State, Action, State2, Action2, Content2>
+            >,
+            _ConditionalContent<
+              CaseLet<State, Action, State3, Action3, Content3>,
+              CaseLet<State, Action, State4, Action4, Content4>
+            >
+          >,
+          _ConditionalContent<
+            _ConditionalContent<
+              CaseLet<State, Action, State5, Action5, Content5>,
+              CaseLet<State, Action, State6, Action6, Content6>
+            >,
+            _ConditionalContent<
+              CaseLet<State, Action, State7, Action7, Content7>,
+              CaseLet<State, Action, State8, Action8, Content8>
+            >
+          >
         >,
         Default<DefaultContent>
-          >
-        >
+      >
+    >
   {
     self.init(store: store) {
       let content = content().value
@@ -968,31 +968,31 @@ extension SwitchStore {
       State,
       Action,
       _ConditionalContent<
+        _ConditionalContent<
+          _ConditionalContent<
             _ConditionalContent<
-              _ConditionalContent<
-                _ConditionalContent<
-                  CaseLet<State, Action, State1, Action1, Content1>,
-                  CaseLet<State, Action, State2, Action2, Content2>
-                >,
-                _ConditionalContent<
-                  CaseLet<State, Action, State3, Action3, Content3>,
-                  CaseLet<State, Action, State4, Action4, Content4>
-                >
-              >,
-              _ConditionalContent<
-                _ConditionalContent<
-                  CaseLet<State, Action, State5, Action5, Content5>,
-                  CaseLet<State, Action, State6, Action6, Content6>
-                >,
-                _ConditionalContent<
-                  CaseLet<State, Action, State7, Action7, Content7>,
-                  CaseLet<State, Action, State8, Action8, Content8>
-                >
-              >
+              CaseLet<State, Action, State1, Action1, Content1>,
+              CaseLet<State, Action, State2, Action2, Content2>
             >,
-            Default<_ExhaustivityCheckView<State, Action>>
+            _ConditionalContent<
+              CaseLet<State, Action, State3, Action3, Content3>,
+              CaseLet<State, Action, State4, Action4, Content4>
+            >
+          >,
+          _ConditionalContent<
+            _ConditionalContent<
+              CaseLet<State, Action, State5, Action5, Content5>,
+              CaseLet<State, Action, State6, Action6, Content6>
+            >,
+            _ConditionalContent<
+              CaseLet<State, Action, State7, Action7, Content7>,
+              CaseLet<State, Action, State8, Action8, Content8>
+            >
           >
-        >
+        >,
+        Default<_ExhaustivityCheckView<State, Action>>
+      >
+    >
   {
     let content = content()
     self.init(store) {
@@ -1041,29 +1041,29 @@ extension SwitchStore {
       State,
       Action,
       _ConditionalContent<
+        _ConditionalContent<
+          _ConditionalContent<
             _ConditionalContent<
-              _ConditionalContent<
-                _ConditionalContent<
-                  CaseLet<State, Action, State1, Action1, Content1>,
-                  CaseLet<State, Action, State2, Action2, Content2>
-                >,
-                _ConditionalContent<
-                  CaseLet<State, Action, State3, Action3, Content3>,
-                  CaseLet<State, Action, State4, Action4, Content4>
-                >
-              >,
-              _ConditionalContent<
-                _ConditionalContent<
-                  CaseLet<State, Action, State5, Action5, Content5>,
-                  CaseLet<State, Action, State6, Action6, Content6>
-                >,
-                _ConditionalContent<
-                  CaseLet<State, Action, State7, Action7, Content7>,
-                  CaseLet<State, Action, State8, Action8, Content8>
-                >
-              >
+              CaseLet<State, Action, State1, Action1, Content1>,
+              CaseLet<State, Action, State2, Action2, Content2>
             >,
             _ConditionalContent<
+              CaseLet<State, Action, State3, Action3, Content3>,
+              CaseLet<State, Action, State4, Action4, Content4>
+            >
+          >,
+          _ConditionalContent<
+            _ConditionalContent<
+              CaseLet<State, Action, State5, Action5, Content5>,
+              CaseLet<State, Action, State6, Action6, Content6>
+            >,
+            _ConditionalContent<
+              CaseLet<State, Action, State7, Action7, Content7>,
+              CaseLet<State, Action, State8, Action8, Content8>
+            >
+          >
+        >,
+        _ConditionalContent<
           CaseLet<State, Action, State9, Action9, Content9>,
           Default<DefaultContent>
         >
@@ -1132,34 +1132,34 @@ extension SwitchStore {
       State,
       Action,
       _ConditionalContent<
+        _ConditionalContent<
+          _ConditionalContent<
             _ConditionalContent<
-              _ConditionalContent<
-                _ConditionalContent<
-                  CaseLet<State, Action, State1, Action1, Content1>,
-                  CaseLet<State, Action, State2, Action2, Content2>
-                >,
-                _ConditionalContent<
-                  CaseLet<State, Action, State3, Action3, Content3>,
-                  CaseLet<State, Action, State4, Action4, Content4>
-                >
-              >,
-              _ConditionalContent<
-                _ConditionalContent<
-                  CaseLet<State, Action, State5, Action5, Content5>,
-                  CaseLet<State, Action, State6, Action6, Content6>
-                >,
-                _ConditionalContent<
-                  CaseLet<State, Action, State7, Action7, Content7>,
-                  CaseLet<State, Action, State8, Action8, Content8>
-                >
-              >
+              CaseLet<State, Action, State1, Action1, Content1>,
+              CaseLet<State, Action, State2, Action2, Content2>
             >,
             _ConditionalContent<
-              CaseLet<State, Action, State9, Action9, Content9>,
-              Default<_ExhaustivityCheckView<State, Action>>
+              CaseLet<State, Action, State3, Action3, Content3>,
+              CaseLet<State, Action, State4, Action4, Content4>
+            >
+          >,
+          _ConditionalContent<
+            _ConditionalContent<
+              CaseLet<State, Action, State5, Action5, Content5>,
+              CaseLet<State, Action, State6, Action6, Content6>
+            >,
+            _ConditionalContent<
+              CaseLet<State, Action, State7, Action7, Content7>,
+              CaseLet<State, Action, State8, Action8, Content8>
             >
           >
+        >,
+        _ConditionalContent<
+          CaseLet<State, Action, State9, Action9, Content9>,
+          Default<_ExhaustivityCheckView<State, Action>>
         >
+      >
+    >
   {
     let content = content()
     self.init(store) {

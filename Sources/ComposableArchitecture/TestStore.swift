@@ -272,7 +272,7 @@
             effects
             .producer
             .on(
-              starting: { [weak self] in 
+              starting: { [weak self] in
                 self?.inFlightEffects.insert(effect)
                 self?.effectDidSubscribe.continuation.yield()
               },

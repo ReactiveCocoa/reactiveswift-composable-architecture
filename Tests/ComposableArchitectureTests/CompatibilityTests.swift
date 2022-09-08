@@ -1,5 +1,5 @@
-import ReactiveSwift
 import ComposableArchitecture
+import ReactiveSwift
 import XCTest
 
 @MainActor
@@ -36,7 +36,7 @@ final class CompatibilityTests: XCTestCase {
 
       switch action {
       case .start:
-          return signal.producer
+        return signal.producer
           .eraseToEffect()
           .cancellable(id: cancelID)
 
@@ -75,8 +75,8 @@ final class CompatibilityTests: XCTestCase {
 }
 
 private final class OnDeinit: Equatable {
-  private let onDeinit: () -> ()
-  init(onDeinit: @escaping () -> ()) {
+  private let onDeinit: () -> Void
+  init(onDeinit: @escaping () -> Void) {
     self.onDeinit = onDeinit
   }
   deinit { self.onDeinit() }

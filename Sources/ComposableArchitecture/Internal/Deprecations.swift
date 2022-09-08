@@ -460,7 +460,7 @@ extension Effect where Failure == Error {
             observer.send(error: error)
         }
       }
-      }
+    }
 
       return producer.on(disposed: task?.cancel)
     }

@@ -193,50 +193,50 @@ final class EffectTests: XCTestCase {
   }
 
   #if !os(Linux)
-    func testUnimplemented() {
+  func testUnimplemented() {
       let effect = Effect<Never, Never>.failing("unimplemented")
       _ = XCTExpectFailure {
-        effect
+      effect
           .producer
           .start()
-      } issueMatcher: { issue in
-        issue.compactDescription == "unimplemented - An unimplemented effect ran."
-      }
+    } issueMatcher: { issue in
+      issue.compactDescription == "unimplemented - An unimplemented effect ran."
     }
+  }
   #endif
 
-  #if canImport(_Concurrency) && compiler(>=5.5.2)
+#if canImport(_Concurrency) && compiler(>=5.5.2)
   func testTask() async {
     guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
     let effect = Effect<Int, Never>.task { 42 }
     for await result in effect.producer.values {
       XCTAssertNoDifference(result, 42)
-      }
     }
+  }
 
-    func testCancellingTask_Infallible() {
-      @Sendable func work() async -> Int {
-        do {
-          try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
-          XCTFail()
-        } catch {
-        }
-        return 42
+  func testCancellingTask_Infallible() {
+    @Sendable func work() async -> Int {
+      do {
+        try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
+        XCTFail()
+      } catch {
       }
+      return 42
+    }
 
       let disposable = Effect<Int, Never>.task { await work() }
         .producer
         .on(
           completed: { XCTFail() },
           value: { _ in XCTFail() }
-        )
+      )
         .start(on: QueueScheduler.main)
         .start()
 
       disposable.dispose()
 
-      _ = XCTWaiter.wait(for: [.init()], timeout: 1.1)
-    }
+    _ = XCTWaiter.wait(for: [.init()], timeout: 1.1)
+  }
   #endif
 }
 #endif

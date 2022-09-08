@@ -79,11 +79,13 @@
                   os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sFinished", prefix)
                 },
                 disposed: {
-                  os_signpost(.end, log: log, name: "Effect", signpostID: sid, "%sCancelled", prefix)
+                  os_signpost(
+                    .end, log: log, name: "Effect", signpostID: sid, "%sCancelled", prefix)
                 },
                 value: { value in
                   os_signpost(
-                    .event, log: log, name: "Effect Output", "%sOutput from %s", prefix, actionOutput
+                    .event, log: log, name: "Effect Output", "%sOutput from %s", prefix,
+                    actionOutput
                   )
                 }
               )
