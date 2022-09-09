@@ -269,6 +269,7 @@
 
           switch effects.operation {
           case .none:
+            self.effectDidSubscribe.continuation.yield()
             return .none
           case .producer, .run:
             let effect = LongLivingEffect(file: action.file, line: action.line)
