@@ -191,6 +191,7 @@ final class EffectCancellationTests: XCTestCase {
       DispatchQueue.global(qos: .userInteractive),
       DispatchQueue.global(qos: .utility),
     ]
+    let ids = (1...10).map { _ in UUID() }
 
     let effect = Effect.merge(
       // Original upper bound was 1000, but it was triggering EXC_BAD_ACCESS crashes...
@@ -198,7 +199,7 @@ final class EffectCancellationTests: XCTestCase {
       // `TransformerCore.start` (accessing `hasDeliveredTerminalEvent` var), which can
       // be the cause?
       (1...300).map { idx -> Effect<Int, Never> in
-        let id = idx % 10
+        let id = ids[idx % 10]
 
         return Effect.merge(
           Effect(value: idx)
@@ -226,7 +227,12 @@ final class EffectCancellationTests: XCTestCase {
       .start()
     self.wait(for: [expectation], timeout: 999)
 
-    XCTAssertNoDifference([:], cancellationCancellables)
+    for id in ids {
+      XCTAssertNil(
+        cancellationCancellables[CancelToken(id: id)],
+        "cancellationCancellables should not contain id \(id)"
+      )
+    }
   }
 
   func testNestedCancels() {
@@ -237,8 +243,8 @@ final class EffectCancellationTests: XCTestCase {
         observer.sendCompleted()
       }
     }
-    .eraseToEffect()
-    .cancellable(id: 1)
+      .eraseToEffect()
+      .cancellable(id: 1)
 
     for _ in 1...1_000 {
       effect = effect.cancellable(id: id)
