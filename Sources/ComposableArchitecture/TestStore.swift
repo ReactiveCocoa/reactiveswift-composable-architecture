@@ -272,9 +272,12 @@
             effects
             .producer
             .on(
-              starting: { [weak self] in
+              starting: { [effectDidSubscribe = self.effectDidSubscribe, weak self] in
                 self?.inFlightEffects.insert(effect)
-                self?.effectDidSubscribe.continuation.yield()
+                Task {
+                  await Task.megaYield()
+                  effectDidSubscribe.continuation.yield()
+                }
               },
               completed: { [weak self] in self?.inFlightEffects.remove(effect) },
               disposed: { [weak self] in self?.inFlightEffects.remove(effect) }
