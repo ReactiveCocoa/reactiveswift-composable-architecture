@@ -1,7 +1,7 @@
 import Foundation
 import ReactiveSwift
 
-extension Effect where Output == Date, Failure == Never {
+extension Effect where Action == Date, Failure == Never {
   /// Returns an effect that repeatedly emits the current time of the given scheduler on the given
   /// interval.
   ///

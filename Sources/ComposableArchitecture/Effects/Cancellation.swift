@@ -45,7 +45,7 @@ extension Effect {
     case let .producer(producer):
       return Self(
         operation: .producer(
-          SignalProducer.deferred { () -> SignalProducer<Output, Failure> in
+          SignalProducer.deferred { () -> SignalProducer<Action, Failure> in
             cancellablesLock.lock()
             defer { cancellablesLock.unlock() }
 
@@ -54,8 +54,8 @@ extension Effect {
               cancellationCancellables[id]?.forEach { $0.dispose() }
             }
 
-            let subject = Signal<Output, Failure>.pipe()
-            let values = Atomic<[Output]>([])
+            let subject = Signal<Action, Failure>.pipe()
+            let values = Atomic<[Action]>([])
             var isCaching = true
             let disposable =
               producer
@@ -76,9 +76,9 @@ extension Effect {
               }
             }
 
-            cancellationCancellables[id, default: []].insert(
+                    cancellationCancellables[id, default: []].insert(
               cancellationDisposable
-            )
+                    )
 
             return SignalProducer(values.value)
               .concat(subject.output.producer)
