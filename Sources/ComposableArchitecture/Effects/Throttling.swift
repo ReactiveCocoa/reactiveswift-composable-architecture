@@ -26,7 +26,7 @@ extension Effect {
     case .producer, .run:
       return self.producer
         .observe(on: scheduler)
-        .flatMap(.latest) { value -> SignalProducer<Output, Failure> in
+        .flatMap(.latest) { value -> SignalProducer<Action, Failure> in
           throttleLock.lock()
           defer { throttleLock.unlock() }
 
@@ -36,7 +36,7 @@ extension Effect {
             return SignalProducer(value: value)
           }
 
-          let value = latest ? value : (throttleValues[id] as! Output? ?? value)
+          let value = latest ? value : (throttleValues[id] as! Action? ?? value)
           throttleValues[id] = value
 
           guard

@@ -22,7 +22,7 @@
       case let .producer(producer):
         return Self(
           operation: .producer(
-            SignalProducer<Output, Failure> { observer, _ in
+            SignalProducer<Action, Failure> { observer, _ in
               producer.start { action in
                 switch action {
                 case let .value(value):

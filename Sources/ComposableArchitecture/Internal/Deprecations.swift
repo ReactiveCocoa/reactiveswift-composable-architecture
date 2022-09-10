@@ -3,7 +3,7 @@ import ReactiveSwift
 import XCTestDynamicOverlay
 
 #if canImport(SwiftUI)
-import SwiftUI
+  import SwiftUI
 #endif
 
 #if DEBUG && canImport(os)
@@ -442,25 +442,25 @@ extension Effect where Failure == Error {
   )
   public static func task(
     priority: TaskPriority? = nil,
-    operation: @escaping @Sendable () async throws -> Output
+    operation: @escaping @Sendable () async throws -> Action
   ) -> Self where Error == Swift.Error {
     SignalProducer.deferred {
       var task: Task<(), Never>?
-      let producer = SignalProducer<Output, Failure> { observer, lifetime in
+      let producer = SignalProducer<Action, Failure> { observer, lifetime in
         task = Task(priority: priority) { @MainActor in
-        do {
-          try Task.checkCancellation()
-          let output = try await operation()
-          try Task.checkCancellation()
+          do {
+            try Task.checkCancellation()
+            let output = try await operation()
+            try Task.checkCancellation()
             observer.send(value: output)
             observer.sendCompleted()
-        } catch is CancellationError {
+          } catch is CancellationError {
             observer.sendCompleted()
-        } catch {
+          } catch {
             observer.send(error: error)
+          }
         }
       }
-    }
 
       return producer.on(disposed: task?.cancel)
     }
@@ -477,7 +477,7 @@ extension Effect where Failure == Error {
 ///   - environment: The environment of dependencies for the application.
 @available(
   *,
-   deprecated,
+  deprecated,
   message:
     """
     If you use this initializer, please open a discussion on GitHub and let us know how: \
@@ -789,352 +789,352 @@ extension Reducer {
 #endif
 
 // MARK: - Deprecated after 0.27.1:
-  #if canImport(SwiftUI)
-extension AlertState.Button {
-  @available(
+#if canImport(SwiftUI)
+  extension AlertState.Button {
+    @available(
       *, deprecated,
-       message: "Cancel buttons must be given an explicit label as their first argument"
-  )
-  public static func cancel(action: AlertState.ButtonAction? = nil) -> Self {
-    .init(action: action, label: TextState("Cancel"), role: .cancel)
+      message: "Cancel buttons must be given an explicit label as their first argument"
+    )
+    public static func cancel(action: AlertState.ButtonAction? = nil) -> Self {
+      .init(action: action, label: TextState("Cancel"), role: .cancel)
+    }
   }
-}
 
-@available(iOS 13, *)
-@available(macOS 12, *)
-@available(tvOS 13, *)
-@available(watchOS 6, *)
-@available(*, deprecated, renamed: "ConfirmationDialogState")
-public typealias ActionSheetState = ConfirmationDialogState
-
-extension View {
   @available(iOS 13, *)
   @available(macOS 12, *)
   @available(tvOS 13, *)
   @available(watchOS 6, *)
-  @available(*, deprecated, renamed: "confirmationDialog")
-  public func actionSheet<Action>(
-    _ store: Store<ConfirmationDialogState<Action>?, Action>,
-    dismiss: Action
-  ) -> some View {
-    self.confirmationDialog(store, dismiss: dismiss)
-  }
-}
+  @available(*, deprecated, renamed: "ConfirmationDialogState")
+  public typealias ActionSheetState = ConfirmationDialogState
 
-extension Store {
-  @available(
-    *, deprecated,
-    message:
-      """
+  extension View {
+    @available(iOS 13, *)
+    @available(macOS 12, *)
+    @available(tvOS 13, *)
+    @available(watchOS 6, *)
+    @available(*, deprecated, renamed: "confirmationDialog")
+    public func actionSheet<Action>(
+      _ store: Store<ConfirmationDialogState<Action>?, Action>,
+      dismiss: Action
+    ) -> some View {
+      self.confirmationDialog(store, dismiss: dismiss)
+    }
+  }
+
+  extension Store {
+    @available(
+      *, deprecated,
+      message:
+        """
       If you use this method, please open a discussion on GitHub and let us know how: \
       https://github.com/pointfreeco/swift-composable-architecture/discussions/new
       """
-  )
+    )
     public func producerScope<ChildState, ChildAction>(
       state toChildState: @escaping (SignalProducer<State, Never>) -> SignalProducer<
         ChildState, Never
       >,
-    action fromChildAction: @escaping (ChildAction) -> Action
+      action fromChildAction: @escaping (ChildAction) -> Action
     ) -> SignalProducer<Store<ChildState, ChildAction>, Never> {
 
-    func extractChildState(_ state: State) -> ChildState? {
-      var childState: ChildState?
+      func extractChildState(_ state: State) -> ChildState? {
+        var childState: ChildState?
         _ = toChildState(SignalProducer(value: state))
           .startWithValues { childState = $0 }
-      return childState
-    }
+        return childState
+      }
 
       return toChildState(self.producer)
-      .map { childState in
+        .map { childState in
           let localStore = Store<ChildState, ChildAction>(
-          initialState: childState,
-          reducer: .init { childState, childAction, _ in
-            let task = self.send(fromChildAction(childAction))
+            initialState: childState,
+            reducer: .init { childState, childAction, _ in
+              let task = self.send(fromChildAction(childAction))
               childState = extractChildState(self.state) ?? childState
-            if let task = task {
-              return .fireAndForget { await task.cancellableValue }
-            } else {
-              return .none
-            }
-          },
-          environment: ()
-        )
+              if let task = task {
+                return .fireAndForget { await task.cancellableValue }
+              } else {
+                return .none
+              }
+            },
+            environment: ()
+          )
           localStore.parentDisposable = self.producer.startWithValues {
             [weak localStore] state in
             guard let localStore = localStore else { return }
             localStore.state = extractChildState(state) ?? localStore.state
           }
           return localStore
-      }
-  }
+        }
+    }
 
-  @available(
-    *, deprecated,
-    message:
-      """
+    @available(
+      *, deprecated,
+      message:
+        """
       If you use this method, please open a discussion on GitHub and let us know how: \
       https://github.com/pointfreeco/swift-composable-architecture/discussions/new
       """
-  )
+    )
     public func producerScope<ChildState>(
       state toChildState: @escaping (SignalProducer<State, Never>) -> SignalProducer<
         ChildState, Never
       >
     ) -> SignalProducer<Store<ChildState, Action>, Never> {
       self.producerScope(state: toChildState, action: { $0 })
+    }
   }
-}
 
-extension ViewStore where Action: BindableAction, Action.State == State {
-  @available(
-    *, deprecated,
-    message:
-      """
+  extension ViewStore where Action: BindableAction, Action.State == State {
+    @available(
+      *, deprecated,
+      message:
+        """
       Dynamic member lookup is no longer supported for bindable state. Instead of dot-chaining on \
       the view store, e.g. 'viewStore.$value', invoke the 'binding' method on view store with a \
       key path to the value, e.g. 'viewStore.binding(\\.$value)'. For more on this change, see: \
       https://github.com/pointfreeco/swift-composable-architecture/pull/810
       """
-  )
-  public subscript<Value: Equatable>(
-    dynamicMember keyPath: WritableKeyPath<State, BindableState<Value>>
-  ) -> Binding<Value> {
-    self.binding(
-      get: { $0[keyPath: keyPath].wrappedValue },
-      send: { .binding(.set(keyPath, $0)) }
     )
+    public subscript<Value: Equatable>(
+      dynamicMember keyPath: WritableKeyPath<State, BindableState<Value>>
+    ) -> Binding<Value> {
+      self.binding(
+        get: { $0[keyPath: keyPath].wrappedValue },
+        send: { .binding(.set(keyPath, $0)) }
+      )
+    }
   }
-}
 
-// MARK: - Deprecated after 0.25.0:
+  // MARK: - Deprecated after 0.25.0:
 
-extension BindingAction {
-  @available(
-    *, deprecated,
-    message:
-      """
+  extension BindingAction {
+    @available(
+      *, deprecated,
+      message:
+        """
       For improved safety, bindable properties must now be wrapped explicitly in 'BindableState', \
       and accessed via key paths to that 'BindableState', like '\\.$value'
       """
-  )
-  public static func set<Value: Equatable>(
-    _ keyPath: WritableKeyPath<Root, Value>,
-    _ value: Value
-  ) -> Self {
-    .init(
-      keyPath: keyPath,
-      set: { $0[keyPath: keyPath] = value },
-      value: value,
-      valueIsEqualTo: { $0 as? Value == value }
     )
-  }
+    public static func set<Value: Equatable>(
+      _ keyPath: WritableKeyPath<Root, Value>,
+      _ value: Value
+    ) -> Self {
+      .init(
+        keyPath: keyPath,
+        set: { $0[keyPath: keyPath] = value },
+        value: value,
+        valueIsEqualTo: { $0 as? Value == value }
+      )
+    }
 
-  @available(
-    *, deprecated,
-    message:
-      """
+    @available(
+      *, deprecated,
+      message:
+        """
       For improved safety, bindable properties must now be wrapped explicitly in 'BindableState', \
       and accessed via key paths to that 'BindableState', like '\\.$value'
       """
-  )
-  public static func ~= <Value>(
-    keyPath: WritableKeyPath<Root, Value>,
-    bindingAction: Self
-  ) -> Bool {
-    keyPath == bindingAction.keyPath
+    )
+    public static func ~= <Value>(
+      keyPath: WritableKeyPath<Root, Value>,
+      bindingAction: Self
+    ) -> Bool {
+      keyPath == bindingAction.keyPath
+    }
   }
-}
 
-extension Reducer {
-  @available(
-    *, deprecated,
-    message:
-      """
+  extension Reducer {
+    @available(
+      *, deprecated,
+      message:
+        """
       'Reducer.binding()' no longer takes an explicit extract function and instead the reducer's \
       'Action' type must conform to 'BindableAction'
       """
-  )
+    )
     public func binding(action toBindingAction: @escaping (Action) -> BindingAction<State>?)
-    -> Self
+      -> Self
     {
-    Self { state, action, environment in
-      toBindingAction(action)?.set(&state)
-      return self.run(&state, action, environment)
+      Self { state, action, environment in
+        toBindingAction(action)?.set(&state)
+        return self.run(&state, action, environment)
+      }
     }
   }
-}
 
   #if canImport(SwiftUI)
-extension ViewStore {
-  @available(
-    *, deprecated,
-    message:
-      """
+    extension ViewStore {
+      @available(
+        *, deprecated,
+        message:
+          """
       For improved safety, bindable properties must now be wrapped explicitly in 'BindableState'. \
       Bindings are now derived via 'ViewStore.binding' with a key path to that 'BindableState' \
       (for example, 'viewStore.binding(\\.$value)'). For dynamic member lookup to be available, \
       the view store's 'Action' type must also conform to 'BindableAction'.
       """
-  )
-  public func binding<Value: Equatable>(
-    keyPath: WritableKeyPath<State, Value>,
-    send action: @escaping (BindingAction<State>) -> Action
-  ) -> Binding<Value> {
-    self.binding(
-      get: { $0[keyPath: keyPath] },
-      send: { action(.set(keyPath, $0)) }
-    )
-  }
-}
+      )
+      public func binding<Value: Equatable>(
+        keyPath: WritableKeyPath<State, Value>,
+        send action: @escaping (BindingAction<State>) -> Action
+      ) -> Binding<Value> {
+        self.binding(
+          get: { $0[keyPath: keyPath] },
+          send: { action(.set(keyPath, $0)) }
+        )
+      }
+    }
   #endif
 
-// MARK: - Deprecated after 0.23.0:
+  // MARK: - Deprecated after 0.23.0:
 
-extension AlertState.Button {
-  @available(*, deprecated, renamed: "cancel(_:action:)")
-  public static func cancel(
-    _ label: TextState,
-    send action: Action?
-  ) -> Self {
-    .cancel(label, action: action.map(AlertState.ButtonAction.send))
-  }
+  extension AlertState.Button {
+    @available(*, deprecated, renamed: "cancel(_:action:)")
+    public static func cancel(
+      _ label: TextState,
+      send action: Action?
+    ) -> Self {
+      .cancel(label, action: action.map(AlertState.ButtonAction.send))
+    }
 
-  @available(*, deprecated, renamed: "cancel(action:)")
-  public static func cancel(
-    send action: Action?
-  ) -> Self {
-    .cancel(action: action.map(AlertState.ButtonAction.send))
-  }
+    @available(*, deprecated, renamed: "cancel(action:)")
+    public static func cancel(
+      send action: Action?
+    ) -> Self {
+      .cancel(action: action.map(AlertState.ButtonAction.send))
+    }
 
-  @available(*, deprecated, renamed: "default(_:action:)")
-  public static func `default`(
-    _ label: TextState,
-    send action: Action?
-  ) -> Self {
-    .default(label, action: action.map(AlertState.ButtonAction.send))
-  }
+    @available(*, deprecated, renamed: "default(_:action:)")
+    public static func `default`(
+      _ label: TextState,
+      send action: Action?
+    ) -> Self {
+      .default(label, action: action.map(AlertState.ButtonAction.send))
+    }
 
-  @available(*, deprecated, renamed: "destructive(_:action:)")
-  public static func destructive(
-    _ label: TextState,
-    send action: Action?
-  ) -> Self {
-    .destructive(label, action: action.map(AlertState.ButtonAction.send))
-  }
-}
-
-// MARK: - Deprecated after 0.20.0:
-
-extension Reducer {
-  @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead.")
-  public func forEach<ParentState, ParentAction, ParentEnvironment>(
-    state toElementsState: WritableKeyPath<ParentState, [State]>,
-    action toElementAction: CasePath<ParentAction, (Int, Action)>,
-    environment toElementEnvironment: @escaping (ParentEnvironment) -> Environment,
-    breakpointOnNil: Bool = true,
-    file: StaticString = #file,
-    fileID: StaticString = #fileID,
-    line: UInt = #line
-  ) -> Reducer<ParentState, ParentAction, ParentEnvironment> {
-    .init { parentState, parentAction, parentEnvironment in
-      guard let (index, action) = toElementAction.extract(from: parentAction) else {
-        return .none
-      }
-      if index >= parentState[keyPath: toElementsState].endIndex {
-        runtimeWarning(
-          """
-          A "forEach" reducer at "%@:%d" received an action when state contained no element at \
-          that index. …
-
-            Action:
-              %@
-            Index:
-              %d
-
-          This is generally considered an application logic error, and can happen for a few \
-          reasons:
-
-          • This "forEach" reducer was combined with or run from another reducer that removed \
-          the element at this index when it handled this action. To fix this make sure that this \
-          "forEach" reducer is run before any other reducers that can move or remove elements \
-          from state. This ensures that "forEach" reducers can handle their actions for the \
-          element at the intended index.
-
-          • An in-flight effect emitted this action while state contained no element at this \
-          index. While it may be perfectly reasonable to ignore this action, you may want to \
-          cancel the associated effect when moving or removing an element. If your "forEach" \
-          reducer returns any long-living effects, you should use the identifier-based "forEach" \
-          instead.
-
-          • This action was sent to the store while its state contained no element at this index \
-          To fix this make sure that actions for this reducer can only be sent to a view store \
-          when its state contains an element at this index. In SwiftUI applications, use \
-          "ForEachStore".
-          """,
-          [
-            "\(fileID)",
-            line,
-            debugCaseOutput(action),
-            index,
-          ],
-          file: file,
-          line: line
-        )
-        return .none
-      }
-      return self.run(
-        &parentState[keyPath: toElementsState][index],
-        action,
-        toElementEnvironment(parentEnvironment)
-      )
-      .map { toElementAction.embed((index, $0)) }
+    @available(*, deprecated, renamed: "destructive(_:action:)")
+    public static func destructive(
+      _ label: TextState,
+      send action: Action?
+    ) -> Self {
+      .destructive(label, action: action.map(AlertState.ButtonAction.send))
     }
   }
-}
 
-extension ForEachStore {
-  @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead.")
-  public init<EachContent>(
-    _ store: Store<Data, (Data.Index, EachAction)>,
-    id: KeyPath<EachState, ID>,
-    @ViewBuilder content: @escaping (Store<EachState, EachAction>) -> EachContent
-  )
-  where
-    Data == [EachState],
-    Content == WithViewStore<
-      [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
-    >
-  {
-      let data = store.state
-    self.data = data
-    self.content = {
-      WithViewStore(store.scope(state: { $0.map { $0[keyPath: id] } })) { viewStore in
-        ForEach(Array(viewStore.state.enumerated()), id: \.element) { index, _ in
-          content(
-            store.scope(
-              state: { index < $0.endIndex ? $0[index] : data[index] },
-              action: { (index, $0) }
-            )
+  // MARK: - Deprecated after 0.20.0:
+
+  extension Reducer {
+    @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead.")
+    public func forEach<ParentState, ParentAction, ParentEnvironment>(
+      state toElementsState: WritableKeyPath<ParentState, [State]>,
+      action toElementAction: CasePath<ParentAction, (Int, Action)>,
+      environment toElementEnvironment: @escaping (ParentEnvironment) -> Environment,
+      breakpointOnNil: Bool = true,
+      file: StaticString = #file,
+      fileID: StaticString = #fileID,
+      line: UInt = #line
+    ) -> Reducer<ParentState, ParentAction, ParentEnvironment> {
+      .init { parentState, parentAction, parentEnvironment in
+        guard let (index, action) = toElementAction.extract(from: parentAction) else {
+          return .none
+        }
+        if index >= parentState[keyPath: toElementsState].endIndex {
+          runtimeWarning(
+            """
+            A "forEach" reducer at "%@:%d" received an action when state contained no element at \
+            that index. …
+
+              Action:
+                %@
+              Index:
+                %d
+
+            This is generally considered an application logic error, and can happen for a few \
+            reasons:
+
+            • This "forEach" reducer was combined with or run from another reducer that removed \
+            the element at this index when it handled this action. To fix this make sure that this \
+            "forEach" reducer is run before any other reducers that can move or remove elements \
+            from state. This ensures that "forEach" reducers can handle their actions for the \
+            element at the intended index.
+
+            • An in-flight effect emitted this action while state contained no element at this \
+            index. While it may be perfectly reasonable to ignore this action, you may want to \
+            cancel the associated effect when moving or removing an element. If your "forEach" \
+            reducer returns any long-living effects, you should use the identifier-based "forEach" \
+            instead.
+
+            • This action was sent to the store while its state contained no element at this index \
+            To fix this make sure that actions for this reducer can only be sent to a view store \
+            when its state contains an element at this index. In SwiftUI applications, use \
+            "ForEachStore".
+            """,
+            [
+              "\(fileID)",
+              line,
+              debugCaseOutput(action),
+              index,
+            ],
+            file: file,
+            line: line
           )
+          return .none
+        }
+        return self.run(
+          &parentState[keyPath: toElementsState][index],
+          action,
+          toElementEnvironment(parentEnvironment)
+        )
+        .map { toElementAction.embed((index, $0)) }
+      }
+    }
+  }
+
+  extension ForEachStore {
+    @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead.")
+    public init<EachContent>(
+      _ store: Store<Data, (Data.Index, EachAction)>,
+      id: KeyPath<EachState, ID>,
+      @ViewBuilder content: @escaping (Store<EachState, EachAction>) -> EachContent
+    )
+    where
+      Data == [EachState],
+      Content == WithViewStore<
+        [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
+      >
+    {
+      let data = store.state
+      self.data = data
+      self.content = {
+        WithViewStore(store.scope(state: { $0.map { $0[keyPath: id] } })) { viewStore in
+          ForEach(Array(viewStore.state.enumerated()), id: \.element) { index, _ in
+            content(
+              store.scope(
+                state: { index < $0.endIndex ? $0[index] : data[index] },
+                action: { (index, $0) }
+              )
+            )
+          }
         }
       }
     }
-  }
 
-  @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead.")
-  public init<EachContent>(
-    _ store: Store<Data, (Data.Index, EachAction)>,
-    @ViewBuilder content: @escaping (Store<EachState, EachAction>) -> EachContent
-  )
-  where
-    Data == [EachState],
-    Content == WithViewStore<
-      [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
-    >,
-    EachState: Identifiable,
-    EachState.ID == ID
-  {
-    self.init(store, id: \.id, content: content)
+    @available(*, deprecated, message: "Use the 'IdentifiedArray'-based version, instead.")
+    public init<EachContent>(
+      _ store: Store<Data, (Data.Index, EachAction)>,
+      @ViewBuilder content: @escaping (Store<EachState, EachAction>) -> EachContent
+    )
+    where
+      Data == [EachState],
+      Content == WithViewStore<
+        [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
+      >,
+      EachState: Identifiable,
+      EachState.ID == ID
+    {
+      self.init(store, id: \.id, content: content)
+    }
   }
-}
 #endif

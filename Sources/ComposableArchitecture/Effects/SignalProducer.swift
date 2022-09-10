@@ -6,7 +6,7 @@ import ReactiveSwift
 @available(watchOS, deprecated: 9999.0)
 extension Effect {
   @inlinable
-  var producer: SignalProducer<Output, Failure> {
+  var producer: SignalProducer<Action, Failure> {
     switch self.operation {
     case .none:
       return .empty
@@ -61,7 +61,7 @@ extension Effect {
     message: "Iterate over 'SignalProducer.values' in an 'Effect.run', instead."
   )
   public init<P: SignalProducerConvertible>(_ producer: P)
-  where P.Value == Output, P.Error == Failure {
+  where P.Value == Action, P.Error == Failure {
     self.operation = .producer(producer.producer)
   }
 
@@ -72,7 +72,7 @@ extension Effect {
   @available(macOS, deprecated: 9999.0, message: "Wrap the value in 'Effect.task', instead.")
   @available(tvOS, deprecated: 9999.0, message: "Wrap the value in 'Effect.task', instead.")
   @available(watchOS, deprecated: 9999.0, message: "Wrap the value in 'Effect.task', instead.")
-  public init(value: Output) {
+  public init(value: Action) {
     self.init(SignalProducer(value: value))
   }
 
@@ -101,7 +101,7 @@ extension Effect {
     //     bug was fixed in iOS 14, but to remain compatible with iOS 13 and higher we need to do
     //     a little trickery to fail in a slightly different way.
     self.init(SignalProducer(error: error))
-  }
+      }
 
   /// Creates an effect that can supply a single value asynchronously in the future.
   ///
@@ -131,13 +131,13 @@ extension Effect {
   /// ```
   ///
   /// - Parameter attemptToFulfill: A closure that takes a `callback` as an argument which can be
-  ///   used to feed it `Result<Output, Failure>` values.
+  ///   used to feed it `Result<Action, Failure>` values.
   @available(iOS, deprecated: 9999.0, message: "Use 'Effect.task', instead.")
   @available(macOS, deprecated: 9999.0, message: "Use 'Effect.task', instead.")
   @available(tvOS, deprecated: 9999.0, message: "Use 'Effect.task', instead.")
   @available(watchOS, deprecated: 9999.0, message: "Use 'Effect.task', instead.")
   public static func future(
-    _ attemptToFulfill: @escaping (@escaping (Result<Output, Failure>) -> Void) -> Void
+    _ attemptToFulfill: @escaping (@escaping (Result<Action, Failure>) -> Void) -> Void
   ) -> Self {
     self.init(
       SignalProducer { observer, _ in
@@ -150,7 +150,7 @@ extension Effect {
             observer.send(error: error)
           }
         }
-      }
+  }
     )
   }
 
@@ -183,9 +183,9 @@ extension Effect {
   @available(macOS, deprecated: 9999.0, message: "Use 'Effect.task', instead.")
   @available(tvOS, deprecated: 9999.0, message: "Use 'Effect.task', instead.")
   @available(watchOS, deprecated: 9999.0, message: "Use 'Effect.task', instead.")
-  public static func result(_ attemptToFulfill: @escaping () -> Result<Output, Failure>) -> Self {
+  public static func result(_ attemptToFulfill: @escaping () -> Result<Action, Failure>) -> Self {
     Effect(
-      SignalProducer { () -> Result<Output, Failure> in
+      SignalProducer { () -> Result<Action, Failure> in
         attemptToFulfill()
       }
     )
@@ -232,9 +232,9 @@ extension Effect {
     watchOS, deprecated: 9999.0, message: "Use the async version of 'Effect.run', instead."
   )
   public static func run(
-    _ work: @escaping (Signal<Output, Failure>.Observer) -> Disposable
+    _ work: @escaping (Signal<Action, Failure>.Observer) -> Disposable
   ) -> Self {
-    SignalProducer<Output, Failure> { observer, lifetime in
+    SignalProducer<Action, Failure> { observer, lifetime in
       lifetime += work(observer)
     }
     .eraseToEffect()
@@ -298,7 +298,7 @@ extension Effect where Failure == Error {
     watchOS, deprecated: 9999.0,
     message: "Throw and catch errors directly in 'Effect.task' and 'Effect.run', instead."
   )
-  public static func catching(_ work: @escaping () throws -> Output) -> Self {
+  public static func catching(_ work: @escaping () throws -> Action) -> Self {
     .future { $0(Result { try work() }) }
   }
 }
@@ -526,7 +526,7 @@ extension SignalProducer {
     outputType: NewValue.Type = NewValue.self,
     failureType: NewError.Type = NewError.self
   ) -> Effect<NewValue, NewError> {
-    self
+      self
       .flatMapError { _ in .empty }
       .flatMap(.latest) { _ in .empty }
       .eraseToEffect()
