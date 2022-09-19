@@ -264,9 +264,9 @@ public final class ViewStore<State, Action> {
     public func send(_ action: Action, while predicate: @escaping (State) -> Bool) async {
       let task = self.send(action)
       await withTaskCancellationHandler {
-        task.rawValue?.cancel()
-      } operation: {
         await self.yield(while: predicate)
+      } onCancel: {
+        task.rawValue?.cancel()
       }
     }
 
@@ -287,9 +287,9 @@ public final class ViewStore<State, Action> {
       ) async {
         let task = withAnimation(animation) { self.send(action) }
         await withTaskCancellationHandler {
-          task.rawValue?.cancel()
-        } operation: {
           await self.yield(while: predicate)
+        } onCancel: {
+          task.rawValue?.cancel()
         }
       }
     #endif
@@ -304,31 +304,30 @@ public final class ViewStore<State, Action> {
     @MainActor
     public func yield(while predicate: @escaping (State) -> Bool) async {
       if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
-        _ = await self.produced.producer
+          _ = await self.produced.producer
           .values
           .first(where: { !predicate($0) })
       } else {
         let cancellable = Box<Disposable?>(wrappedValue: nil)
-        try? await withTaskCancellationHandler(
-          handler: { cancellable.wrappedValue?.dispose() },
-          operation: {
-            try Task.checkCancellation()
-            try await withUnsafeThrowingContinuation {
-              (continuation: UnsafeContinuation<Void, Error>) in
-              guard !Task.isCancelled else {
-                continuation.resume(throwing: CancellationError())
-                return
-              }
-              cancellable.wrappedValue = self.produced.producer
-                .filter { !predicate($0) }
-                .take(first: 1)
-                .startWithValues { _ in
-                  continuation.resume()
-                  _ = cancellable
-                }
+        try? await withTaskCancellationHandler {
+          try Task.checkCancellation()
+          try await withUnsafeThrowingContinuation {
+            (continuation: UnsafeContinuation<Void, Error>) in
+            guard !Task.isCancelled else {
+              continuation.resume(throwing: CancellationError())
+              return
             }
+                cancellable.wrappedValue = self.produced.producer
+              .filter { !predicate($0) }
+                  .take(first: 1)
+                  .startWithValues { _ in
+                continuation.resume()
+                _ = cancellable
+              }
           }
-        )
+        } onCancel: {
+          cancellable.wrappedValue?.dispose()
+        }
       }
     }
   #endif
