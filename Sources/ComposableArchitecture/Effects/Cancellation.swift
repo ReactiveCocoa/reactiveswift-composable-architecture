@@ -208,27 +208,24 @@ public func withTaskCancellation<T: Sendable>(
   cancelInFlight: Bool = false,
   operation: @Sendable @escaping () async throws -> T
 ) async rethrows -> T {
-  let task = { () -> Task<T, Error> in
-    cancellablesLock.lock()
-    let id = CancelToken(id: id)
+  let id = CancelToken(id: id)
+  let (cancellable, task) = cancellablesLock.sync { () -> (AnyDisposable, Task<T, Error>) in
     if cancelInFlight {
       cancellationCancellables[id]?.forEach { $0.dispose() }
     }
     let task = Task { try await operation() }
-    var cancellable: AnyDisposable!
-    cancellable = AnyDisposable {
-      task.cancel()
-      cancellablesLock.sync {
-        cancellationCancellables[id]?.remove(cancellable)
-        if cancellationCancellables[id]?.isEmpty == .some(true) {
-          cancellationCancellables[id] = nil
-        }
+    let cancellable = AnyDisposable { task.cancel() }
+    cancellationCancellables[id, default: []].insert(cancellable)
+    return (cancellable, task)
+  }
+  defer {
+    cancellablesLock.sync {
+      cancellationCancellables[id]?.remove(cancellable)
+      if cancellationCancellables[id]?.isEmpty == .some(true) {
+        cancellationCancellables[id] = nil
       }
     }
-    cancellationCancellables[id, default: []].insert(cancellable)
-    cancellablesLock.unlock()
-    return task
-  }()
+  }
   do {
     return try await task.cancellableValue
   } catch {
@@ -264,10 +261,8 @@ extension Task where Success == Never, Failure == Never {
   /// Cancel any currently in-flight operation with the given identifier.
   ///
   /// - Parameter id: An identifier.
-  public static func cancel<ID: Hashable & Sendable>(id: ID) async {
-    await MainActor.run {
-      cancellablesLock.sync { cancellationCancellables[.init(id: id)]?.forEach { $0.dispose() } }
-    }
+  public static func cancel<ID: Hashable & Sendable>(id: ID) {
+    cancellablesLock.sync { cancellationCancellables[.init(id: id)]?.forEach { $0.dispose() } }
   }
 
   /// Cancel any currently in-flight operation with the given identifier.
@@ -276,8 +271,8 @@ extension Task where Success == Never, Failure == Never {
   /// identifier.
   ///
   /// - Parameter id: A unique type identifying the operation.
-  public static func cancel(id: Any.Type) async {
-    await self.cancel(id: ObjectIdentifier(id))
+  public static func cancel(id: Any.Type) {
+    self.cancel(id: ObjectIdentifier(id))
   }
 }
 
