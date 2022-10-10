@@ -8,7 +8,7 @@
     /// ```swift
     /// case .buttonTapped:
     ///   return .task {
-    ///     .activityResponse(await environment.apiClient.fetchActivity())
+    ///     .activityResponse(await self.apiClient.fetchActivity())
     ///   }
     ///   .animation()
     /// ```

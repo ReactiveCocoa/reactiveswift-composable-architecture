@@ -1,13 +1,18 @@
 ### Essentials
 
 - <doc:GettingStarted>
-- <doc:GettingReadyForSwiftConcurrency>
-- <doc:Performance>
+- <doc:DependencyManagement>
 - <doc:Testing>
+- <doc:Performance>
 
-### State Management
+### Upgrade guides
 
-- ``Reducer``
+- <doc:SwiftConcurrency>
+- <doc:MigratingToTheReducerProtocol>
+
+### State management
+
+- ``ReducerProtocol``
 - ``Effect``
 - ``Store``
 - ``ViewStore``
@@ -19,6 +24,7 @@
 
 ### Testing
 
+- <doc:Testing>
 - ``TestStore``
 - ``ActorIsolated``
 

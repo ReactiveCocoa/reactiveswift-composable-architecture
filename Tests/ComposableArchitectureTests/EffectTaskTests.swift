@@ -1,123 +1,124 @@
+import ComposableArchitecture
 import XCTest
-
-@testable import ComposableArchitecture
 
 // `@MainActor` introduces issues gathering tests on Linux
 #if !os(Linux)
-@MainActor
-final class EffectTaskTests: XCTestCase {
-  func testTask() async {
-    struct State: Equatable {}
-    enum Action: Equatable { case tapped, response }
-    let reducer = Reducer<State, Action, Void> { state, action, _ in
-      switch action {
-      case .tapped:
-        return .task { .response }
-      case .response:
-        return .none
-      }
-    }
-    let store = TestStore(initialState: State(), reducer: reducer, environment: ())
-    await store.send(.tapped)
-    await store.receive(.response)
-  }
-
-  func testTaskCatch() async {
-    struct State: Equatable {}
-    enum Action: Equatable, Sendable { case tapped, response }
-    let reducer = Reducer<State, Action, Void> { state, action, _ in
-      switch action {
-      case .tapped:
-        return .task {
-          struct Failure: Error {}
-          throw Failure()
-        } catch: { @Sendable _ in  // NB: Explicit '@Sendable' required in 5.5.2
-          .response
+  @MainActor
+  final class EffectTaskTests: XCTestCase {
+    func testTask() async {
+      struct State: Equatable {}
+      enum Action: Equatable { case tapped, response }
+      let reducer = Reduce<State, Action> { state, action in
+        switch action {
+        case .tapped:
+          return .task { .response }
+        case .response:
+          return .none
         }
-      case .response:
-        return .none
       }
+      let store = TestStore(initialState: State(), reducer: reducer)
+      await store.send(.tapped)
+      await store.receive(.response)
     }
-    let store = TestStore(initialState: State(), reducer: reducer, environment: ())
-    await store.send(.tapped)
-    await store.receive(.response)
-  }
+
+    func testTaskCatch() async {
+      struct State: Equatable {}
+      enum Action: Equatable, Sendable { case tapped, response }
+      let reducer = Reduce<State, Action> { state, action in
+        switch action {
+        case .tapped:
+          return .task {
+            struct Failure: Error {}
+            throw Failure()
+          } catch: { @Sendable _ in  // NB: Explicit '@Sendable' required in 5.5.2
+            .response
+          }
+        case .response:
+          return .none
+        }
+      }
+      let store = TestStore(initialState: State(), reducer: reducer)
+      await store.send(.tapped)
+      await store.receive(.response)
+    }
 
     // `XCTExpectFailure` is not supported on Linux
-    #if !os(Linux)
-  func testTaskUnhandledFailure() async {
-    XCTExpectFailure(nil, enabled: nil, strict: nil) {
-      $0.compactDescription == """
-        An 'Effect.task' returned from "ComposableArchitectureTests/EffectTaskTests.swift:65" \
-        threw an unhandled error. …
+    #if DEBUG && !os(Linux)
+      func testTaskUnhandledFailure() async {
+        var line: UInt!
+        XCTExpectFailure(nil, enabled: nil, strict: nil) {
+          $0.compactDescription == """
+            An 'Effect.task' returned from \
+            "ComposableArchitectureTests/EffectTaskTests.swift:\(line+1)" threw an unhandled error. …
 
-            EffectTaskTests.Failure()
+                EffectTaskTests.Failure()
 
-        All non-cancellation errors must be explicitly handled via the 'catch' parameter on \
-        'Effect.task', or via a 'do' block.
-        """
-    }
-    struct State: Equatable {}
-    enum Action: Equatable { case tapped, response }
-    let reducer = Reducer<State, Action, Void> { state, action, _ in
-      switch action {
-      case .tapped:
-        return .task {
-          struct Failure: Error {}
-          throw Failure()
+            All non-cancellation errors must be explicitly handled via the 'catch' parameter on \
+            'Effect.task', or via a 'do' block.
+            """
         }
-      case .response:
-        return .none
+        struct State: Equatable {}
+        enum Action: Equatable { case tapped, response }
+        let reducer = Reduce<State, Action> { state, action in
+          switch action {
+          case .tapped:
+            line = #line
+            return .task {
+              struct Failure: Error {}
+              throw Failure()
+            }
+          case .response:
+            return .none
+          }
+        }
+        let store = TestStore(initialState: State(), reducer: reducer)
+        // NB: We wait a long time here because XCTest failures take a long time to generate
+        await store.send(.tapped).finish(timeout: 5 * NSEC_PER_SEC)
       }
-    }
-    let store = TestStore(initialState: State(), reducer: reducer, environment: ())
-    // NB: We wait a long time here because XCTest failures take a long time to generate
-    await store.send(.tapped).finish(timeout: 5 * NSEC_PER_SEC)
-  }
     #endif
 
-  func testTaskCancellation() async {
-    enum CancelID {}
-    struct State: Equatable {}
-    enum Action: Equatable { case tapped, response }
-    let reducer = Reducer<State, Action, Void> { state, action, _ in
-      switch action {
-      case .tapped:
-        return .task {
-          Task.cancel(id: CancelID.self)
-          try Task.checkCancellation()
-          return .response
+    func testTaskCancellation() async {
+      enum CancelID {}
+      struct State: Equatable {}
+      enum Action: Equatable { case tapped, response }
+      let reducer = Reduce<State, Action> { state, action in
+        switch action {
+        case .tapped:
+          return .task {
+            Task.cancel(id: CancelID.self)
+            try Task.checkCancellation()
+            return .response
+          }
+          .cancellable(id: CancelID.self)
+        case .response:
+          return .none
         }
-        .cancellable(id: CancelID.self)
-      case .response:
-        return .none
       }
+      let store = TestStore(initialState: State(), reducer: reducer)
+      await store.send(.tapped).finish()
     }
-    let store = TestStore(initialState: State(), reducer: reducer, environment: ())
-    await store.send(.tapped).finish()
-  }
 
-  func testTaskCancellationCatch() async {
-    enum CancelID {}
-    struct State: Equatable {}
-    enum Action: Equatable { case tapped, responseA, responseB }
-    let reducer = Reducer<State, Action, Void> { state, action, _ in
-      switch action {
-      case .tapped:
-        return .task {
-          Task.cancel(id: CancelID.self)
-          try Task.checkCancellation()
-          return .responseA
-        } catch: { @Sendable _ in  // NB: Explicit '@Sendable' required in 5.5.2
-          .responseB
+    func testTaskCancellationCatch() async {
+      enum CancelID {}
+      struct State: Equatable {}
+      enum Action: Equatable { case tapped, responseA, responseB }
+      let reducer = Reduce<State, Action> { state, action in
+        switch action {
+        case .tapped:
+          return .task {
+            Task.cancel(id: CancelID.self)
+            try Task.checkCancellation()
+            return .responseA
+          } catch: { @Sendable _ in  // NB: Explicit '@Sendable' required in 5.5.2
+            .responseB
+          }
+          .cancellable(id: CancelID.self)
+        case .responseA, .responseB:
+          return .none
         }
-        .cancellable(id: CancelID.self)
-      case .responseA, .responseB:
-        return .none
       }
+      let store = TestStore(initialState: State(), reducer: reducer)
+      await store.send(.tapped).finish()
     }
-    let store = TestStore(initialState: State(), reducer: reducer, environment: ())
-    await store.send(.tapped).finish()
   }
-}
 #endif

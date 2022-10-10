@@ -16,7 +16,7 @@
   /// ``TextState``:
   ///
   /// ```swift
-  /// struct AppState: Equatable {
+  /// struct State: Equatable {
   ///   var label: TextState
   /// }
   /// ```

@@ -1,10 +1,9 @@
 import ComposableArchitecture
 import Speech
 
-extension SpeechClient {
-  static var live: Self {
+extension SpeechClient: DependencyKey {
+  static let liveValue = {
     let speech = Speech()
-
     return Self(
       finishTask: {
         await speech.finishTask()
@@ -21,7 +20,7 @@ extension SpeechClient {
         return await speech.startTask(request: request)
       }
     )
-  }
+  }()
 }
 
 private actor Speech {

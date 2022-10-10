@@ -67,7 +67,7 @@ import XCTest
       viewStore.send(.start)
       viewStore.send(.kickOffAction)
 
-      XCTAssertNoDifference(
+      XCTAssertEqual(
         handledActions,
         [
           "start",
@@ -99,7 +99,9 @@ import XCTest
 
       viewStore.produced.producer
         .startWithValues { value in
-          if value == 1 { viewStore.send(0) }
+          if value == 1 {
+            viewStore.send(0)
+          }
         }
 
       var stateChanges: [Int] = []

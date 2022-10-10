@@ -6,11 +6,11 @@ import TwoFactorUIKit
 import UIKit
 
 public class LoginViewController: UIViewController {
-  let store: Store<LoginState, LoginAction>
+  let store: StoreOf<Login>
   let viewStore: ViewStore<ViewState, ViewAction>
 
   struct ViewState: Equatable {
-    let alert: AlertState<LoginAction>?
+    let alert: AlertState<Login.Action>?
     let email: String?
     let isActivityIndicatorHidden: Bool
     let isEmailTextFieldEnabled: Bool
@@ -18,7 +18,7 @@ public class LoginViewController: UIViewController {
     let isPasswordTextFieldEnabled: Bool
     let password: String?
 
-    init(state: LoginState) {
+    init(state: Login.State) {
       self.alert = state.alert
       self.email = state.email
       self.isActivityIndicatorHidden = !state.isLoginRequestInFlight
@@ -37,9 +37,9 @@ public class LoginViewController: UIViewController {
     case twoFactorDismissed
   }
 
-  public init(store: Store<LoginState, LoginAction>) {
+  public init(store: StoreOf<Login>) {
     self.store = store
-    self.viewStore = ViewStore(store.scope(state: ViewState.init, action: LoginAction.init))
+    self.viewStore = ViewStore(store.scope(state: ViewState.init, action: Login.Action.init))
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -149,7 +149,7 @@ public class LoginViewController: UIViewController {
       }
 
     self.store
-      .scope(state: \.twoFactor, action: LoginAction.twoFactor)
+      .scope(state: \.twoFactor, action: Login.Action.twoFactor)
       .ifLet(
         then: { [weak self] twoFactorStore in
           self?.navigationController?.pushViewController(
@@ -185,7 +185,7 @@ public class LoginViewController: UIViewController {
   }
 }
 
-extension LoginAction {
+extension Login.Action {
   init(action: LoginViewController.ViewAction) {
     switch action {
     case .alertDismissed:

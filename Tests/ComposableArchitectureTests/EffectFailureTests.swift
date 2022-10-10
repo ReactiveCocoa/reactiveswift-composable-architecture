@@ -1,18 +1,19 @@
-import XCTest
-
-@testable import ComposableArchitecture
-
 // `XCTExpectFailure` is not supported on Linux / `@MainActor` introduces issues gathering tests on Linux
-#if !os(Linux)
+#if DEBUG && !os(Linux)
+  import ComposableArchitecture
+  import XCTest
+
   @MainActor
   final class EffectFailureTests: XCTestCase {
     func testTaskUnexpectedThrows() async {
       guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
 
+      var line: UInt!
       XCTExpectFailure {
         $0.compactDescription == """
-          An 'Effect.task' returned from "ComposableArchitectureTests/EffectFailureTests.swift:24" \
-          threw an unhandled error. …
+          An 'Effect.task' returned from \
+          "ComposableArchitectureTests/EffectFailureTests.swift:\(line+1)" threw an unhandled \
+          error. …
 
               EffectFailureTests.Unexpected()
 
@@ -21,6 +22,7 @@ import XCTest
           """
       }
 
+      line = #line
       let effect = Effect<Void, Never>.task {
         struct Unexpected: Error {}
         throw Unexpected()
@@ -32,10 +34,12 @@ import XCTest
     func testRunUnexpectedThrows() async {
       guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
 
+      var line: UInt!
       XCTExpectFailure {
         $0.compactDescription == """
-          An 'Effect.run' returned from "ComposableArchitectureTests/EffectFailureTests.swift:47" \
-          threw an unhandled error. …
+          An 'Effect.run' returned from \
+          "ComposableArchitectureTests/EffectFailureTests.swift:\(line+1)" threw an unhandled \
+          error. …
 
               EffectFailureTests.Unexpected()
 
@@ -44,6 +48,7 @@ import XCTest
           """
       }
 
+      line = #line
       let effect = Effect<Void, Never>.run { _ in
         struct Unexpected: Error {}
         throw Unexpected()

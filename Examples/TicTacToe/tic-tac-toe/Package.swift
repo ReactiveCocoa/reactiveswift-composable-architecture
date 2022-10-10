@@ -63,7 +63,7 @@ let package = Package(
     .target(
       name: "AuthenticationClient",
       dependencies: [
-        .product(name: "ComposableArchitecture", package: "reactiveswift-composable-architecture")
+        .product(name: "Dependencies", package: "reactiveswift-composable-architecture")
       ]
     ),
     .target(

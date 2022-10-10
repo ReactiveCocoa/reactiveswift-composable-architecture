@@ -4,8 +4,8 @@ import ReactiveSwift
 import UIKit
 
 public final class GameViewController: UIViewController {
-  let store: Store<GameState, GameAction>
-  let viewStore: ViewStore<ViewState, GameAction>
+  let store: StoreOf<Game>
+  let viewStore: ViewStore<ViewState, Game.Action>
 
   struct ViewState: Equatable {
     let board: Three<Three<String>>
@@ -13,7 +13,7 @@ public final class GameViewController: UIViewController {
     let isPlayAgainButtonHidden: Bool
     let title: String?
 
-    init(state: GameState) {
+    init(state: Game.State) {
       self.board = state.board.map { $0.map { $0?.label ?? "" } }
       self.isGameEnabled = !state.board.hasWinner && !state.board.isFilled
       self.isPlayAgainButtonHidden = !state.board.hasWinner && !state.board.isFilled
@@ -26,7 +26,7 @@ public final class GameViewController: UIViewController {
     }
   }
 
-  public init(store: Store<GameState, GameAction>) {
+  public init(store: StoreOf<Game>) {
     self.store = store
     self.viewStore = ViewStore(store.scope(state: ViewState.init))
     super.init(nibName: nil, bundle: nil)

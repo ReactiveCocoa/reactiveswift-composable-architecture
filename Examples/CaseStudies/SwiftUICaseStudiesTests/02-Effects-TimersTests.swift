@@ -7,15 +7,13 @@ import XCTest
 @MainActor
 final class TimersTests: XCTestCase {
   func testStart() async {
-    let mainQueue = TestScheduler()
-
     let store = TestStore(
-      initialState: TimersState(),
-      reducer: timersReducer,
-      environment: TimersEnvironment(
-        mainQueue: mainQueue
-      )
+      initialState: Timers.State(),
+      reducer: Timers()
     )
+
+    let mainQueue = DispatchQueue.test
+    store.dependencies.mainQueue = mainQueue.eraseToAnyScheduler()
 
     await store.send(.toggleTimerButtonTapped) {
       $0.isTimerActive = true

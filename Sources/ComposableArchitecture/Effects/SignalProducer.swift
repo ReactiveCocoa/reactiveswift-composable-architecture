@@ -139,19 +139,23 @@ extension Effect {
   public static func future(
     _ attemptToFulfill: @escaping (@escaping (Result<Action, Failure>) -> Void) -> Void
   ) -> Self {
-    self.init(
-      SignalProducer { observer, _ in
-        attemptToFulfill { result in
-          switch result {
-          case let .success(value):
-            observer.send(value: value)
-            observer.sendCompleted()
-          case let .failure(error):
-            observer.send(error: error)
+    let dependencies = DependencyValues._current
+    return SignalProducer.deferred {
+      DependencyValues.$_current.withValue(dependencies) {
+        SignalProducer { observer, _ in
+          attemptToFulfill { result in
+            switch result {
+            case let .success(value):
+              observer.send(value: value)
+              observer.sendCompleted()
+            case let .failure(error):
+              observer.send(error: error)
+            }
           }
         }
       }
-    )
+    }
+    .eraseToEffect()
   }
 
   /// Initializes an effect that lazily executes some work in the real world and synchronously sends
@@ -184,11 +188,7 @@ extension Effect {
   @available(tvOS, deprecated: 9999.0, message: "Use 'Effect.task', instead.")
   @available(watchOS, deprecated: 9999.0, message: "Use 'Effect.task', instead.")
   public static func result(_ attemptToFulfill: @escaping () -> Result<Action, Failure>) -> Self {
-    Effect(
-      SignalProducer { () -> Result<Action, Failure> in
-        attemptToFulfill()
-      }
-    )
+    .future { $0(attemptToFulfill()) }
   }
 
   /// Initializes an effect from a callback that can send as many values as it wants, and can send
@@ -234,8 +234,11 @@ extension Effect {
   public static func run(
     _ work: @escaping (Signal<Action, Failure>.Observer) -> Disposable
   ) -> Self {
-    SignalProducer<Action, Failure> { observer, lifetime in
-      lifetime += work(observer)
+    let dependencies = DependencyValues._current
+    return SignalProducer<Action, Failure> { observer, lifetime in
+      lifetime += DependencyValues.$_current.withValue(dependencies) {
+        work(observer)
+      }
     }
     .eraseToEffect()
   }
@@ -251,10 +254,14 @@ extension Effect {
   @available(tvOS, deprecated: 9999.0, message: "Use the async version, instead.")
   @available(watchOS, deprecated: 9999.0, message: "Use the async version, instead.")
   public static func fireAndForget(_ work: @escaping () throws -> Void) -> Self {
-
-    SignalProducer { observer, lifetime in
-      try? work()
-      observer.sendCompleted()
+    let dependencies = DependencyValues._current
+    return SignalProducer.deferred {
+      DependencyValues.$_current.withValue(dependencies) {
+        SignalProducer { observer, lifetime in
+          try? work()
+          observer.sendCompleted()
+        }
+      }
     }
     .eraseToEffect()
   }
@@ -417,7 +424,7 @@ extension SignalProducer {
   ///
   /// ```swift
   /// case .buttonTapped:
-  ///   return environment.fetchUser(id: 1)
+  ///   return self.apiClient.fetchUser(id: 1)
   ///     .catchToEffect()
   ///     .map(ProfileAction.userResponse)
   /// ```
@@ -440,10 +447,7 @@ extension SignalProducer {
     message: "Iterate over 'SignalProducer.values' in an 'Effect.run', instead."
   )
   public func catchToEffect() -> Effect<Result<Value, Error>, Never> {
-    self
-      .map(Result<Value, Error>.success)
-      .flatMapError { SignalProducer<Result<Value, Error>, Never>(value: .failure($0)) }
-      .eraseToEffect()
+    self.catchToEffect { $0 }
   }
 
   /// Turns any producer into an ``Effect`` that cannot fail by wrapping its output and failure
@@ -454,7 +458,7 @@ extension SignalProducer {
   ///
   /// ```swift
   /// case .buttonTapped:
-  ///   return environment.fetchUser(id: 1)
+  ///   return self.apiClient.fetchUser(id: 1)
   ///     .catchToEffect(ProfileAction.userResponse)
   /// ```
   ///
@@ -480,7 +484,14 @@ extension SignalProducer {
   public func catchToEffect<T>(
     _ transform: @escaping (Result<Value, Error>) -> T
   ) -> Effect<T, Never> {
-    self
+    let dependencies = DependencyValues._current
+    let transform = { action in
+      DependencyValues.$_current.withValue(dependencies) {
+        transform(action)
+      }
+    }
+    return
+      self
       .map { transform(.success($0)) }
       .flatMapError { SignalProducer<T, Never>(value: transform(.failure($0))) }
       .eraseToEffect()

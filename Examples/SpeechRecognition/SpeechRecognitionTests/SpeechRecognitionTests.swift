@@ -9,12 +9,11 @@ final class SpeechRecognitionTests: XCTestCase {
 
   func testDenyAuthorization() async {
     let store = TestStore(
-      initialState: AppState(),
-      reducer: appReducer,
-      environment: .unimplemented
+      initialState: SpeechRecognition.State(),
+      reducer: SpeechRecognition()
     )
 
-    store.environment.speechClient.requestAuthorization = { .denied }
+    store.dependencies.speechClient.requestAuthorization = { .denied }
 
     await store.send(.recordButtonTapped) {
       $0.isRecording = true
@@ -23,7 +22,7 @@ final class SpeechRecognitionTests: XCTestCase {
       $0.alert = AlertState(
         title: TextState(
           """
-          You denied access to speech recognition. This app needs access to transcribe your speech.
+            You denied access to speech recognition. This app needs access to transcribe your   speech.
           """
         )
       )
@@ -33,12 +32,11 @@ final class SpeechRecognitionTests: XCTestCase {
 
   func testRestrictedAuthorization() async {
     let store = TestStore(
-      initialState: AppState(),
-      reducer: appReducer,
-      environment: .unimplemented
+      initialState: SpeechRecognition.State(),
+      reducer: SpeechRecognition()
     )
 
-    store.environment.speechClient.requestAuthorization = { .restricted }
+    store.dependencies.speechClient.requestAuthorization = { .restricted }
 
     await store.send(.recordButtonTapped) {
       $0.isRecording = true
@@ -51,14 +49,13 @@ final class SpeechRecognitionTests: XCTestCase {
 
   func testAllowAndRecord() async {
     let store = TestStore(
-      initialState: AppState(),
-      reducer: appReducer,
-      environment: .unimplemented
+      initialState: SpeechRecognition.State(),
+      reducer: SpeechRecognition()
     )
 
-    store.environment.speechClient.finishTask = { self.recognitionTask.continuation.finish() }
-    store.environment.speechClient.startTask = { _ in self.recognitionTask.stream }
-    store.environment.speechClient.requestAuthorization = { .authorized }
+    store.dependencies.speechClient.finishTask = { self.recognitionTask.continuation.finish() }
+    store.dependencies.speechClient.startTask = { _ in self.recognitionTask.stream }
+    store.dependencies.speechClient.requestAuthorization = { .authorized }
 
     let firstResult = SpeechRecognitionResult(
       bestTranscription: Transcription(
@@ -96,13 +93,12 @@ final class SpeechRecognitionTests: XCTestCase {
 
   func testAudioSessionFailure() async {
     let store = TestStore(
-      initialState: AppState(),
-      reducer: appReducer,
-      environment: .unimplemented
+      initialState: SpeechRecognition.State(),
+      reducer: SpeechRecognition()
     )
 
-    store.environment.speechClient.startTask = { _ in self.recognitionTask.stream }
-    store.environment.speechClient.requestAuthorization = { .authorized }
+    store.dependencies.speechClient.startTask = { _ in self.recognitionTask.stream }
+    store.dependencies.speechClient.requestAuthorization = { .authorized }
 
     await store.send(.recordButtonTapped) {
       $0.isRecording = true
@@ -118,13 +114,12 @@ final class SpeechRecognitionTests: XCTestCase {
 
   func testAudioEngineFailure() async {
     let store = TestStore(
-      initialState: AppState(),
-      reducer: appReducer,
-      environment: .unimplemented
+      initialState: SpeechRecognition.State(),
+      reducer: SpeechRecognition()
     )
 
-    store.environment.speechClient.startTask = { _ in self.recognitionTask.stream }
-    store.environment.speechClient.requestAuthorization = { .authorized }
+    store.dependencies.speechClient.startTask = { _ in self.recognitionTask.stream }
+    store.dependencies.speechClient.requestAuthorization = { .authorized }
 
     await store.send(.recordButtonTapped) {
       $0.isRecording = true
@@ -137,8 +132,4 @@ final class SpeechRecognitionTests: XCTestCase {
       $0.alert = AlertState(title: TextState("Problem with audio device. Please try again."))
     }
   }
-}
-
-extension AppEnvironment {
-  static let unimplemented = Self(speechClient: .unimplemented)
 }

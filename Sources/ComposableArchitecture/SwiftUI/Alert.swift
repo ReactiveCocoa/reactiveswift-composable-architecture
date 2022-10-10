@@ -16,7 +16,7 @@
   /// To use this API, you model all the alert actions in your domain's action enum:
   ///
   /// ```swift
-  /// enum AppAction: Equatable {
+  /// enum Action: Equatable {
   ///   case cancelTapped
   ///   case confirmTapped
   ///   case deleteTapped
@@ -29,8 +29,8 @@
   /// `nil`:
   ///
   /// ```swift
-  /// struct AppState: Equatable {
-  ///   var alert: AlertState<AppAction>?
+  /// struct State: Equatable {
+  ///   var alert: AlertState<Action>?
   ///
   ///   // Your other state
   /// }
@@ -40,8 +40,8 @@
   /// to show to the user:
   ///
   /// ```swift
-  /// let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, action, env in
-  ///   switch action
+  /// func reduce(into state: inout State, action: Action) -> Effect<Action, Never> {
+  ///   switch action {
   ///     case .cancelTapped:
   ///       state.alert = nil
   ///       return .none
@@ -81,9 +81,8 @@
   ///
   /// ```swift
   /// let store = TestStore(
-  ///   initialState: AppState(),
-  ///   reducer: appReducer,
-  ///   environment: .mock
+  ///   initialState: Feature.State(),
+  ///   reducer: Feature()
   /// )
   ///
   /// store.send(.deleteTapped) {
@@ -99,7 +98,6 @@
   ///   // Also verify that delete logic executed correctly
   /// }
   /// ```
-  ///
   public struct AlertState<Action> {
     public let id = UUID()
     public var buttons: [Button]

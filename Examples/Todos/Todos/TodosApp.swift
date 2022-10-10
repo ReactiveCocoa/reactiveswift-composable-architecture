@@ -8,14 +8,8 @@ struct TodosApp: App {
     WindowGroup {
       AppView(
         store: Store(
-          initialState: AppState(),
-          reducer:
-            appReducer
-            .debug(),
-          environment: AppEnvironment(
-            mainQueue: QueueScheduler.main,
-            uuid: { UUID() }
-          )
+          initialState: Todos.State(),
+          reducer: Todos()._printChanges()
         )
       )
     }
