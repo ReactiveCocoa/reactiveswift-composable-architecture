@@ -17,16 +17,16 @@ import XCTest
         .startWithValues { _ in count += 1 }
 
       await mainQueue.advance(by: 1)
-      XCTAssertNoDifference(count, 1)
+      XCTAssertEqual(count, 1)
 
       await mainQueue.advance(by: 1)
-      XCTAssertNoDifference(count, 2)
+      XCTAssertEqual(count, 2)
 
       await mainQueue.advance(by: 1)
-      XCTAssertNoDifference(count, 3)
+      XCTAssertEqual(count, 3)
 
       await mainQueue.advance(by: 3)
-      XCTAssertNoDifference(count, 6)
+      XCTAssertEqual(count, 6)
     }
 
     func testInterleavingTimer() async {
@@ -49,17 +49,17 @@ import XCTest
       .start()
 
       await mainQueue.advance(by: 1)
-      XCTAssertNoDifference(count2, 0)
-      XCTAssertNoDifference(count3, 0)
+      XCTAssertEqual(count2, 0)
+      XCTAssertEqual(count3, 0)
       await mainQueue.advance(by: 1)
-      XCTAssertNoDifference(count2, 1)
-      XCTAssertNoDifference(count3, 0)
+      XCTAssertEqual(count2, 1)
+      XCTAssertEqual(count3, 0)
       await mainQueue.advance(by: 1)
-      XCTAssertNoDifference(count2, 1)
-      XCTAssertNoDifference(count3, 1)
+      XCTAssertEqual(count2, 1)
+      XCTAssertEqual(count3, 1)
       await mainQueue.advance(by: 1)
-      XCTAssertNoDifference(count2, 2)
-      XCTAssertNoDifference(count3, 1)
+      XCTAssertEqual(count2, 2)
+      XCTAssertEqual(count3, 1)
     }
 
     func testTimerCancellation() async {
@@ -77,11 +77,11 @@ import XCTest
 
       await mainQueue.advance(by: 2)
 
-      XCTAssertNoDifference(firstCount, 1)
+      XCTAssertEqual(firstCount, 1)
 
       await mainQueue.advance(by: 2)
 
-      XCTAssertNoDifference(firstCount, 2)
+      XCTAssertEqual(firstCount, 2)
 
       Effect.timer(id: CancelToken(), every: .seconds(2), on: mainQueue)
         .producer
@@ -90,13 +90,13 @@ import XCTest
 
       await mainQueue.advance(by: 2)
 
-      XCTAssertNoDifference(firstCount, 2)
-      XCTAssertNoDifference(secondCount, 1)
+      XCTAssertEqual(firstCount, 2)
+      XCTAssertEqual(secondCount, 1)
 
       await mainQueue.advance(by: 2)
 
-      XCTAssertNoDifference(firstCount, 2)
-      XCTAssertNoDifference(secondCount, 2)
+      XCTAssertEqual(firstCount, 2)
+      XCTAssertEqual(secondCount, 2)
     }
 
     func testTimerCompletion() async {
@@ -110,16 +110,16 @@ import XCTest
         .startWithValues { _ in count += 1 }
 
       await mainQueue.advance(by: 1)
-      XCTAssertNoDifference(count, 1)
+      XCTAssertEqual(count, 1)
 
       await mainQueue.advance(by: 1)
-      XCTAssertNoDifference(count, 2)
+      XCTAssertEqual(count, 2)
 
       await mainQueue.advance(by: 1)
-      XCTAssertNoDifference(count, 3)
+      XCTAssertEqual(count, 3)
 
       await mainQueue.run()
-      XCTAssertNoDifference(count, 3)
+      XCTAssertEqual(count, 3)
     }
   }
 #endif

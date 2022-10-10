@@ -1,7 +1,7 @@
 import Foundation
 import ReactiveSwift
 
-class CurrentValueRelay<Output>: SignalProducerConvertible {
+final class CurrentValueRelay<Output>: SignalProducerConvertible {
   typealias Error = Never
 
   private var currentValue: Output

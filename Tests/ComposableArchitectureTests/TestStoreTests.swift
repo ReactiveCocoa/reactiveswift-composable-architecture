@@ -13,13 +13,14 @@ import XCTest
         case a, b1, b2, b3, c1, c2, c3, d
       }
 
-      let reducer = Reducer<State, Action, DateScheduler> { _, action, scheduler in
+      let mainQueue = TestScheduler()
+
+      let reducer = Reduce<State, Action> { _, action in
         switch action {
         case .a:
           return .merge(
-            SignalProducer.concatenate(.init(value: .b1), .init(value: .c1))
-              .delay(1, on: scheduler)
-              .eraseToEffect(),
+            Effect.concatenate(.init(value: .b1), .init(value: .c1))
+              .deferred(for: 1, scheduler: mainQueue),
             Effect.none
               .cancellable(id: 1)
           )
@@ -41,12 +42,9 @@ import XCTest
         }
       }
 
-      let mainQueue = TestScheduler()
-
       let store = TestStore(
         initialState: State(),
-        reducer: reducer,
-        environment: mainQueue
+        reducer: reducer
       )
 
       await store.send(.a)
@@ -71,7 +69,7 @@ import XCTest
       }
       let store = TestStore(
         initialState: 0,
-        reducer: Reducer<Int, Action, Void> { state, action, _ in
+        reducer: Reduce<Int, Action> { state, action in
           switch action {
           case .tap:
             return .task { .response(42) }
@@ -79,8 +77,7 @@ import XCTest
             state = number
             return .none
           }
-        },
-        environment: ()
+        }
       )
 
       await store.send(.tap)
@@ -90,7 +87,7 @@ import XCTest
     }
 
     // `XCTExpectFailure` is not supported on Linux
-    #if !os(Linux)
+    #if DEBUG && !os(Linux)
       func testExpectedStateEquality() async {
         struct State: Equatable {
           var count: Int = 0
@@ -102,7 +99,7 @@ import XCTest
           case changed(from: Int, to: Int)
         }
 
-        let reducer = Reducer<State, Action, Void> { state, action, scheduler in
+        let reducer = Reduce<State, Action> { state, action in
           switch action {
           case .increment:
             state.isChanging = true
@@ -116,11 +113,7 @@ import XCTest
           }
         }
 
-        let store = TestStore(
-          initialState: State(),
-          reducer: reducer,
-          environment: ()
-        )
+        let store = TestStore(initialState: State(), reducer: reducer)
 
         await store.send(.increment) {
           $0.isChanging = true
@@ -152,7 +145,7 @@ import XCTest
           case noop, finished
         }
 
-        let reducer = Reducer<State, Action, Void> { state, action, scheduler in
+        let reducer = Reduce<State, Action> { state, action in
           switch action {
           case .noop:
             return Effect(value: .finished)
@@ -161,11 +154,7 @@ import XCTest
           }
         }
 
-        let store = TestStore(
-          initialState: State(),
-          reducer: reducer,
-          environment: ()
-        )
+        let store = TestStore(initialState: State(), reducer: reducer)
 
         await store.send(.noop)
         await store.receive(.finished)
@@ -187,7 +176,7 @@ import XCTest
       enum Action { case a, b, c, d }
       let store = TestStore(
         initialState: 0,
-        reducer: Reducer<Int, Action, Void> { count, action, _ in
+        reducer: Reduce<Int, Action> { count, action in
           switch action {
           case .a:
             count += 1
@@ -196,8 +185,7 @@ import XCTest
             count += 1
             return .none
           }
-        },
-        environment: ()
+        }
       )
 
       await store.send(.a) {

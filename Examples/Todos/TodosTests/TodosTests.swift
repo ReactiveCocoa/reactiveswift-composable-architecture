@@ -10,17 +10,16 @@ final class TodosTests: XCTestCase {
 
   func testAddTodo() async {
     let store = TestStore(
-      initialState: AppState(),
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.mainQueue,
-        uuid: UUID.incrementing
-      )
+      initialState: Todos.State(),
+      reducer: Todos()
     )
+
+    store.dependencies.mainQueue = self.mainQueue
+    store.dependencies.uuid = .incrementing
 
     await store.send(.addTodoButtonTapped) {
       $0.todos.insert(
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
@@ -31,12 +30,12 @@ final class TodosTests: XCTestCase {
 
     await store.send(.addTodoButtonTapped) {
       $0.todos = [
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
           isComplete: false
         ),
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
@@ -46,23 +45,23 @@ final class TodosTests: XCTestCase {
   }
 
   func testEditTodo() async {
-    let state = AppState(
+    let state = Todos.State(
       todos: [
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
         )
       ]
     )
+
     let store = TestStore(
       initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.mainQueue,
-        uuid: UUID.incrementing
-      )
+      reducer: Todos()
     )
+
+    store.dependencies.mainQueue = self.mainQueue
+    store.dependencies.uuid = .incrementing
 
     await store.send(
       .todo(id: state.todos[0].id, action: .textFieldChanged("Learn Composable Architecture"))
@@ -72,28 +71,28 @@ final class TodosTests: XCTestCase {
   }
 
   func testCompleteTodo() async {
-    let state = AppState(
+    let state = Todos.State(
       todos: [
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
         ),
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
           isComplete: false
         ),
       ]
     )
+
     let store = TestStore(
       initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.mainQueue,
-        uuid: UUID.incrementing
-      )
+      reducer: Todos()
     )
+
+    store.dependencies.mainQueue = self.mainQueue
+    store.dependencies.uuid = .incrementing
 
     await store.send(.todo(id: state.todos[0].id, action: .checkBoxToggled)) {
       $0.todos[id: state.todos[0].id]?.isComplete = true
@@ -108,28 +107,28 @@ final class TodosTests: XCTestCase {
   }
 
   func testCompleteTodoDebounces() async {
-    let state = AppState(
+    let state = Todos.State(
       todos: [
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
         ),
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
           isComplete: false
         ),
       ]
     )
+
     let store = TestStore(
       initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.mainQueue,
-        uuid: UUID.incrementing
-      )
+      reducer: Todos()
     )
+
+    store.dependencies.mainQueue = self.mainQueue
+    store.dependencies.uuid = .incrementing
 
     await store.send(.todo(id: state.todos[0].id, action: .checkBoxToggled)) {
       $0.todos[id: state.todos[0].id]?.isComplete = true
@@ -143,28 +142,28 @@ final class TodosTests: XCTestCase {
   }
 
   func testClearCompleted() async {
-    let state = AppState(
+    let state = Todos.State(
       todos: [
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
         ),
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
           isComplete: true
         ),
       ]
     )
+
     let store = TestStore(
       initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.mainQueue,
-        uuid: UUID.incrementing
-      )
+      reducer: Todos()
     )
+
+    store.dependencies.mainQueue = self.mainQueue
+    store.dependencies.uuid = .incrementing
 
     await store.send(.clearCompletedButtonTapped) {
       $0.todos = [
@@ -174,33 +173,33 @@ final class TodosTests: XCTestCase {
   }
 
   func testDelete() async {
-    let state = AppState(
+    let state = Todos.State(
       todos: [
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
         ),
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
           isComplete: false
         ),
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
           isComplete: false
         ),
       ]
     )
+
     let store = TestStore(
       initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.mainQueue,
-        uuid: UUID.incrementing
-      )
+      reducer: Todos()
     )
+
+    store.dependencies.mainQueue = self.mainQueue
+    store.dependencies.uuid = .incrementing
 
     await store.send(.delete([1])) {
       $0.todos = [
@@ -211,33 +210,33 @@ final class TodosTests: XCTestCase {
   }
 
   func testEditModeMoving() async {
-    let state = AppState(
+    let state = Todos.State(
       todos: [
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
         ),
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
           isComplete: false
         ),
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
           isComplete: false
         ),
       ]
     )
+
     let store = TestStore(
       initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.mainQueue,
-        uuid: UUID.incrementing
-      )
+      reducer: Todos()
     )
+
+    store.dependencies.mainQueue = self.mainQueue
+    store.dependencies.uuid = .incrementing
 
     await store.send(.editModeChanged(.active)) {
       $0.editMode = .active
@@ -254,38 +253,38 @@ final class TodosTests: XCTestCase {
   }
 
   func testEditModeMovingWithFilter() async {
-    let state = AppState(
+    let state = Todos.State(
       todos: [
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
         ),
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
           isComplete: false
         ),
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
           isComplete: true
         ),
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!,
           isComplete: true
         ),
       ]
     )
+
     let store = TestStore(
       initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.mainQueue,
-        uuid: UUID.incrementing
-      )
+      reducer: Todos()
     )
+
+    store.dependencies.mainQueue = self.mainQueue
+    store.dependencies.uuid = .incrementing
 
     await store.send(.editModeChanged(.active)) {
       $0.editMode = .active
@@ -306,49 +305,34 @@ final class TodosTests: XCTestCase {
   }
 
   func testFilteredEdit() async {
-    let state = AppState(
+    let state = Todos.State(
       todos: [
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
           isComplete: false
         ),
-        TodoState(
+        Todo.State(
           description: "",
           id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
           isComplete: true
         ),
       ]
     )
+
     let store = TestStore(
       initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.mainQueue,
-        uuid: UUID.incrementing
-      )
+      reducer: Todos()
     )
+
+    store.dependencies.mainQueue = self.mainQueue
+    store.dependencies.uuid = .incrementing
 
     await store.send(.filterPicked(.completed)) {
       $0.filter = .completed
     }
     await store.send(.todo(id: state.todos[1].id, action: .textFieldChanged("Did this already"))) {
       $0.todos[id: state.todos[1].id]?.description = "Did this already"
-    }
-  }
-}
-
-extension UUID {
-  // A deterministic, auto-incrementing "UUID" generator for testing.
-  static var incrementing: @Sendable () -> UUID {
-    class UncheckedCount: @unchecked Sendable {
-      var value = 0
-      func increment() { self.value += 1 }
-    }
-    let count = UncheckedCount()
-    return {
-      defer { count.increment() }
-      return UUID(uuidString: "00000000-0000-0000-0000-\(String(format: "%012x", count.value))")!
     }
   }
 }

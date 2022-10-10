@@ -1,29 +1,32 @@
 PLATFORM_IOS = iOS Simulator,name=iPhone 11 Pro Max
 PLATFORM_MACOS = macOS
+PLATFORM_MAC_CATALYST = macOS,variant=Mac Catalyst
 PLATFORM_TVOS = tvOS Simulator,name=Apple TV
 PLATFORM_WATCHOS = watchOS Simulator,name=Apple Watch Series 7 (45mm)
 
 default: test-all
 
-test-all: test-library test-examples
+test-all: test-examples
+	CONFIG=debug SCHEME=ComposableArchitecture test-library 
+	CONFIG=release SCHEME=ComposableArchitecture test-library 
+	CONFIG=debug SCHEME=Dependencies test-library 
+	CONFIG=release SCHEME=Dependencies test-library 
 
 test-library:
-	xcodebuild test \
-		-workspace ComposableArchitecture.xcworkspace \
-		-scheme ComposableArchitecture \
-		-destination platform="$(PLATFORM_IOS)"
-	xcodebuild test \
-		-workspace ComposableArchitecture.xcworkspace \
-		-scheme ComposableArchitecture \
-		-destination platform="$(PLATFORM_MACOS)"
-	xcodebuild test \
-		-workspace ComposableArchitecture.xcworkspace \
-		-scheme ComposableArchitecture \
-		-destination platform="$(PLATFORM_TVOS)"
-	xcodebuild \
-		-workspace ComposableArchitecture.xcworkspace \
-		-scheme ComposableArchitecture \
-		-destination platform="$(PLATFORM_WATCHOS)"
+	for platform in "$(PLATFORM_IOS)" "$(PLATFORM_MACOS)" "$(PLATFORM_MAC_CATALYST)" "$(PLATFORM_TVOS)" "$(PLATFORM_WATCHOS)"; do \
+		xcodebuild test \
+			-configuration $(CONFIG) \
+			-workspace ComposableArchitecture.xcworkspace \
+			-scheme $(SCHEME) \
+			-destination platform="$$platform" || exit 1; \
+	done;
+
+build-for-library-evolution:
+	swift build \
+		-c release \
+		--target ComposableArchitecture \
+		-Xswiftc -emit-module-interface \
+		-Xswiftc -enable-library-evolution
 
 DOC_WARNINGS := $(shell xcodebuild clean docbuild \
 	-scheme ComposableArchitecture \

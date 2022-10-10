@@ -4,7 +4,7 @@ import XCTest
 final class TaskResultTests: XCTestCase {
 
   // `XCTExpectFailure` is not supported on Linux
-  #if !os(Linux)
+  #if DEBUG && !os(Linux)
     func testEqualityNonEquatableError() {
       struct Failure: Error {
         let message: String

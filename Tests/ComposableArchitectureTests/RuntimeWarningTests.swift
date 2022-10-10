@@ -1,10 +1,9 @@
-import ReactiveSwift
-import XCTest
-
-@testable import ComposableArchitecture
-
 // `XCTExpectFailure` is not supported on Linux / `@MainActor` introduces issues gathering tests on Linux
-#if !os(Linux)
+#if DEBUG && !os(Linux)
+  import ReactiveSwift
+  import ComposableArchitecture
+  import XCTest
+
   final class RuntimeWarningTests: XCTestCase {
     func testStoreCreationMainThread() {
       XCTExpectFailure {
@@ -17,7 +16,7 @@ import XCTest
       }
 
       Task {
-        _ = Store<Int, Void>(initialState: 0, reducer: .empty, environment: ())
+        _ = Store<Int, Void>(initialState: 0, reducer: EmptyReducer())
       }
       _ = XCTWaiter.wait(for: [.init()], timeout: 2)
     }
@@ -28,7 +27,7 @@ import XCTest
           An effect completed on a non-main thread. …
 
             Effect returned from:
-              Action.tap
+              RuntimeWarningTests.Action.tap
 
           Make sure to use ".receive(on:)" on any effects that execute on background threads to \
           receive their output on the main thread.
@@ -41,7 +40,7 @@ import XCTest
       enum Action { case tap, response }
       let store = Store(
         initialState: 0,
-        reducer: Reducer<Int, Action, Void> { state, action, _ in
+        reducer: Reduce<Int, Action> { state, action in
           switch action {
           case .tap:
             return Effect.none
@@ -55,8 +54,7 @@ import XCTest
           case .response:
             return .none
           }
-        },
-        environment: ()
+        }
       )
       ViewStore(store).send(.tap)
       _ = XCTWaiter.wait(for: [.init()], timeout: 2)
@@ -81,7 +79,7 @@ import XCTest
         ].contains($0.compactDescription)
       }
 
-      let store = Store<Int, Void>(initialState: 0, reducer: .empty, environment: ())
+      let store = Store<Int, Void>(initialState: 0, reducer: EmptyReducer())
       Task {
         _ = store.scope(state: { $0 })
       }
@@ -113,7 +111,7 @@ import XCTest
         ].contains($0.compactDescription)
       }
 
-      let store = Store(initialState: 0, reducer: Reducer<Int, Void, Void>.empty, environment: ())
+      let store = Store<Int, Void>(initialState: 0, reducer: EmptyReducer())
       Task {
         ViewStore(store).send(())
       }
@@ -130,43 +128,43 @@ import XCTest
             An effect completed on a non-main thread. …
 
               Effect returned from:
-                Action.response
+                  RuntimeWarningTests.Action.response
 
             Make sure to use ".receive(on:)" on any effects that execute on background threads to \
             receive their output on the main thread.
 
-              The "Store" class is not thread-safe, and so all interactions with an instance of \
-              "Store" (including all of its scopes and derived view stores) must be done on the main \
-              thread.
+            The "Store" class is not thread-safe, and so all interactions with an instance of \
+            "Store" (including all of its scopes and derived view stores) must be done on the main \
+            thread.
             """,
             """
             An effect completed on a non-main thread. …
 
               Effect returned from:
-                Action.tap
+                  RuntimeWarningTests.Action.tap
 
             Make sure to use ".receive(on:)" on any effects that execute on background threads to \
             receive their output on the main thread.
 
-              The "Store" class is not thread-safe, and so all interactions with an instance of \
-              "Store" (including all of its scopes and derived view stores) must be done on the main \
-              thread.
+            The "Store" class is not thread-safe, and so all interactions with an instance of \
+            "Store" (including all of its scopes and derived view stores) must be done on the main \
+            thread.
             """,
             """
             An effect published an action on a non-main thread. …
 
               Effect published:
-                Action.response
+                  RuntimeWarningTests.Action.response
 
               Effect returned from:
-                Action.tap
+                  RuntimeWarningTests.Action.tap
 
             Make sure to use ".receive(on:)" on any effects that execute on background threads to \
             receive their output on the main thread.
 
-              The "Store" class is not thread-safe, and so all interactions with an instance of \
-              "Store" (including all of its scopes and derived view stores) must be done on the main \
-              thread.
+            The "Store" class is not thread-safe, and so all interactions with an instance of \
+            "Store" (including all of its scopes and derived view stores) must be done on the main \
+            thread.
             """,
           ]
           .contains($0.compactDescription)
@@ -175,7 +173,7 @@ import XCTest
         enum Action { case tap, response }
         let store = Store(
           initialState: 0,
-          reducer: Reducer<Int, Action, Void> { state, action, _ in
+          reducer: Reduce<Int, Action> { state, action in
             switch action {
             case .tap:
               return .run { observer in
@@ -189,13 +187,13 @@ import XCTest
             case .response:
               return .none
             }
-          },
-          environment: ()
+          }
         )
         await ViewStore(store).send(.tap).finish()
       }
     #endif
 
+    @MainActor
     func testBindingUnhandledAction() {
       struct State: Equatable {
         @BindableState var value = 0
@@ -204,12 +202,11 @@ import XCTest
         case binding(BindingAction<State>)
       }
       let store = Store(
-        initialState: .init(),
-        reducer: Reducer<State, Action, ()>.empty,
-        environment: ()
+        initialState: State(),
+        reducer: EmptyReducer<State, Action>()
       )
 
-      var line: UInt!
+      var line: UInt = 0
       XCTExpectFailure {
         line = #line
         ViewStore(store).binding(\.$value).wrappedValue = 42
@@ -219,9 +216,9 @@ import XCTest
           "ComposableArchitectureTests/RuntimeWarningTests.swift:\(line+1)" was not handled. …
 
             Action:
-              Action.binding(.set(_, 42))
+              RuntimeWarningTests.Action.binding(.set(_, 42))
 
-          To fix this, invoke the "binding()" method on your feature's reducer.
+          To fix this, invoke "BindingReducer()" from your feature reducer's "body".
           """
       }
     }

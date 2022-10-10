@@ -1,7 +1,6 @@
+import ComposableArchitecture
 import ReactiveSwift
 import XCTest
-
-@testable import ComposableArchitecture
 
 // `@MainActor` introduces issues gathering tests on Linux
 #if !os(Linux)
@@ -57,19 +56,19 @@ import XCTest
 
       effect.producer.startWithValues { values.append($0) }
 
-      XCTAssertNoDifference(values, [])
+      XCTAssertEqual(values, [])
 
       self.mainQueue.advance(by: 1)
-      XCTAssertNoDifference(values, [1])
+      XCTAssertEqual(values, [1])
 
       self.mainQueue.advance(by: 2)
-      XCTAssertNoDifference(values, [1, 2])
+      XCTAssertEqual(values, [1, 2])
 
       self.mainQueue.advance(by: 3)
-      XCTAssertNoDifference(values, [1, 2, 3])
+      XCTAssertEqual(values, [1, 2, 3])
 
       self.mainQueue.run()
-      XCTAssertNoDifference(values, [1, 2, 3])
+      XCTAssertEqual(values, [1, 2, 3])
     }
 
     func testConcatenateOneEffect() {
@@ -81,13 +80,13 @@ import XCTest
 
       effect.producer.startWithValues { values.append($0) }
 
-      XCTAssertNoDifference(values, [])
+      XCTAssertEqual(values, [])
 
       self.mainQueue.advance(by: 1)
-      XCTAssertNoDifference(values, [1])
+      XCTAssertEqual(values, [1])
 
       self.mainQueue.run()
-      XCTAssertNoDifference(values, [1])
+      XCTAssertEqual(values, [1])
     }
 
     func testMerge() {
@@ -100,16 +99,16 @@ import XCTest
       var values: [Int] = []
       effect.producer.startWithValues { values.append($0) }
 
-      XCTAssertNoDifference(values, [])
+      XCTAssertEqual(values, [])
 
       self.mainQueue.advance(by: 1)
-      XCTAssertNoDifference(values, [1])
+      XCTAssertEqual(values, [1])
 
       self.mainQueue.advance(by: 1)
-      XCTAssertNoDifference(values, [1, 2])
+      XCTAssertEqual(values, [1, 2])
 
       self.mainQueue.advance(by: 1)
-      XCTAssertNoDifference(values, [1, 2, 3])
+      XCTAssertEqual(values, [1, 2, 3])
     }
 
     func testEffectRunInitializer() {
@@ -134,18 +133,18 @@ import XCTest
         .on(completed: { isComplete = true }, value: { values.append($0) })
         .start()
 
-      XCTAssertNoDifference(values, [1, 2])
-      XCTAssertNoDifference(isComplete, false)
+      XCTAssertEqual(values, [1, 2])
+      XCTAssertEqual(isComplete, false)
 
       self.mainQueue.advance(by: 1)
 
-      XCTAssertNoDifference(values, [1, 2, 3])
-      XCTAssertNoDifference(isComplete, false)
+      XCTAssertEqual(values, [1, 2, 3])
+      XCTAssertEqual(isComplete, false)
 
       self.mainQueue.advance(by: 1)
 
-      XCTAssertNoDifference(values, [1, 2, 3, 4])
-      XCTAssertNoDifference(isComplete, true)
+      XCTAssertEqual(values, [1, 2, 3, 4])
+      XCTAssertEqual(isComplete, true)
     }
 
     func testEffectRunInitializer_WithCancellation() {
@@ -167,8 +166,8 @@ import XCTest
         .on(completed: { isComplete = true })
         .startWithValues { values.append($0) }
 
-      XCTAssertNoDifference(values, [1])
-      XCTAssertNoDifference(isComplete, false)
+      XCTAssertEqual(values, [1])
+      XCTAssertEqual(isComplete, false)
 
       Effect<Void, Never>.cancel(id: CancelID.self)
         .producer
@@ -176,8 +175,8 @@ import XCTest
 
       self.mainQueue.advance(by: 1)
 
-      XCTAssertNoDifference(values, [1])
-      XCTAssertNoDifference(isComplete, true)
+      XCTAssertEqual(values, [1])
+      XCTAssertEqual(isComplete, true)
     }
 
     func testDoubleCancelInFlight() {
@@ -192,7 +191,7 @@ import XCTest
       XCTAssertEqual(result, 42)
     }
 
-    #if !os(Linux)
+    #if DEBUG && !os(Linux)
       func testUnimplemented() {
         let effect = Effect<Never, Never>.failing("unimplemented")
         _ = XCTExpectFailure {
@@ -210,7 +209,7 @@ import XCTest
         guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
         let effect = Effect<Int, Never>.task { 42 }
         for await result in effect.producer.values {
-          XCTAssertNoDifference(result, 42)
+          XCTAssertEqual(result, 42)
         }
       }
 
@@ -238,5 +237,68 @@ import XCTest
         _ = XCTWaiter.wait(for: [.init()], timeout: 1.1)
       }
     #endif
+
+    func testDependenciesTransferredToEffects() async {
+      struct Feature: ReducerProtocol {
+        enum Action: Equatable {
+          case tap
+          case response(Int)
+        }
+        @Dependency(\.date) var date
+        func reduce(into state: inout Int, action: Action) -> Effect<Action, Never> {
+          switch action {
+          case .tap:
+            return .merge(
+              .task {
+                .response(Int(self.date.now.timeIntervalSinceReferenceDate))
+              },
+              .run { send in
+                await send(.response(Int(self.date.now.timeIntervalSinceReferenceDate)))
+              }
+            )
+          case let .response(value):
+            state = value
+            return .none
+          }
+        }
+      }
+      let store = TestStore(
+        initialState: 0,
+        reducer: Feature()
+          .dependency(\.date, .constant(.init(timeIntervalSinceReferenceDate: 1_234_567_890)))
+      )
+
+      await store.send(.tap).finish()
+      await store.receive(.response(1_234_567_890)) {
+        $0 = 1_234_567_890
+      }
+      await store.receive(.response(1_234_567_890))
+    }
+
+    func testMap() async {
+      @Dependency(\.date) var date
+      let effect =
+        DependencyValues
+        .withValue(\.date, .init { Date(timeIntervalSince1970: 1_234_567_890) }) {
+          Effect<Void, Never>(value: ())
+            .map { date() }
+        }
+      var output: Date?
+      effect
+        .producer
+        .startWithValues { output = $0 }
+      XCTAssertEqual(output, Date(timeIntervalSince1970: 1_234_567_890))
+
+      if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
+        let effect =
+          DependencyValues
+          .withValue(\.date, .init { Date(timeIntervalSince1970: 1_234_567_890) }) {
+            Effect<Void, Never>.task {}
+              .map { date() }
+          }
+        output = await effect.values.first(where: { _ in true })
+        XCTAssertEqual(output, Date(timeIntervalSince1970: 1_234_567_890))
+      }
+    }
   }
 #endif

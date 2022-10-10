@@ -3,37 +3,24 @@ import ReactiveSwift
 import SwiftUI
 import UIKit
 
-struct LazyNavigationState: Equatable {
-  var optionalCounter: CounterState?
-  var isActivityIndicatorHidden = true
-}
+struct LazyNavigation: ReducerProtocol {
+  struct State: Equatable {
+    var optionalCounter: Counter.State?
+    var isActivityIndicatorHidden = true
+  }
 
-enum LazyNavigationAction: Equatable {
-  case onDisappear
-  case optionalCounter(CounterAction)
-  case setNavigation(isActive: Bool)
-  case setNavigationIsActiveDelayCompleted
-}
+  enum Action: Equatable {
+    case onDisappear
+    case optionalCounter(Counter.Action)
+    case setNavigation(isActive: Bool)
+    case setNavigationIsActiveDelayCompleted
+  }
 
-struct LazyNavigationEnvironment {
-  var mainQueue: DateScheduler
-}
+  private enum CancelID {}
+  @Dependency(\.mainQueue) var mainQueue
 
-let lazyNavigationReducer =
-  counterReducer
-  .optional()
-  .pullback(
-    state: \.optionalCounter,
-    action: /LazyNavigationAction.optionalCounter,
-    environment: { _ in CounterEnvironment() }
-  )
-  .combined(
-    with: Reducer<
-      LazyNavigationState, LazyNavigationAction, LazyNavigationEnvironment
-    > { state, action, environment in
-
-      enum CancelID {}
-
+  var body: some ReducerProtocol<State, Action> {
+    Reduce { state, action in
       switch action {
       case .onDisappear:
         return .cancel(id: CancelID.self)
@@ -41,7 +28,7 @@ let lazyNavigationReducer =
       case .setNavigation(isActive: true):
         state.isActivityIndicatorHidden = false
         return .task {
-          try await environment.mainQueue.sleep(for: .seconds(1))
+          try await self.mainQueue.sleep(for: .seconds(1))
           return .setNavigationIsActiveDelayCompleted
         }
         .cancellable(id: CancelID.self)
@@ -52,20 +39,24 @@ let lazyNavigationReducer =
 
       case .setNavigationIsActiveDelayCompleted:
         state.isActivityIndicatorHidden = true
-        state.optionalCounter = CounterState()
+        state.optionalCounter = Counter.State()
         return .none
 
       case .optionalCounter:
         return .none
       }
     }
-  )
+    .ifLet(\.optionalCounter, action: /Action.optionalCounter) {
+      Counter()
+    }
+  }
+}
 
 class LazyNavigationViewController: UIViewController {
-  let store: Store<LazyNavigationState, LazyNavigationAction>
-  let viewStore: ViewStore<LazyNavigationState, LazyNavigationAction>
+  let store: StoreOf<LazyNavigation>
+  let viewStore: ViewStoreOf<LazyNavigation>
 
-  init(store: Store<LazyNavigationState, LazyNavigationAction>) {
+  init(store: StoreOf<LazyNavigation>) {
     self.store = store
     self.viewStore = ViewStore(store)
     super.init(nibName: nil, bundle: nil)
@@ -105,7 +96,7 @@ class LazyNavigationViewController: UIViewController {
       .assign(to: \.isHidden, on: activityIndicator)
 
     self.store
-      .scope(state: \.optionalCounter, action: LazyNavigationAction.optionalCounter)
+      .scope(state: \.optionalCounter, action: LazyNavigation.Action.optionalCounter)
       .ifLet(
         then: { [weak self] store in
           self?.navigationController?.pushViewController(
@@ -113,7 +104,7 @@ class LazyNavigationViewController: UIViewController {
         },
         else: { [weak self] in
           guard let self = self else { return }
-          self.navigationController?.popToViewController(self, animated: true)
+          _ = self.navigationController?.popToViewController(self, animated: true)
         }
       )
   }
@@ -141,11 +132,8 @@ struct LazyNavigationViewController_Previews: PreviewProvider {
     let vc = UINavigationController(
       rootViewController: LazyNavigationViewController(
         store: Store(
-          initialState: LazyNavigationState(),
-          reducer: lazyNavigationReducer,
-          environment: LazyNavigationEnvironment(
-            mainQueue: QueueScheduler.main
-          )
+          initialState: LazyNavigation.State(),
+          reducer: LazyNavigation()
         )
       )
     )

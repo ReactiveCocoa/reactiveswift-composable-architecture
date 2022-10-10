@@ -105,7 +105,7 @@ public final class ViewStore<State, Action> {
       }
   }
 
-  internal init(_ viewStore: ViewStore<State, Action>) {
+  init(_ viewStore: ViewStore<State, Action>) {
     self._send = viewStore._send
     self._state = viewStore._state
     self.objectWillChange = viewStore.objectWillChange
@@ -198,26 +198,23 @@ public final class ViewStore<State, Action> {
     /// gesture is performed on a list. The domain and logic for this feature can be modeled like so:
     ///
     /// ```swift
+    /// struct Feature: ReducerProtocol {
     /// struct State: Equatable {
     ///   var isLoading = false
     ///   var response: String?
     /// }
-    ///
     /// enum Action {
     ///   case pulledToRefresh
     ///   case receivedResponse(TaskResult<String>)
     /// }
+    ///   @Dependency(\.fetch) var fetch
     ///
-    /// struct Environment {
-    ///   var fetch: () async throws -> String
-    /// }
-    ///
-    /// let reducer = Reducer<State, Action, Environment> { state, action, environment in
+    ///   func reduce(into state: inout State, action: Action) -> Effect<Action, Never> {
     ///   switch action {
     ///   case .pulledToRefresh:
     ///     state.isLoading = true
     ///     return .task {
-    ///       await .receivedResponse(TaskResult { try await environment.fetch() })
+    ///         await .receivedResponse(TaskResult { try await self.fetch() })
     ///     }
     ///
     ///   case let .receivedResponse(result):
@@ -225,6 +222,7 @@ public final class ViewStore<State, Action> {
     ///     state.response = try? result.value
     ///     return .none
     ///   }
+    /// }
     /// }
     /// ```
     ///
@@ -301,10 +299,9 @@ public final class ViewStore<State, Action> {
     ///
     /// - Parameter predicate: A predicate on `State` that determines for how long this method should
     ///   suspend.
-    @MainActor
     public func yield(while predicate: @escaping (State) -> Bool) async {
       if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
-          _ = await self.produced.producer
+        _ = await self.produced.producer
           .values
           .first(where: { !predicate($0) })
       } else {
@@ -317,10 +314,10 @@ public final class ViewStore<State, Action> {
               continuation.resume(throwing: CancellationError())
               return
             }
-                cancellable.wrappedValue = self.produced.producer
+            cancellable.wrappedValue = self.produced.producer
               .filter { !predicate($0) }
-                  .take(first: 1)
-                  .startWithValues { _ in
+              .take(first: 1)
+              .startWithValues { _ in
                 continuation.resume()
                 _ = cancellable
               }
@@ -467,6 +464,21 @@ public final class ViewStore<State, Action> {
   }
 }
 
+/// A convenience type alias for referring to a view store of a given reducer's domain.
+///
+/// Instead of specifying two generics:
+///
+/// ```swift
+/// let viewStore: ViewStore<Feature.State, Feature.Action>
+/// ```
+///
+/// You can specify a single generic:
+///
+/// ```swift
+/// let viewStore: ViewStoreOf<Feature>
+/// ```
+public typealias ViewStoreOf<R: ReducerProtocol> = ViewStore<R.State, R.Action>
+
 extension ViewStore where State: Equatable {
   public convenience init(_ store: Store<State, Action>) {
     self.init(store, removeDuplicates: ==)
@@ -489,10 +501,10 @@ extension ViewStore where State == Void {
 /// .task { await viewStore.send(.task).finish() }
 /// ```
 ///
-/// > Note: Unlike `Task`, ``ViewStoreTask`` automatically sets up a cancellation handler between
-/// > the current async context and the task.
+/// > Note: Unlike Swift's `Task` type, ``ViewStoreTask`` automatically sets up a cancellation
+/// > handler between the current async context and the task.
 ///
-/// See ``TestStoreTask`` for the analog provided to ``TestStore``.
+/// See ``TestStoreTask`` for the analog returned from ``TestStore``.
 public struct ViewStoreTask: Hashable, Sendable {
   fileprivate let rawValue: Task<Void, Never>?
 

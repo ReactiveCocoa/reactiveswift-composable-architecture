@@ -7,37 +7,42 @@ import XCTest
   @MainActor
   final class ComposableArchitectureTests: XCTestCase {
     func testScheduling() async {
-      enum CounterAction: Equatable {
-        case incrAndSquareLater
-        case incrNow
-        case squareNow
-      }
-
-      let counterReducer = Reducer<Int, CounterAction, DateScheduler> {
-        state, action, scheduler in
-        switch action {
-        case .incrAndSquareLater:
-          return .merge(
-            Effect(value: .incrNow).deferred(for: 2, scheduler: scheduler),
-            Effect(value: .squareNow).deferred(for: 1, scheduler: scheduler),
-            Effect(value: .squareNow).deferred(for: 2, scheduler: scheduler)
-          )
-        case .incrNow:
-          state += 1
-          return .none
-        case .squareNow:
-          state *= state
-          return .none
+      struct Counter: ReducerProtocol {
+        typealias State = Int
+        enum Action: Equatable {
+          case incrAndSquareLater
+          case incrNow
+          case squareNow
+        }
+        @Dependency(\.mainQueue) var mainQueue
+        func reduce(into state: inout State, action: Action) -> Effect<Action, Never> {
+          switch action {
+          case .incrAndSquareLater:
+            return .merge(
+              Effect(value: .incrNow)
+                .deferred(for: 2, scheduler: self.mainQueue),
+              Effect(value: .squareNow)
+                .deferred(for: 1, scheduler: self.mainQueue),
+              Effect(value: .squareNow)
+                .deferred(for: 2, scheduler: self.mainQueue)
+            )
+          case .incrNow:
+            state += 1
+            return .none
+          case .squareNow:
+            state *= state
+            return .none
+          }
         }
       }
 
-      let mainQueue = TestScheduler()
-
       let store = TestStore(
         initialState: 2,
-        reducer: counterReducer,
-        environment: mainQueue
+        reducer: Counter()
       )
+
+      let mainQueue = TestScheduler()
+      store.dependencies.mainQueue = mainQueue
 
       await store.send(.incrAndSquareLater)
       await mainQueue.advance(by: 1)
@@ -54,17 +59,17 @@ import XCTest
     }
 
     func testSimultaneousWorkOrdering() {
-      let testScheduler = TestScheduler()
+      let mainQueue = TestScheduler()
 
       var values: [Int] = []
-      testScheduler.schedule(after: .seconds(0), interval: .seconds(1)) { values.append(1) }
-      testScheduler.schedule(after: .seconds(0), interval: .seconds(2)) { values.append(42) }
+      mainQueue.schedule(after: .seconds(0), interval: .seconds(1)) { values.append(1) }
+      mainQueue.schedule(after: .seconds(0), interval: .seconds(2)) { values.append(42) }
 
-      XCTAssertNoDifference(values, [])
-      testScheduler.advance()
-      XCTAssertNoDifference(values, [1, 42])
-      testScheduler.advance(by: 2)
-      XCTAssertNoDifference(values, [1, 42, 1, 42, 1])
+      XCTAssertEqual(values, [])
+      mainQueue.advance()
+      XCTAssertEqual(values, [1, 42])
+      mainQueue.advance(by: 2)
+      XCTAssertEqual(values, [1, 42, 1, 42, 1])
     }
 
     func testLongLivingEffects() async {
@@ -75,32 +80,31 @@ import XCTest
 
       enum Action { case end, incr, start }
 
-      let reducer = Reducer<Int, Action, Environment> { state, action, environment in
+      let effect = AsyncStream<Void>.streamWithContinuation()
+
+      let reducer = Reduce<Int, Action> { state, action in
         switch action {
         case .end:
-          return environment.stopEffect.fireAndForget()
+          return .fireAndForget {
+            effect.continuation.finish()
+          }
         case .incr:
           state += 1
           return .none
         case .start:
-          return environment.startEffect.map { Action.incr }
+          return .run { send in
+            for await _ in effect.stream {
+              await send(.incr)
+            }
+          }
         }
       }
 
-      let subject = Signal<Void, Never>.pipe()
-
-      let store = TestStore(
-        initialState: 0,
-        reducer: reducer,
-        environment: (
-          startEffect: subject.output.producer.eraseToEffect(),
-          stopEffect: .fireAndForget { subject.input.sendCompleted() }
-        )
-      )
+      let store = TestStore(initialState: 0, reducer: reducer)
 
       await store.send(.start)
       await store.send(.incr) { $0 = 1 }
-      subject.input.send(value: ())
+      effect.continuation.yield()
       await store.receive(.incr) { $0 = 2 }
       await store.send(.end)
     }

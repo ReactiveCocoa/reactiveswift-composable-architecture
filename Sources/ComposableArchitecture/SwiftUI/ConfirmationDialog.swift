@@ -15,7 +15,7 @@
   /// To use this API, you model all the dialog actions in your domain's action enum:
   ///
   /// ```swift
-  /// enum AppAction: Equatable {
+  /// enum Action: Equatable {
   ///   case cancelTapped
   ///   case deleteTapped
   ///   case favoriteTapped
@@ -29,7 +29,7 @@
   /// `nil` state:
   ///
   /// ```swift
-  /// struct AppState: Equatable {
+  /// struct State: Equatable {
   ///   var confirmationDialog: ConfirmationDialogState<AppAction>?
   ///
   ///   // Your other state
@@ -40,8 +40,8 @@
   /// you want to show to the user:
   ///
   /// ```swift
-  /// let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, action, env in
-  ///   switch action
+  /// func reduce(into state: inout State, action: Action) -> Effect<Action, Never> {
+  ///   switch action {
   ///     case .cancelTapped:
   ///       state.confirmationDialog = nil
   ///       return .none
@@ -87,9 +87,8 @@
   ///
   /// ```swift
   /// let store = TestStore(
-  ///   initialState: AppState(),
-  ///   reducer: appReducer,
-  ///   environment: .mock
+  ///   initialState: Feature.State(),
+  ///   reducer: Feature()
   /// )
   ///
   /// store.send(.infoTapped) {
@@ -107,7 +106,6 @@
   ///   // Also verify that favoriting logic executed correctly
   /// }
   /// ```
-  ///
   @available(iOS 13, *)
   @available(macOS 12, *)
   @available(tvOS 13, *)
