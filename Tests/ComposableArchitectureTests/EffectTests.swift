@@ -4,12 +4,12 @@ import XCTest
 
 // `@MainActor` introduces issues gathering tests on Linux
 #if !os(Linux)
-  @MainActor
-  final class EffectTests: XCTestCase {
+@MainActor
+final class EffectTests: XCTestCase {
     let mainQueue = TestScheduler()
 
     func testEraseToEffectWithError() {
-      struct Error: Swift.Error, Equatable {}
+    struct Error: Swift.Error, Equatable {}
 
       SignalProducer<Int, Error>(result: .success(42))
         .startWithResult { XCTAssertNoDifference($0, .success(42)) }
@@ -21,95 +21,95 @@ import XCTest
         .startWithResult { XCTAssertNoDifference($0, .success(42)) }
 
       SignalProducer<Int, Never>(result: .success(42))
-        .catchToEffect {
-          switch $0 {
-          case let .success(val):
-            return val
-          case .failure:
-            return -1
-          }
+      .catchToEffect {
+        switch $0 {
+        case let .success(val):
+          return val
+        case .failure:
+          return -1
         }
+      }
         .producer
         .startWithValues { XCTAssertNoDifference($0, 42) }
 
       SignalProducer<Int, Error>(result: .failure(Error()))
-        .catchToEffect {
-          switch $0 {
-          case let .success(val):
-            return val
-          case .failure:
-            return -1
-          }
+      .catchToEffect {
+        switch $0 {
+        case let .success(val):
+          return val
+        case .failure:
+          return -1
         }
+      }
         .producer
         .startWithValues { XCTAssertNoDifference($0, -1) }
-    }
+  }
 
-    func testConcatenate() {
-      var values: [Int] = []
+  func testConcatenate() {
+    var values: [Int] = []
 
-      let effect = Effect<Int, Never>.concatenate(
+    let effect = Effect<Int, Never>.concatenate(
         Effect(value: 1).deferred(for: 1, scheduler: mainQueue),
         Effect(value: 2).deferred(for: 2, scheduler: mainQueue),
         Effect(value: 3).deferred(for: 3, scheduler: mainQueue)
-      )
+    )
 
       effect.producer.startWithValues { values.append($0) }
 
-      XCTAssertEqual(values, [])
+    XCTAssertEqual(values, [])
 
-      self.mainQueue.advance(by: 1)
-      XCTAssertEqual(values, [1])
+    self.mainQueue.advance(by: 1)
+    XCTAssertEqual(values, [1])
 
-      self.mainQueue.advance(by: 2)
-      XCTAssertEqual(values, [1, 2])
+    self.mainQueue.advance(by: 2)
+    XCTAssertEqual(values, [1, 2])
 
-      self.mainQueue.advance(by: 3)
-      XCTAssertEqual(values, [1, 2, 3])
+    self.mainQueue.advance(by: 3)
+    XCTAssertEqual(values, [1, 2, 3])
 
-      self.mainQueue.run()
-      XCTAssertEqual(values, [1, 2, 3])
-    }
+    self.mainQueue.run()
+    XCTAssertEqual(values, [1, 2, 3])
+  }
 
-    func testConcatenateOneEffect() {
-      var values: [Int] = []
+  func testConcatenateOneEffect() {
+    var values: [Int] = []
 
-      let effect = Effect<Int, Never>.concatenate(
+    let effect = Effect<Int, Never>.concatenate(
         Effect(value: 1).deferred(for: 1, scheduler: mainQueue)
-      )
+    )
 
       effect.producer.startWithValues { values.append($0) }
 
-      XCTAssertEqual(values, [])
+    XCTAssertEqual(values, [])
 
-      self.mainQueue.advance(by: 1)
-      XCTAssertEqual(values, [1])
+    self.mainQueue.advance(by: 1)
+    XCTAssertEqual(values, [1])
 
-      self.mainQueue.run()
-      XCTAssertEqual(values, [1])
-    }
+    self.mainQueue.run()
+    XCTAssertEqual(values, [1])
+  }
 
-    func testMerge() {
-      let effect = Effect<Int, Never>.merge(
+  func testMerge() {
+    let effect = Effect<Int, Never>.merge(
         Effect(value: 1).deferred(for: 1, scheduler: mainQueue),
         Effect(value: 2).deferred(for: 2, scheduler: mainQueue),
         Effect(value: 3).deferred(for: 3, scheduler: mainQueue)
-      )
+    )
 
-      var values: [Int] = []
+    var values: [Int] = []
       effect.producer.startWithValues { values.append($0) }
 
-      XCTAssertEqual(values, [])
+    XCTAssertEqual(values, [])
 
-      self.mainQueue.advance(by: 1)
-      XCTAssertEqual(values, [1])
+    self.mainQueue.advance(by: 1)
+    XCTAssertEqual(values, [1])
 
-      self.mainQueue.advance(by: 1)
-      XCTAssertEqual(values, [1, 2])
+    self.mainQueue.advance(by: 1)
+    XCTAssertEqual(values, [1, 2])
 
-      self.mainQueue.advance(by: 1)
-      XCTAssertEqual(values, [1, 2, 3])
-    }
+    self.mainQueue.advance(by: 1)
+    XCTAssertEqual(values, [1, 2, 3])
+  }
 
     func testEffectRunInitializer() {
       let effect = Effect<Int, Never>.run { observer in
@@ -117,188 +117,188 @@ import XCTest
         observer.send(value: 2)
         self.mainQueue.schedule(after: self.mainQueue.currentDate.addingTimeInterval(1)) {
           observer.send(value: 3)
-        }
+      }
         self.mainQueue.schedule(after: self.mainQueue.currentDate.addingTimeInterval(2)) {
           observer.send(value: 4)
           observer.sendCompleted()
-        }
-
-        return AnyDisposable()
       }
 
-      var values: [Int] = []
-      var isComplete = false
-      effect
+        return AnyDisposable()
+    }
+
+    var values: [Int] = []
+    var isComplete = false
+    effect
         .producer
         .on(completed: { isComplete = true }, value: { values.append($0) })
         .start()
 
-      XCTAssertEqual(values, [1, 2])
-      XCTAssertEqual(isComplete, false)
+    XCTAssertEqual(values, [1, 2])
+    XCTAssertEqual(isComplete, false)
 
-      self.mainQueue.advance(by: 1)
+    self.mainQueue.advance(by: 1)
 
-      XCTAssertEqual(values, [1, 2, 3])
-      XCTAssertEqual(isComplete, false)
+    XCTAssertEqual(values, [1, 2, 3])
+    XCTAssertEqual(isComplete, false)
 
-      self.mainQueue.advance(by: 1)
+    self.mainQueue.advance(by: 1)
 
-      XCTAssertEqual(values, [1, 2, 3, 4])
-      XCTAssertEqual(isComplete, true)
-    }
+    XCTAssertEqual(values, [1, 2, 3, 4])
+    XCTAssertEqual(isComplete, true)
+  }
 
     func testEffectRunInitializer_WithCancellation() {
-      enum CancelID {}
+    enum CancelID {}
 
-      let effect = Effect<Int, Never>.run { subscriber in
+    let effect = Effect<Int, Never>.run { subscriber in
         subscriber.send(value: 1)
         self.mainQueue.schedule(after: self.mainQueue.currentDate.addingTimeInterval(1)) {
           subscriber.send(value: 2)
-        }
-        return AnyDisposable()
       }
-      .cancellable(id: CancelID.self)
+        return AnyDisposable()
+    }
+    .cancellable(id: CancelID.self)
 
-      var values: [Int] = []
-      var isComplete = false
-      effect
+    var values: [Int] = []
+    var isComplete = false
+    effect
         .producer
         .on(completed: { isComplete = true })
         .startWithValues { values.append($0) }
 
-      XCTAssertEqual(values, [1])
-      XCTAssertEqual(isComplete, false)
+    XCTAssertEqual(values, [1])
+    XCTAssertEqual(isComplete, false)
 
-      Effect<Void, Never>.cancel(id: CancelID.self)
+    Effect<Void, Never>.cancel(id: CancelID.self)
         .producer
         .startWithValues { _ in }
 
-      self.mainQueue.advance(by: 1)
+    self.mainQueue.advance(by: 1)
 
-      XCTAssertEqual(values, [1])
-      XCTAssertEqual(isComplete, true)
-    }
+    XCTAssertEqual(values, [1])
+    XCTAssertEqual(isComplete, true)
+  }
 
-    func testDoubleCancelInFlight() {
-      var result: Int?
+  func testDoubleCancelInFlight() {
+    var result: Int?
 
       _ = Effect(value: 42)
-        .cancellable(id: "id", cancelInFlight: true)
-        .cancellable(id: "id", cancelInFlight: true)
+      .cancellable(id: "id", cancelInFlight: true)
+      .cancellable(id: "id", cancelInFlight: true)
         .producer
         .startWithValues { result = $0 }
 
-      XCTAssertEqual(result, 42)
-    }
+    XCTAssertEqual(result, 42)
+  }
 
     #if DEBUG && !os(Linux)
-      func testUnimplemented() {
+    func testUnimplemented() {
         let effect = Effect<Never, Never>.failing("unimplemented")
         _ = XCTExpectFailure {
-          effect
+        effect
             .producer
             .start()
-        } issueMatcher: { issue in
-          issue.compactDescription == "unimplemented - An unimplemented effect ran."
-        }
+      } issueMatcher: { issue in
+        issue.compactDescription == "unimplemented - An unimplemented effect ran."
       }
-    #endif
+    }
+  #endif
 
     #if canImport(_Concurrency) && compiler(>=5.5.2)
-      func testTask() async {
-        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
-        let effect = Effect<Int, Never>.task { 42 }
+  func testTask() async {
+    guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else { return }
+    let effect = Effect<Int, Never>.task { 42 }
         for await result in effect.producer.values {
-          XCTAssertEqual(result, 42)
-        }
-      }
+      XCTAssertEqual(result, 42)
+    }
+  }
 
-      func testCancellingTask_Infallible() {
-        @Sendable func work() async -> Int {
-          do {
-            try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
-            XCTFail()
-          } catch {
-          }
-          return 42
-        }
+  func testCancellingTask_Infallible() {
+    @Sendable func work() async -> Int {
+      do {
+        try await Task.sleep(nanoseconds: NSEC_PER_MSEC)
+        XCTFail()
+      } catch {
+      }
+      return 42
+    }
 
         let disposable = Effect<Int, Never>.task { await work() }
           .producer
           .on(
             completed: { XCTFail() },
             value: { _ in XCTFail() }
-          )
+      )
           .start(on: QueueScheduler.main)
           .start()
 
         disposable.dispose()
 
-        _ = XCTWaiter.wait(for: [.init()], timeout: 1.1)
-      }
+    _ = XCTWaiter.wait(for: [.init()], timeout: 1.1)
+  }
     #endif
 
-    func testDependenciesTransferredToEffects() async {
-      struct Feature: ReducerProtocol {
-        enum Action: Equatable {
-          case tap
-          case response(Int)
-        }
-        @Dependency(\.date) var date
-        func reduce(into state: inout Int, action: Action) -> Effect<Action, Never> {
-          switch action {
-          case .tap:
-            return .merge(
-              .task {
-                .response(Int(self.date.now.timeIntervalSinceReferenceDate))
-              },
-              .run { send in
-                await send(.response(Int(self.date.now.timeIntervalSinceReferenceDate)))
-              }
-            )
-          case let .response(value):
-            state = value
-            return .none
-          }
+  func testDependenciesTransferredToEffects() async {
+    struct Feature: ReducerProtocol {
+      enum Action: Equatable {
+        case tap
+        case response(Int)
+      }
+      @Dependency(\.date) var date
+      func reduce(into state: inout Int, action: Action) -> Effect<Action, Never> {
+        switch action {
+        case .tap:
+          return .merge(
+            .task {
+              .response(Int(self.date.now.timeIntervalSinceReferenceDate))
+            },
+            .run { send in
+              await send(.response(Int(self.date.now.timeIntervalSinceReferenceDate)))
+            }
+          )
+        case let .response(value):
+          state = value
+          return .none
         }
       }
-      let store = TestStore(
-        initialState: 0,
-        reducer: Feature()
+    }
+    let store = TestStore(
+      initialState: 0,
+      reducer: Feature()
           .dependency(\.date, .constant(.init(timeIntervalSinceReferenceDate: 1_234_567_890)))
-      )
+    )
 
-      await store.send(.tap).finish()
+    await store.send(.tap).finish()
       await store.receive(.response(1_234_567_890)) {
         $0 = 1_234_567_890
-      }
-      await store.receive(.response(1_234_567_890))
     }
+      await store.receive(.response(1_234_567_890))
+  }
 
-    func testMap() async {
-      @Dependency(\.date) var date
+  func testMap() async {
+    @Dependency(\.date) var date
       let effect =
         DependencyValues
         .withValue(\.date, .init { Date(timeIntervalSince1970: 1_234_567_890) }) {
-          Effect<Void, Never>(value: ())
-            .map { date() }
-        }
-      var output: Date?
-      effect
+        Effect<Void, Never>(value: ())
+          .map { date() }
+      }
+    var output: Date?
+    effect
         .producer
         .startWithValues { output = $0 }
       XCTAssertEqual(output, Date(timeIntervalSince1970: 1_234_567_890))
 
-      if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
+    if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
         let effect =
           DependencyValues
           .withValue(\.date, .init { Date(timeIntervalSince1970: 1_234_567_890) }) {
-            Effect<Void, Never>.task {}
-              .map { date() }
-          }
-        output = await effect.values.first(where: { _ in true })
+          Effect<Void, Never>.task {}
+            .map { date() }
+        }
+      output = await effect.values.first(where: { _ in true })
         XCTAssertEqual(output, Date(timeIntervalSince1970: 1_234_567_890))
-      }
     }
   }
+}
 #endif
