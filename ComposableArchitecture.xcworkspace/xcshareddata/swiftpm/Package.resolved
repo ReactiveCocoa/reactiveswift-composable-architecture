@@ -2,12 +2,12 @@
   "object": {
     "pins": [
       {
-        "package": "combine-schedulers",
-        "repositoryURL": "https://github.com/pointfreeco/combine-schedulers",
+        "package": "ReactiveSwift",
+        "repositoryURL": "https://github.com/ReactiveCocoa/ReactiveSwift",
         "state": {
-          "branch": null,
-          "revision": "aa3e575929f2bcc5bad012bd2575eae716cbcdf7",
-          "version": "0.8.0"
+          "branch": "7.1.0",
+          "revision": "509916c99f49a5e6c8196c968b8b7e3dbd48db04",
+          "version": null
         }
       },
       {
