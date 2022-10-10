@@ -68,7 +68,7 @@ jobs:
           do
             if [ -d "docs-out/$tag" ] 
             then 
-                echo "✅ Documentation for "$tag" already exists.";
+              echo "✅ Documentation for "$tag" already exists.";
             else 
               echo "⏳ Generating documentation for "$target" @ "$tag" release.";
 
