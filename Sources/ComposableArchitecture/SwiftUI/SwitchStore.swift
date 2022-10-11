@@ -1188,7 +1188,7 @@
         let message = """
           Warning: SwitchStore.body@\(self.file):\(self.line)
 
-                            "\(debugCaseOutput(self.store.wrappedValue.state))" was encountered by a \
+                              "\(debugCaseOutput(self.store.wrappedValue.state))" was encountered by a \
           "SwitchStore" that does not handle this case.
 
           Make sure that you exhaustively provide a "CaseLet" view for each case in "\(State.self)", \
@@ -1209,21 +1209,16 @@
         .padding()
         .background(Color.red.edgesIgnoringSafeArea(.all))
         .onAppear {
-          runtimeWarning(
+          runtimeWarn(
             """
-            SwitchStore@%@:%d does not handle the current case. …
+            A "SwitchStore" at "\(self.fileID):\(self.line)" does not handle the current case. …
 
               Unhandled case:
-                %@
+                \(debugCaseOutput(self.store.wrappedValue.state))
 
             Make sure that you exhaustively provide a "CaseLet" view for each case in your state, \
             or provide a "Default" view at the end of the "SwitchStore".
             """,
-            [
-              "\(self.fileID)",
-              self.line,
-              debugCaseOutput(self.store.wrappedValue.state),
-            ],
             file: self.file,
             line: self.line
           )
