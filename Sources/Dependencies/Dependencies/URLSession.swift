@@ -1,7 +1,7 @@
 import Foundation
 import XCTestDynamicOverlay
 
-#if os(Linux)
+#if canImport(FoundationNetworking)
   import FoundationNetworking
 #endif
 

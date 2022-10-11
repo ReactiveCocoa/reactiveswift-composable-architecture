@@ -1086,15 +1086,15 @@ extension TestStore where ScopedState: Equatable, Action: Equatable {
           return .none
         }
         if index >= parentState[keyPath: toElementsState].endIndex {
-          runtimeWarning(
+          runtimeWarn(
             """
-            A "forEach" reducer at "%@:%d" received an action when state contained no element at \
-            that index. …
+            A "forEach" reducer at "\(fileID):\(line)" received an action when state contained no \
+            element at that index. …
 
               Action:
-                %@
+                \(debugCaseOutput(action))
               Index:
-                %d
+                \(index)
 
             This is generally considered an application logic error, and can happen for a few \
             reasons:
@@ -1116,12 +1116,6 @@ extension TestStore where ScopedState: Equatable, Action: Equatable {
             when its state contains an element at this index. In SwiftUI applications, use \
             "ForEachStore".
             """,
-            [
-              "\(fileID)",
-              line,
-              debugCaseOutput(action),
-              index,
-            ],
             file: file,
             line: line
           )
