@@ -46,12 +46,12 @@ extension Effect {
       return Self(
         operation: .producer(
           SignalProducer.deferred { () -> SignalProducer<Action, Failure> in
-            cancellablesLock.lock()
-            defer { cancellablesLock.unlock() }
+            _cancellablesLock.lock()
+            defer { _cancellablesLock.unlock() }
 
-            let id = CancelToken(id: id)
+            let id = _CancelToken(id: id)
             if cancelInFlight {
-              cancellationCancellables[id]?.forEach { $0.dispose() }
+              _cancellationCancellables[id]?.forEach { $0.dispose() }
             }
 
             let subject = Signal<Action, Failure>.pipe()
@@ -66,17 +66,17 @@ extension Effect {
               .start(subject.input)
             var cancellationDisposable: AnyDisposable!
             cancellationDisposable = AnyDisposable {
-              cancellablesLock.sync {
+              _cancellablesLock.sync {
                 subject.input.sendCompleted()
                 disposable.dispose()
-                cancellationCancellables[id]?.remove(cancellationDisposable)
-                if cancellationCancellables[id]?.isEmpty == .some(true) {
-                  cancellationCancellables[id] = nil
+                _cancellationCancellables[id]?.remove(cancellationDisposable)
+                if _cancellationCancellables[id]?.isEmpty == .some(true) {
+                  _cancellationCancellables[id] = nil
                 }
               }
             }
 
-            cancellationCancellables[id, default: []].insert(
+            _cancellationCancellables[id, default: []].insert(
               cancellationDisposable
             )
 
@@ -124,8 +124,8 @@ extension Effect {
   ///   identifier.
   public static func cancel(id: AnyHashable) -> Self {
     .fireAndForget {
-      cancellablesLock.sync {
-        cancellationCancellables[.init(id: id)]?.forEach { $0.dispose() }
+      _cancellablesLock.sync {
+        _cancellationCancellables[.init(id: id)]?.forEach { $0.dispose() }
       }
     }
   }
@@ -208,21 +208,21 @@ public func withTaskCancellation<T: Sendable>(
   cancelInFlight: Bool = false,
   operation: @Sendable @escaping () async throws -> T
 ) async rethrows -> T {
-  let id = CancelToken(id: id)
-  let (cancellable, task) = cancellablesLock.sync { () -> (AnyDisposable, Task<T, Error>) in
+  let id = _CancelToken(id: id)
+  let (cancellable, task) = _cancellablesLock.sync { () -> (AnyDisposable, Task<T, Error>) in
     if cancelInFlight {
-      cancellationCancellables[id]?.forEach { $0.dispose() }
+      _cancellationCancellables[id]?.forEach { $0.dispose() }
     }
     let task = Task { try await operation() }
     let cancellable = AnyDisposable { task.cancel() }
-    cancellationCancellables[id, default: []].insert(cancellable)
+    _cancellationCancellables[id, default: []].insert(cancellable)
     return (cancellable, task)
   }
   defer {
-    cancellablesLock.sync {
-      cancellationCancellables[id]?.remove(cancellable)
-      if cancellationCancellables[id]?.isEmpty == .some(true) {
-        cancellationCancellables[id] = nil
+    _cancellablesLock.sync {
+      _cancellationCancellables[id]?.remove(cancellable)
+      if _cancellationCancellables[id]?.isEmpty == .some(true) {
+        _cancellationCancellables[id] = nil
       }
     }
   }
@@ -262,7 +262,7 @@ extension Task where Success == Never, Failure == Never {
   ///
   /// - Parameter id: An identifier.
   public static func cancel<ID: Hashable & Sendable>(id: ID) {
-    cancellablesLock.sync { cancellationCancellables[.init(id: id)]?.forEach { $0.dispose() } }
+    _cancellablesLock.sync { _cancellationCancellables[.init(id: id)]?.forEach { $0.dispose() } }
   }
 
   /// Cancel any currently in-flight operation with the given identifier.
@@ -276,18 +276,18 @@ extension Task where Success == Never, Failure == Never {
   }
 }
 
-struct CancelToken: Hashable {
+@_spi(Internals) public struct _CancelToken: Hashable {
   let id: AnyHashable
   let discriminator: ObjectIdentifier
 
-  init(id: AnyHashable) {
+  public init(id: AnyHashable) {
     self.id = id
     self.discriminator = ObjectIdentifier(type(of: id.base))
   }
 }
 
-var cancellationCancellables: [CancelToken: Set<AnyDisposable>] = [:]
-let cancellablesLock = NSRecursiveLock()
+@_spi(Internals) public var _cancellationCancellables: [_CancelToken: Set<AnyDisposable>] = [:]
+@_spi(Internals) public let _cancellablesLock = NSRecursiveLock()
 
 @rethrows
 private protocol _ErrorMechanism {

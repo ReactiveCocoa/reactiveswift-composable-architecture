@@ -1,16 +1,14 @@
 #if DEBUG
   import XCTest
-
   #if os(Linux)
     import CDispatch
   #endif
-
-  @testable import ComposableArchitecture
+  @_spi(Internals) import ComposableArchitecture
 
   final class TaskCancellationTests: XCTestCase {
     func testCancellation() async throws {
-      cancellablesLock.sync {
-        cancellationCancellables.removeAll()
+      _cancellablesLock.sync {
+        _cancellationCancellables.removeAll()
       }
       enum ID {}
       let (stream, continuation) = AsyncStream<Void>.streamWithContinuation()
@@ -24,7 +22,7 @@
       await stream.first(where: { true })
       Task.cancel(id: ID.self)
       await Task.megaYield(count: 20)
-      XCTAssertEqual(cancellablesLock.sync { cancellationCancellables }, [:])
+      XCTAssertEqual(_cancellablesLock.sync { _cancellationCancellables }, [:])
       do {
         try await task.cancellableValue
         XCTFail()
@@ -40,11 +38,11 @@
       }
 
       try await Task.sleep(nanoseconds: NSEC_PER_SEC / 3)
-      XCTAssertEqual(cancellationCancellables.count, 1)
+      XCTAssertEqual(_cancellationCancellables.count, 1)
 
       task.cancel()
       try await Task.sleep(nanoseconds: NSEC_PER_SEC / 3)
-      XCTAssertEqual(cancellationCancellables.count, 0)
+      XCTAssertEqual(_cancellationCancellables.count, 0)
     }
   }
 #endif

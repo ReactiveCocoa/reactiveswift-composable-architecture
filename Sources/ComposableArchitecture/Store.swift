@@ -122,7 +122,7 @@ import ReactiveSwift
 /// store are also checked to make sure that work is performed on the main thread.
 public final class Store<State, Action> {
   private var bufferedActions: [Action] = []
-  var effectDisposables: [UUID: Disposable] = [:]
+  @_spi(Internals) public var effectDisposables: [UUID: Disposable] = [:]
   private var isSending = false
   var parentDisposable: Disposable?
   #if swift(>=5.7)
@@ -325,7 +325,7 @@ public final class Store<State, Action> {
     self.scope(state: toChildState, action: { $0 })
   }
 
-  func send(
+  @_spi(Internals) public func send(
     _ action: Action,
     originatingFrom originatingAction: Action? = nil
   ) -> Task<Void, Never>? {
