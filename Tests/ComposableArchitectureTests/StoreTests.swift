@@ -1,11 +1,6 @@
+@_spi(Internals) import ComposableArchitecture
 import ReactiveSwift
 import XCTest
-
-#if DEBUG
-  @testable import ComposableArchitecture
-#else
-  import ComposableArchitecture
-#endif
 
 // `@MainActor` introduces issues gathering tests on Linux
 #if !os(Linux)
@@ -55,35 +50,33 @@ import XCTest
       }
     #endif
 
-    #if DEBUG
-      func testCancellableIsRemovedWhenEffectCompletes() {
-        let mainQueue = TestScheduler()
-        let effect = Effect<Void, Never>(value: ())
-          .deferred(for: 1, scheduler: mainQueue)
+    func testCancellableIsRemovedWhenEffectCompletes() {
+      let mainQueue = TestScheduler()
+      let effect = Effect<Void, Never>(value: ())
+        .deferred(for: 1, scheduler: mainQueue)
 
-        enum Action { case start, end }
+      enum Action { case start, end }
 
-        let reducer = Reduce<Void, Action>({ _, action in
-          switch action {
-          case .start:
-            return effect.map { .end }
-          case .end:
-            return .none
-          }
-        })
-        let store = Store(initialState: (), reducer: reducer)
+      let reducer = Reduce<Void, Action>({ _, action in
+        switch action {
+        case .start:
+          return effect.map { .end }
+        case .end:
+          return .none
+        }
+      })
+      let store = Store(initialState: (), reducer: reducer)
 
-        XCTAssertEqual(store.effectDisposables.count, 0)
+      XCTAssertEqual(store.effectDisposables.count, 0)
 
-        _ = store.send(.start)
+      _ = store.send(.start)
 
-        XCTAssertEqual(store.effectDisposables.count, 1)
+      XCTAssertEqual(store.effectDisposables.count, 1)
 
-        mainQueue.advance(by: 2)
+      mainQueue.advance(by: 2)
 
-        XCTAssertEqual(store.effectDisposables.count, 0)
-      }
-    #endif
+      XCTAssertEqual(store.effectDisposables.count, 0)
+    }
 
     func testScopedStoreReceivesUpdatesFromParent() {
       let counterReducer = Reduce<Int, Void>({ state, _ in
@@ -528,27 +521,25 @@ import XCTest
       await store.send(.task).cancel()
     }
 
-    #if DEBUG
-      func testScopeCancellation() async throws {
-        let neverEndingTask = Task<Void, Error> { try await Task.never() }
+    func testScopeCancellation() async throws {
+      let neverEndingTask = Task<Void, Error> { try await Task.never() }
 
-        let store = Store(
-          initialState: (),
-          reducer: Reduce<Void, Void>({ _, _ in
-            .fireAndForget {
-              try await neverEndingTask.value
-            }
-          })
-        )
-        let scopedStore = store.scope(state: { $0 })
+      let store = Store(
+        initialState: (),
+        reducer: Reduce<Void, Void>({ _, _ in
+          .fireAndForget {
+            try await neverEndingTask.value
+          }
+        })
+      )
+      let scopedStore = store.scope(state: { $0 })
 
-        let sendTask = scopedStore.send(())
-        await Task.yield()
-        neverEndingTask.cancel()
-        try await XCTUnwrap(sendTask).value
-        XCTAssertEqual(store.effectDisposables.count, 0)
-        XCTAssertEqual(scopedStore.effectDisposables.count, 0)
-      }
-    #endif
+      let sendTask = scopedStore.send(())
+      await Task.yield()
+      neverEndingTask.cancel()
+      try await XCTUnwrap(sendTask).value
+      XCTAssertEqual(store.effectDisposables.count, 0)
+      XCTAssertEqual(scopedStore.effectDisposables.count, 0)
+    }
   }
 #endif
