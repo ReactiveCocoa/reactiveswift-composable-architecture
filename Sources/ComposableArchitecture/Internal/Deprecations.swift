@@ -12,7 +12,7 @@ import SwiftUI
 
 // MARK: - Deprecated after 0.42.0:
 
-/// This API has been soft-deprecated in favor of ``ReducerProtocol``.
+/// This API has been deprecated in favor of ``ReducerProtocol``.
 /// Read <doc:MigratingToTheReducerProtocol> for more information.
 ///
 /// A type alias to ``AnyReducer`` for source compatibility. This alias will be removed.
