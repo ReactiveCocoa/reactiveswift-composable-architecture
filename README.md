@@ -108,9 +108,9 @@ In here we need to define a type for the feature's state, which consists of an i
 ```swift
 struct Feature: ReducerProtocol {
   struct State: Equatable {
-  var count = 0
-  var numberFactAlert: String?
-}
+    var count = 0
+    var numberFactAlert: String?
+  }
 }
 ```
 
@@ -120,12 +120,12 @@ We also need to define a type for the feature's actions. There are the obvious a
 struct Feature: ReducerProtocol {
   struct State: Equatable { … }
   enum Action: Equatable {
-  case factAlertDismissed
-  case decrementButtonTapped
-  case incrementButtonTapped
-  case numberFactButtonTapped
-  case numberFactResponse(TaskResult<String>)
-}
+    case factAlertDismissed
+    case decrementButtonTapped
+    case incrementButtonTapped
+    case numberFactButtonTapped
+    case numberFactResponse(TaskResult<String>)
+  }
 }
 ```
 
@@ -135,22 +135,22 @@ And then we implement the `reduce` method which is responsible for handling the 
 struct Feature: ReducerProtocol {
   struct State: Equatable { … }
   enum Action: Equatable { … }
-
+  
   func reduce(into state: inout State, action: Action) -> Effect<Action, Never> {
-  switch action {
-  case .factAlertDismissed:
-    state.numberFactAlert = nil
-    return .none
+    switch action {
+      case .factAlertDismissed:
+        state.numberFactAlert = nil
+        return .none
 
-  case .decrementButtonTapped:
-    state.count -= 1
-    return .none
+      case .decrementButtonTapped:
+        state.count -= 1
+        return .none
 
-  case .incrementButtonTapped:
-    state.count += 1
-    return .none
+      case .incrementButtonTapped:
+        state.count += 1
+        return .none
 
-  case .numberFactButtonTapped:
+      case .numberFactButtonTapped:
         return .task { [count = state.count] in 
           await .numberFactResponse(
             TaskResult { 
@@ -161,17 +161,17 @@ struct Feature: ReducerProtocol {
               )
             }
           )
+        }
+
+      case let .numberFactResponse(.success(fact)):
+        state.numberFactAlert = fact
+        return .none
+
+      case .numberFactResponse(.failure):
+        state.numberFactAlert = "Could not load a number fact :("
+        return .none
+      } 
     }
-
-  case let .numberFactResponse(.success(fact)):
-    state.numberFactAlert = fact
-    return .none
-
-  case .numberFactResponse(.failure):
-    state.numberFactAlert = "Could not load a number fact :("
-    return .none
-  }
-}
   }
 }
 ```
@@ -281,8 +281,8 @@ struct MyApp: App {
       store: Store(
         initialState: Feature.State(),
         reducer: Feature()
-        )
       )
+    )
   }
 }
 ```
@@ -345,8 +345,8 @@ Then we can use it in the `reduce` implementation:
 ```swift
 case .numberFactButtonTapped:
   return .task { [count = state.count] in 
-    await .numberFactResponse(TaskResult { try wait self.numberFact(count) })
-}
+    await .numberFactResponse(TaskResult { try await self.numberFact(count) })
+  }
 ```
 
 And in the entry point of the application we can provide a version of the dependency that actually interacts with the real world API server:
@@ -397,7 +397,7 @@ await store.receive(.numberFactResponse(.success("0 is a good number Brent"))) {
 await store.send(.factAlertDismissed) {
   $0.numberFactAlert = nil
 }
-    ```
+```
 
 We can also improve the ergonomics of using the `numberFact` dependency in our application. Over time the application may evolve into many features, and some of those features may also want access to `numberFact`, and explicitly passing it through all layers can get annoying. There is a process you can follow to “register” dependencies with the library, making them instantly available to any layer in the application.
 
