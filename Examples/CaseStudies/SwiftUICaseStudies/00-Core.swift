@@ -1,6 +1,5 @@
 import ComposableArchitecture
 import ReactiveSwift
-import UIKit
 import XCTestDynamicOverlay
 
 struct Root: ReducerProtocol {
