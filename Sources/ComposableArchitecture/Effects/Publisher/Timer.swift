@@ -23,18 +23,18 @@ extension Effect where Action == Date, Failure == Never {
   ///   struct TimerID: Hashable {}
   ///
   ///   func reduce(into state: inout State, action: Action) -> Effect<Action, Never> {
-  ///   switch action {
-  ///   case .startButtonTapped:
+  ///     switch action {
+  ///     case .startButtonTapped:
   ///       return Effect.timer(id: TimerID(), every: 1, on: self.mainQueue)
-  ///       .map { _ in .timerTicked }
+  ///         .map { _ in .timerTicked }
   ///
-  ///   case .stopButtonTapped:
-  ///     return .cancel(id: TimerID())
+  ///     case .stopButtonTapped:
+  ///       return .cancel(id: TimerID())
   ///
-  ///   case let .timerTicked:
-  ///     state.count += 1
-  ///     return .none
-  /// }
+  ///     case .timerTicked:
+  ///       state.count += 1
+  ///       return .none
+  ///   }
   /// }
   /// ```
   ///
@@ -48,7 +48,7 @@ extension Effect where Action == Date, Failure == Never {
   ///   let store = TestStore(
   ///     initialState: Feature.State(),
   ///     reducer: Feature()
-  ///     )
+  ///   )
   ///
   ///   store.dependencies.mainQueue = mainQueue
   ///
