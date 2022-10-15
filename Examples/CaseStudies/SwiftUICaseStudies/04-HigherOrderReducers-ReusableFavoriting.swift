@@ -1,6 +1,4 @@
-import Combine
 import ComposableArchitecture
-import Foundation
 import ReactiveSwift
 import SwiftUI
 
@@ -85,7 +83,7 @@ struct FavoriteButton<ID: Hashable & Sendable>: View {
   }
 }
 
-// MARK: Feature domain -
+// MARK: - Feature domain
 
 struct Episode: ReducerProtocol {
   struct State: Equatable, Identifiable {
@@ -110,6 +108,8 @@ struct Episode: ReducerProtocol {
     }
   }
 }
+
+// MARK: - Feature view
 
 struct EpisodeView: View {
   let store: StoreOf<Episode>
@@ -172,6 +172,8 @@ struct EpisodesView: View {
     .navigationTitle("Favoriting")
   }
 }
+
+// MARK: - SwiftUI previews
 
 struct EpisodesView_Previews: PreviewProvider {
   static var previews: some View {

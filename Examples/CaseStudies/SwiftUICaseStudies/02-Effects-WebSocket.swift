@@ -11,6 +11,8 @@ private let readMe = """
   message. The socket server should immediately reply with the exact message you send it.
   """
 
+// MARK: - Feature domain
+
 struct WebSocket: ReducerProtocol {
   struct State: Equatable {
     var alert: AlertState<Action>?
@@ -126,6 +128,8 @@ struct WebSocket: ReducerProtocol {
     }
   }
 }
+
+// MARK: - Feature view
 
 struct WebSocketView: View {
   let store: StoreOf<WebSocket>
