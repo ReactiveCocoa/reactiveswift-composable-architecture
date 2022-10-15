@@ -9,6 +9,8 @@ private let readMe = """
   its name, or tap the right-hand side of a row to navigate to its own associated list of rows.
   """
 
+// MARK: - Feature domain
+
 struct Nested: ReducerProtocol {
   struct State: Equatable, Identifiable {
     let id: UUID
@@ -49,6 +51,8 @@ struct Nested: ReducerProtocol {
     }
   }
 }
+
+// MARK: - Feature view
 
 struct NestedView: View {
   let store: StoreOf<Nested>
@@ -116,17 +120,17 @@ extension Nested.State {
   )
 }
 
-#if DEBUG
-  struct NestedView_Previews: PreviewProvider {
-    static var previews: some View {
-      NavigationView {
-        NestedView(
-          store: Store(
-            initialState: .mock,
-            reducer: Nested()
-          )
+// MARK: - SwiftUI previews
+
+struct NestedView_Previews: PreviewProvider {
+  static var previews: some View {
+    NavigationView {
+      NestedView(
+        store: Store(
+          initialState: .mock,
+          reducer: Nested()
         )
-      }
+      )
     }
   }
-#endif
+}

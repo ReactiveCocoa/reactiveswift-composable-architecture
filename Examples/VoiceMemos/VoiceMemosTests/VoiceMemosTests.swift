@@ -2,7 +2,6 @@ import ComposableArchitecture
 import Foundation
 import ReactiveSwift
 import XCTest
-import XCTestDynamicOverlay
 
 @testable import VoiceMemos
 

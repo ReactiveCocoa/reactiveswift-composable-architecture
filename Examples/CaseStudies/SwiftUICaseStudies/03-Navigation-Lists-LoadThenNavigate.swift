@@ -1,5 +1,4 @@
 import ComposableArchitecture
-import Foundation
 import ReactiveSwift
 import SwiftUI
 
@@ -10,6 +9,8 @@ private let readMe = """
   When the counter state is present, you will be programmatically navigated to the screen that \
   depends on this data.
   """
+
+// MARK: - Feature domain
 
 struct LoadThenNavigateList: ReducerProtocol {
   struct State: Equatable {
@@ -80,6 +81,8 @@ struct LoadThenNavigateList: ReducerProtocol {
   }
 }
 
+// MARK: - Feature view
+
 struct LoadThenNavigateListView: View {
   let store: StoreOf<LoadThenNavigateList>
 
@@ -120,6 +123,8 @@ struct LoadThenNavigateListView: View {
     }
   }
 }
+
+// MARK: - SwiftUI previews
 
 struct LoadThenNavigateListView_Previews: PreviewProvider {
   static var previews: some View {

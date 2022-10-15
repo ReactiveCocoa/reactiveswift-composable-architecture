@@ -1,6 +1,4 @@
 import ComposableArchitecture
-import ReactiveSwift
-import XCTestDynamicOverlay
 
 struct Root: ReducerProtocol {
   struct State: Equatable {

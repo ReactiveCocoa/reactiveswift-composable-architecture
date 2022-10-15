@@ -53,6 +53,8 @@ extension ReducerProtocol {
   }
 }
 
+// MARK: - Feature domain
+
 struct LifecycleDemo: ReducerProtocol {
   struct State: Equatable {
     var count: Int?
@@ -92,6 +94,8 @@ struct LifecycleDemo: ReducerProtocol {
     }
   }
 }
+
+// MARK: - Feature view
 
 struct LifecycleDemoView: View {
   let store: StoreOf<LifecycleDemo>
@@ -159,6 +163,8 @@ private struct TimerView: View {
     }
   }
 }
+
+// MARK: - SwiftUI previews
 
 struct Lifecycle_Previews: PreviewProvider {
   static var previews: some View {
