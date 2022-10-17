@@ -185,17 +185,17 @@ final class EffectCancellationTests: XCTestCase {
   }
 
   #if DEBUG
-  func testConcurrentCancels() {
-    let queues = [
-      DispatchQueue.main,
-      DispatchQueue.global(qos: .background),
-      DispatchQueue.global(qos: .default),
-      DispatchQueue.global(qos: .unspecified),
-      DispatchQueue.global(qos: .userInitiated),
-      DispatchQueue.global(qos: .userInteractive),
-      DispatchQueue.global(qos: .utility),
-    ]
-    let ids = (1...10).map { _ in UUID() }
+    func testConcurrentCancels() {
+      let queues = [
+        DispatchQueue.main,
+        DispatchQueue.global(qos: .background),
+        DispatchQueue.global(qos: .default),
+        DispatchQueue.global(qos: .unspecified),
+        DispatchQueue.global(qos: .userInitiated),
+        DispatchQueue.global(qos: .userInteractive),
+        DispatchQueue.global(qos: .utility),
+      ]
+      let ids = (1...10).map { _ in UUID() }
 
       let effect = EffectProducer.merge(
         // Original upper bound was 1000, but it was triggering EXC_BAD_ACCESS crashes...
@@ -203,41 +203,41 @@ final class EffectCancellationTests: XCTestCase {
         // `TransformerCore.start` (accessing `hasDeliveredTerminalEvent` var), which can
         // be the cause?
         (1...200).map { idx -> EffectProducer<Int, Never> in
-        let id = ids[idx % 10]
+          let id = ids[idx % 10]
 
-        return EffectProducer.merge(
+          return EffectProducer.merge(
             Effect(value: idx)
               .deferred(
                 for: Double.random(in: 1...100) / 1000,
                 scheduler: QueueScheduler(internalQueue: queues.randomElement()!)
-            )
-            .cancellable(id: id),
+              )
+              .cancellable(id: id),
 
             SignalProducer(value: ())
-            .delay(
+              .delay(
                 Double.random(in: 1...100) / 1000,
                 on: QueueScheduler(internalQueue: queues.randomElement()!)
-            )
+              )
               .flatMap(.latest) { EffectProducer.cancel(id: id).producer }
-            .eraseToEffect()
-        )
-      }
-    )
+              .eraseToEffect()
+          )
+        }
+      )
 
-    let expectation = self.expectation(description: "wait")
-    effect
+      let expectation = self.expectation(description: "wait")
+      effect
         .producer
         .on(completed: { expectation.fulfill() }, value: { _ in })
         .start()
-    self.wait(for: [expectation], timeout: 999)
+      self.wait(for: [expectation], timeout: 999)
 
-    for id in ids {
-      XCTAssertNil(
-        _cancellationCancellables[_CancelToken(id: id)],
-        "cancellationCancellables should not contain id \(id)"
-      )
+      for id in ids {
+        XCTAssertNil(
+          _cancellationCancellables[_CancelToken(id: id)],
+          "cancellationCancellables should not contain id \(id)"
+        )
+      }
     }
-  }
   #endif
 
   func testNestedCancels() {
@@ -248,8 +248,8 @@ final class EffectCancellationTests: XCTestCase {
         observer.sendCompleted()
       }
     }
-      .eraseToEffect()
-      .cancellable(id: 1)
+    .eraseToEffect()
+    .cancellable(id: 1)
 
     for _ in 1...1_000 {
       effect = effect.cancellable(id: id)
