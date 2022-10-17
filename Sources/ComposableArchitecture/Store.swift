@@ -89,7 +89,7 @@ import ReactiveSwift
 ///     sometimes you are required to do work synchronously, such as in animation blocks.
 ///
 ///   * It is possible to create a scheduler that performs its work immediately when on the main
-///     thread and otherwise uses `DispatchQueue.main.async` (_e.g._, see Combine Schedulers'
+///     thread and otherwise uses `DispatchQueue.main.async` (_e.g._, see ReactiveSwift Schedulers'
 ///     [UIScheduler][uischeduler]).
 ///
 /// This introduces a lot more complexity, and should probably not be adopted without having a very
@@ -111,7 +111,7 @@ import ReactiveSwift
 /// However, by leaving scheduling out of the ``Store`` we get to test these aspects of our effects
 /// if we so desire, or we can ignore if we prefer. We have that flexibility.
 ///
-/// [uischeduler]: https://github.com/pointfreeco/combine-schedulers/blob/main/Sources/CombineSchedulers/UIScheduler.swift
+/// [uischeduler]: https://github.com/ReactiveCocoa/ReactiveSwift/blob/master/Sources/Scheduler.swift#L206
 ///
 /// #### Thread safety checks
 ///
@@ -128,7 +128,7 @@ public final class Store<State, Action> {
   #if swift(>=5.7)
     private let reducer: any ReducerProtocol<State, Action>
   #else
-    private let reducer: (inout State, Action) -> Effect<Action, Never>
+    private let reducer: (inout State, Action) -> EffectTask<Action>
     fileprivate var scope: AnyStoreScope?
   #endif
   var state: State {
@@ -622,7 +622,7 @@ public typealias StoreOf<R: ReducerProtocol> = Store<R.State, R.Action>
     @inlinable
     func reduce(
       into state: inout ScopedState, action: ScopedAction
-    ) -> Effect<ScopedAction, Never> {
+    ) -> EffectTask<ScopedAction> {
       self.isSending = true
       defer {
         state = self.toScopedState(self.rootStore.state)

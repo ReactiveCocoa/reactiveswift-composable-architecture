@@ -45,27 +45,27 @@ import XCTestDynamicOverlay
 /// ```swift
 /// struct Counter: ReducerProtocol {
 ///   struct State: Equatable {
-///   var count = 0
-/// }
+///     var count = 0
+///   }
 ///
 ///   enum Action {
-///   case decrementButtonTapped
-///   case incrementButtonTapped
-/// }
+///     case decrementButtonTapped
+///     case incrementButtonTapped
+///   }
 ///
 ///   func reduce(
 ///     into state: inout State, action: Action
-///   ) -> Effect<Action, Never> {
-///   switch action {
-///   case .decrementButtonTapped:
-///     state.count -= 1
-///     return .none
+///   ) -> EffectTask<Action> {
+///     switch action {
+///     case .decrementButtonTapped:
+///       state.count -= 1
+///       return .none
 ///
-///   case .incrementButtonTapped:
-///     state.count += 1
-///     return .none
+///     case .incrementButtonTapped:
+///       state.count += 1
+///       return .none
+///     }
 ///   }
-/// }
 /// }
 /// ```
 ///
@@ -100,21 +100,21 @@ import XCTestDynamicOverlay
 /// ```swift
 /// struct Search: ReducerProtocol {
 ///   struct State: Equatable {
-///   var query = ""
-///   var results: [String] = []
-/// }
+///     var query = ""
+///     var results: [String] = []
+///   }
 ///
 ///   enum Action: Equatable {
-///   case queryChanged(String)
-///   case response([String])
-/// }
+///     case queryChanged(String)
+///     case response([String])
+///   }
 ///
 ///   @Dependency(\.apiClient) var apiClient
 ///   @Dependency(\.mainQueue) var mainQueue
 ///
 ///   func reduce(
 ///     into state: inout State, action: Action
-///   ) -> Effect<Action, Never> {
+///   ) -> EffectTask<Action> {
 ///     switch action {
 ///     case let .queryChanged(query):
 ///       enum SearchID {}
@@ -134,7 +134,7 @@ import XCTestDynamicOverlay
 ///       state.results = results
 ///       return .none
 ///     }
-/// }
+///   }
 /// }
 /// ```
 ///
@@ -151,7 +151,7 @@ import XCTestDynamicOverlay
 /// let mainQueue = TestScheduler()
 /// store.dependencies.mainQueue = mainQueue
 ///
-///     // Simulate a search response with one item
+/// // Simulate a search response with one item
 /// store.dependencies.mainQueue.apiClient.search = { _ in
 ///   ["Composable Architecture"]
 /// }
@@ -225,7 +225,7 @@ public final class TestStore<State, Action, ScopedState, ScopedAction, Environme
   /// The current state.
   ///
   /// When read from a trailing closure assertion in ``send(_:_:file:line:)-6s1gq`` or
-  /// ``receive(_:timeout:_:file:line:)``, it will equal the `inout` state passed to the closure.
+  /// ``receive(_:timeout:_:file:line:)-8yd62``, it will equal the `inout` state passed to the closure.
   public var state: State {
     self.reducer.state
   }
@@ -233,7 +233,7 @@ public final class TestStore<State, Action, ScopedState, ScopedAction, Environme
   /// The timeout to await for in-flight effects.
   ///
   /// This is the default timeout used in all methods that take an optional timeout, such as
-  /// ``receive(_:timeout:_:file:line:)`` and ``finish(timeout:file:line:)``.
+  /// ``receive(_:timeout:_:file:line:)-8yd62`` and ``finish(timeout:file:line:)-7pmv3``.
   public var timeout: UInt64
 
   private var _environment: Box<Environment>
@@ -460,7 +460,7 @@ public final class TestStore<State, Action, ScopedState, ScopedAction, Environme
         • If you are returning a long-living effect (timers, notifications, subjects, etc.), \
         then make sure those effects are torn down by marking the effect ".cancellable" and \
         returning a corresponding cancellation effect ("Effect.cancel") from another action, or, \
-        if your effect is driven by a Combine subject, send it a completion.
+        if your effect is driven by a ReactiveSwift producer, send it a completion.
         """,
         file: effect.file,
         line: effect.line
@@ -473,8 +473,8 @@ extension TestStore where ScopedState: Equatable {
   /// Sends an action to the store and asserts when state changes.
   ///
   /// This method suspends in order to allow any effects to start. For example, if you
-  /// track an analytics event in a ``Effect/fireAndForget(priority:_:)`` when an action is sent,
-  /// you can assert on that behavior immediately after awaiting `store.send`:
+  /// track an analytics event in a ``EffectProducer/fireAndForget(priority:_:)`` when an action is
+  /// sent, you can assert on that behavior immediately after awaiting `store.send`:
   ///
   /// ```swift
   /// @MainActor
@@ -959,7 +959,7 @@ extension TestStore {
 /// await store.send(.stopTimerButtonTapped).finish()
 /// ```
 ///
-/// See ``TestStore/finish(timeout:file:line:)`` for the ability to await all in-flight effects in
+/// See ``TestStore/finish(timeout:file:line:)-7pmv3`` for the ability to await all in-flight effects in
 /// the test store.
 ///
 /// See ``ViewStoreTask`` for the analog provided to ``ViewStore``.
@@ -1072,10 +1072,10 @@ class TestReducer<State, Action>: ReducerProtocol {
     self.state = initialState
   }
 
-  func reduce(into state: inout State, action: TestAction) -> Effect<TestAction, Never> {
+  func reduce(into state: inout State, action: TestAction) -> EffectTask<TestAction> {
     let reducer = self.base.dependency(\.self, self.dependencies)
 
-    let effects: Effect<Action, Never>
+    let effects: EffectTask<Action>
     switch action.origin {
     case let .send(action):
       effects = reducer.reduce(into: &state, action: action)
