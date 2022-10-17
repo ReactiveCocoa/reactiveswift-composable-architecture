@@ -5,8 +5,8 @@ import ReactiveSwift
 private let readMe = """
   This application demonstrates how to work with timers in the Composable Architecture.
 
-  It makes use of the `.timer` method on Combine Schedulers, which is a helper provided by the \
-  Combine Schedulers library included with this library. The helper provides an \
+  It makes use of the `.timer` method on ReactiveSwift Schedulers, which is a helper provided by the \
+  ReactiveSwift library included with this library. The helper provides an \
   `AsyncSequence`-friendly API for dealing with timers in asynchronous code.
   """
 
@@ -27,7 +27,7 @@ struct Timers: ReducerProtocol {
   @Dependency(\.mainQueue) var mainQueue
   private enum TimerID {}
 
-  func reduce(into state: inout State, action: Action) -> Effect<Action, Never> {
+  func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
     switch action {
     case .onDisappear:
       return .cancel(id: TimerID.self)

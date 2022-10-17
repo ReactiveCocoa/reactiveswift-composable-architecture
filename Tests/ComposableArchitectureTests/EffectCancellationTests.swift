@@ -18,7 +18,7 @@ final class EffectCancellationTests: XCTestCase {
     var values: [Int] = []
 
     let subject = Signal<Int, Never>.pipe()
-    let effect = Effect(subject.output)
+    let effect = EffectProducer(subject.output)
       .cancellable(id: CancelID())
 
     effect
@@ -31,7 +31,7 @@ final class EffectCancellationTests: XCTestCase {
     subject.input.send(value: 2)
     XCTAssertEqual(values, [1, 2])
 
-    _ = Effect<Never, Never>.cancel(id: CancelID())
+    _ = EffectTask<Never>.cancel(id: CancelID())
       .producer
       .start()
 
@@ -43,7 +43,7 @@ final class EffectCancellationTests: XCTestCase {
     var values: [Int] = []
 
     let subject = Signal<Int, Never>.pipe()
-    Effect(subject.output)
+    EffectProducer(subject.output)
       .cancellable(id: CancelID(), cancelInFlight: true)
       .producer
       .startWithValues { values.append($0) }
@@ -54,7 +54,7 @@ final class EffectCancellationTests: XCTestCase {
     subject.input.send(value: 2)
     XCTAssertEqual(values, [1, 2])
 
-    Effect(subject.output)
+    EffectProducer(subject.output)
       .cancellable(id: CancelID(), cancelInFlight: true)
       .producer
       .startWithValues { values.append($0) }
@@ -77,7 +77,7 @@ final class EffectCancellationTests: XCTestCase {
     XCTAssertEqual(value, nil)
 
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-      _ = Effect<Never, Never>.cancel(id: CancelID())
+      _ = EffectTask<Never>.cancel(id: CancelID())
         .producer
         .start()
     }
@@ -99,7 +99,7 @@ final class EffectCancellationTests: XCTestCase {
     XCTAssertEqual(value, nil)
 
     mainQueue.advance(by: 1)
-    Effect<Never, Never>.cancel(id: CancelID())
+    EffectTask<Never>.cancel(id: CancelID())
       .producer
       .start()
 
@@ -129,7 +129,7 @@ final class EffectCancellationTests: XCTestCase {
       .producer
       .startWithValues { _ in }
 
-    Effect<Int, Never>.cancel(id: id)
+    EffectProducer<Int, Never>.cancel(id: id)
       .producer
       .startWithValues { _ in }
 
@@ -140,7 +140,7 @@ final class EffectCancellationTests: XCTestCase {
     var values: [Int] = []
 
     let subject = Signal<Int, Never>.pipe()
-    let effect = Effect(subject.output)
+    let effect = EffectProducer(subject.output)
       .cancellable(id: CancelID())
       .cancellable(id: CancelID())
 
@@ -152,7 +152,7 @@ final class EffectCancellationTests: XCTestCase {
     subject.input.send(value: 1)
     XCTAssertEqual(values, [1])
 
-    _ = Effect<Never, Never>.cancel(id: CancelID())
+    _ = EffectTask<Never>.cancel(id: CancelID())
       .producer
       .start()
 
@@ -164,7 +164,7 @@ final class EffectCancellationTests: XCTestCase {
     var values: [Int] = []
 
     let subject = Signal<Int, Never>.pipe()
-    let effect = Effect(subject.output)
+    let effect = EffectProducer(subject.output)
       .cancellable(id: CancelID())
 
     effect
@@ -177,7 +177,7 @@ final class EffectCancellationTests: XCTestCase {
     subject.input.sendCompleted()
     XCTAssertEqual(values, [1])
 
-    _ = Effect<Never, Never>.cancel(id: CancelID())
+    _ = EffectTask<Never>.cancel(id: CancelID())
       .producer
       .start()
 
@@ -185,59 +185,59 @@ final class EffectCancellationTests: XCTestCase {
   }
 
   #if DEBUG
-    func testConcurrentCancels() {
-      let queues = [
-        DispatchQueue.main,
-        DispatchQueue.global(qos: .background),
-        DispatchQueue.global(qos: .default),
-        DispatchQueue.global(qos: .unspecified),
-        DispatchQueue.global(qos: .userInitiated),
-        DispatchQueue.global(qos: .userInteractive),
-        DispatchQueue.global(qos: .utility),
-      ]
-      let ids = (1...10).map { _ in UUID() }
+  func testConcurrentCancels() {
+    let queues = [
+      DispatchQueue.main,
+      DispatchQueue.global(qos: .background),
+      DispatchQueue.global(qos: .default),
+      DispatchQueue.global(qos: .unspecified),
+      DispatchQueue.global(qos: .userInitiated),
+      DispatchQueue.global(qos: .userInteractive),
+      DispatchQueue.global(qos: .utility),
+    ]
+    let ids = (1...10).map { _ in UUID() }
 
-      let effect = Effect.merge(
+      let effect = EffectProducer.merge(
         // Original upper bound was 1000, but it was triggering EXC_BAD_ACCESS crashes...
         // Enabling ThreadSanitizer reveals data races in RAS internals, more specifically
         // `TransformerCore.start` (accessing `hasDeliveredTerminalEvent` var), which can
         // be the cause?
-        (1...200).map { idx -> Effect<Int, Never> in
-          let id = ids[idx % 10]
+        (1...200).map { idx -> EffectProducer<Int, Never> in
+        let id = ids[idx % 10]
 
-          return Effect.merge(
+        return EffectProducer.merge(
             Effect(value: idx)
               .deferred(
                 for: Double.random(in: 1...100) / 1000,
                 scheduler: QueueScheduler(internalQueue: queues.randomElement()!)
-              )
-              .cancellable(id: id),
+            )
+            .cancellable(id: id),
 
             SignalProducer(value: ())
-              .delay(
+            .delay(
                 Double.random(in: 1...100) / 1000,
                 on: QueueScheduler(internalQueue: queues.randomElement()!)
-              )
-              .flatMap(.latest) { Effect.cancel(id: id).producer }
-              .eraseToEffect()
-          )
-        }
-      )
+            )
+              .flatMap(.latest) { EffectProducer.cancel(id: id).producer }
+            .eraseToEffect()
+        )
+      }
+    )
 
-      let expectation = self.expectation(description: "wait")
-      effect
+    let expectation = self.expectation(description: "wait")
+    effect
         .producer
         .on(completed: { expectation.fulfill() }, value: { _ in })
         .start()
-      self.wait(for: [expectation], timeout: 999)
+    self.wait(for: [expectation], timeout: 999)
 
-      for id in ids {
-        XCTAssertNil(
-          _cancellationCancellables[_CancelToken(id: id)],
-          "cancellationCancellables should not contain id \(id)"
-        )
-      }
+    for id in ids {
+      XCTAssertNil(
+        _cancellationCancellables[_CancelToken(id: id)],
+        "cancellationCancellables should not contain id \(id)"
+      )
     }
+  }
   #endif
 
   func testNestedCancels() {
@@ -248,8 +248,8 @@ final class EffectCancellationTests: XCTestCase {
         observer.sendCompleted()
       }
     }
-    .eraseToEffect()
-    .cancellable(id: 1)
+      .eraseToEffect()
+      .cancellable(id: 1)
 
     for _ in 1...1_000 {
       effect = effect.cancellable(id: id)
@@ -307,7 +307,7 @@ final class EffectCancellationTests: XCTestCase {
   }
 
   func testNestedMergeCancellation() {
-    let effect = Effect<Int, Never>.merge(
+    let effect = EffectProducer<Int, Never>.merge(
       [SignalProducer(1...2).eraseToEffect().cancellable(id: 1)]
     )
     .cancellable(id: 2)
@@ -335,11 +335,11 @@ final class EffectCancellationTests: XCTestCase {
         .cancellable(id: id)
     }
 
-    Effect<AnyHashable, Never>.merge(effects)
+    EffectTask<AnyHashable>.merge(effects)
       .producer
       .startWithValues { output.append($0) }
 
-    Effect<AnyHashable, Never>
+    EffectTask<AnyHashable>
       .cancel(ids: [A(), C()])
       .producer
       .startWithValues { _ in }

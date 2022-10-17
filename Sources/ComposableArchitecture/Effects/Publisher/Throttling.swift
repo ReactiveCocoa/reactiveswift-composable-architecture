@@ -2,7 +2,7 @@ import Dispatch
 import Foundation
 import ReactiveSwift
 
-extension Effect {
+extension EffectProducer {
   /// Throttles an effect so that it only publishes one output per given interval.
   ///
   /// - Parameters:
@@ -69,8 +69,8 @@ extension Effect {
 
   /// Throttles an effect so that it only publishes one output per given interval.
   ///
-  /// A convenience for calling ``Effect/throttle(id:for:scheduler:latest:)-5jfpx`` with a static
-  /// type as the effect's unique identifier.
+  /// A convenience for calling ``EffectProducer/throttle(id:for:scheduler:latest:)-3gibe`` with a
+  /// static type as the effect's unique identifier.
   ///
   /// - Parameters:
   ///   - id: The effect's identifier.

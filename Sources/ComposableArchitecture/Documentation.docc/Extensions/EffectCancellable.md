@@ -1,4 +1,4 @@
-# ``ComposableArchitecture/Effect/cancellable(id:cancelInFlight:)-499iv``
+# ``ComposableArchitecture/EffectProducer/cancellable(id:cancelInFlight:)-499iv``
 
 ## Topics
 
