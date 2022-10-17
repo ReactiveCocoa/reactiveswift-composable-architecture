@@ -332,17 +332,17 @@ public struct Send<Action> {
   }
 
   #if canImport(SwiftUI)
-  /// Sends an action back into the system from an effect with animation.
-  ///
-  /// - Parameters:
-  ///   - action: An action.
-  ///   - animation: An animation.
-  public func callAsFunction(_ action: Action, animation: Animation?) {
-    guard !Task.isCancelled else { return }
-    withAnimation(animation) {
-      self(action)
+    /// Sends an action back into the system from an effect with animation.
+    ///
+    /// - Parameters:
+    ///   - action: An action.
+    ///   - animation: An animation.
+    public func callAsFunction(_ action: Action, animation: Animation?) {
+      guard !Task.isCancelled else { return }
+      withAnimation(animation) {
+        self(action)
+      }
     }
-  }
   #endif
 }
 

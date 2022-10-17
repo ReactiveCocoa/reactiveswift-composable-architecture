@@ -154,11 +154,11 @@ extension EffectProducer {
               observer.sendCompleted()
             case let .failure(error):
               observer.send(error: error)
-      }
+            }
           }
         }
       }
-  }
+    }
     .eraseToEffect()
   }
 
@@ -268,10 +268,10 @@ extension EffectProducer {
     return SignalProducer.deferred {
       DependencyValues.$_current.withValue(dependencies) {
         SignalProducer { observer, lifetime in
-        try? work()
+          try? work()
           observer.sendCompleted()
+        }
       }
-    }
     }
     .eraseToEffect()
   }
