@@ -190,7 +190,7 @@ struct EpisodesView_Previews: PreviewProvider {
   }
 }
 
-struct FavoriteError: LocalizedError {
+struct FavoriteError: LocalizedError, Equatable {
   var errorDescription: String? {
     "Favoriting failed."
   }
