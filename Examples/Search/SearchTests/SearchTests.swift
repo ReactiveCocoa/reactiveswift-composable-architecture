@@ -1,5 +1,4 @@
 import ComposableArchitecture
-import ReactiveSwift
 import XCTest
 
 @testable import Search
@@ -129,9 +128,9 @@ final class SearchTests: XCTestCase {
       reducer: Search()
     )
 
-    let scheduler = TestScheduler()
+    let clock = TestClock()
     store.dependencies.weatherClient.forecast = { _ in
-      try await scheduler.sleep(for: .seconds(0))
+      try await clock.sleep(for: .seconds(0))
       return .mock
     }
 
@@ -141,7 +140,7 @@ final class SearchTests: XCTestCase {
     await store.send(.searchResultTapped(specialResult)) {
       $0.resultForecastRequestInFlight = specialResult
     }
-    await scheduler.advance()
+    await clock.advance()
     await store.receive(.forecastResponse(42, .success(.mock))) {
       $0.resultForecastRequestInFlight = nil
       $0.weather = Search.State.Weather(

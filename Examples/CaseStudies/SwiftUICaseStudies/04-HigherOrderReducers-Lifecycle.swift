@@ -1,5 +1,4 @@
 import ComposableArchitecture
-import ReactiveSwift
 import SwiftUI
 
 private let readMe = """
@@ -65,7 +64,7 @@ struct LifecycleDemo: ReducerProtocol {
     case toggleTimerButtonTapped
   }
 
-  @Dependency(\.mainQueue) var mainQueue
+  @Dependency(\.continuousClock) var clock
   private enum CancelID {}
 
   var body: some ReducerProtocol<State, Action> {
@@ -84,7 +83,7 @@ struct LifecycleDemo: ReducerProtocol {
       Timer()
         .lifecycle(
           onAppear: .run { send in
-            for await _ in self.mainQueue.timer(interval: .seconds(1)) {
+            for await _ in self.clock.timer(interval: .seconds(1)) {
               await send(.tick)
             }
           }

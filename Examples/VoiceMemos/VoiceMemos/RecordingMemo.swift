@@ -1,5 +1,4 @@
 import ComposableArchitecture
-import ReactiveSwift
 import SwiftUI
 
 struct RecordingMemo: ReducerProtocol {
@@ -31,7 +30,7 @@ struct RecordingMemo: ReducerProtocol {
   struct Failed: Equatable, Error {}
 
   @Dependency(\.audioRecorder) var audioRecorder
-  @Dependency(\.mainQueue) var mainQueue
+  @Dependency(\.continuousClock) var clock
 
   func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
     switch action {
@@ -67,7 +66,7 @@ struct RecordingMemo: ReducerProtocol {
             TaskResult { try await self.audioRecorder.startRecording(url) }
           )
         )
-        for await _ in self.mainQueue.timer(interval: .seconds(1)) {
+        for await _ in self.clock.timer(interval: .seconds(1)) {
           await send(.timerUpdated)
         }
         await startRecording

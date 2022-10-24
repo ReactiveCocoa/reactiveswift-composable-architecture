@@ -34,7 +34,7 @@ struct Todos: ReducerProtocol {
     case todo(id: Todo.State.ID, action: Todo.Action)
   }
 
-  @Dependency(\.mainQueue) var mainQueue
+  @Dependency(\.continuousClock) var clock
   @Dependency(\.uuid) var uuid
   private enum TodoCompletionID {}
 
@@ -78,7 +78,7 @@ struct Todos: ReducerProtocol {
         state.todos.move(fromOffsets: source, toOffset: destination)
 
         return .task {
-          try await self.mainQueue.sleep(for: .milliseconds(100))
+          try await self.clock.sleep(for: .milliseconds(100))
           return .sortCompletedTodos
         }
 
@@ -88,7 +88,7 @@ struct Todos: ReducerProtocol {
 
       case .todo(id: _, action: .checkBoxToggled):
         return .run { send in
-          try await self.mainQueue.sleep(for: .seconds(1))
+          try await self.clock.sleep(for: .seconds(1))
           await send(.sortCompletedTodos, animation: .default)
         }
         .cancellable(id: TodoCompletionID.self, cancelInFlight: true)
