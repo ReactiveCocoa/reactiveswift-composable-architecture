@@ -1,5 +1,4 @@
 import ComposableArchitecture
-import ReactiveSwift
 import XCTest
 
 @testable import SwiftUICaseStudies
@@ -12,17 +11,17 @@ final class TimersTests: XCTestCase {
       reducer: Timers()
     )
 
-    let mainQueue = TestScheduler()
-    store.dependencies.mainQueue = mainQueue
+    let clock = TestClock()
+    store.dependencies.continuousClock = clock
 
     await store.send(.toggleTimerButtonTapped) {
       $0.isTimerActive = true
     }
-    await mainQueue.advance(by: .seconds(1))
+    await clock.advance(by: .seconds(1))
     await store.receive(.timerTicked) {
       $0.secondsElapsed = 1
     }
-    await mainQueue.advance(by: .seconds(5))
+    await clock.advance(by: .seconds(5))
     await store.receive(.timerTicked) {
       $0.secondsElapsed = 2
     }

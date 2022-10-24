@@ -1,6 +1,5 @@
 import AVFoundation
 import ComposableArchitecture
-import ReactiveSwift
 import SwiftUI
 
 struct VoiceMemos: ReducerProtocol {
@@ -27,7 +26,7 @@ struct VoiceMemos: ReducerProtocol {
   }
 
   @Dependency(\.audioRecorder.requestRecordPermission) var requestRecordPermission
-  @Dependency(\.mainQueue) var mainQueue
+  @Dependency(\.date) var date
   @Dependency(\.openSettings) var openSettings
   @Dependency(\.temporaryDirectory) var temporaryDirectory
   @Dependency(\.uuid) var uuid
@@ -122,7 +121,7 @@ struct VoiceMemos: ReducerProtocol {
 
   private var newRecordingMemo: RecordingMemo.State {
     RecordingMemo.State(
-      date: self.mainQueue.currentDate,
+      date: self.date.now,
       url: self.temporaryDirectory()
         .appendingPathComponent(self.uuid().uuidString)
         .appendingPathExtension("m4a")
