@@ -1895,7 +1895,7 @@ extension TestStore {
     )
 
     for effect in self.reducer.inFlightEffects {
-      _ = Effect<Never, Never>.cancel(id: effect.id).producer.startWithCompleted {}
+      _ = EffectProducer<Never, Never>.cancel(id: effect.id).producer.startWithCompleted {}
     }
     self.reducer.inFlightEffects = []
   }

@@ -292,14 +292,14 @@
           case increment
           case loggedInResponse(Bool)
         }
-        func reduce(into state: inout State, action: Action) -> Effect<Action, Never> {
+        func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
           switch action {
           case .decrement:
             state.count -= 1
             return .none
           case .increment:
             state.count += 1
-            return Effect(value: .loggedInResponse(true))
+            return EffectTask(value: .loggedInResponse(true))
           case let .loggedInResponse(response):
             state.isLoggedIn = response
             return .none
@@ -334,11 +334,11 @@
           case increment
           case loggedInResponse(Bool)
         }
-        func reduce(into state: inout State, action: Action) -> Effect<Action, Never> {
+        func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
           switch action {
           case .increment:
             state.count += 1
-            return Effect(value: .loggedInResponse(true))
+            return EffectTask(value: .loggedInResponse(true))
           case let .loggedInResponse(response):
             state.isLoggedIn = response
             return .none
@@ -466,7 +466,7 @@
           case tap
           case response(Int)
         }
-        func reduce(into state: inout Int, action: Action) -> Effect<Action, Never> {
+        func reduce(into state: inout Int, action: Action) -> EffectTask<Action> {
           switch action {
           case .tap:
             state += 1
@@ -698,7 +698,7 @@
       case increment
       case decrement
     }
-    func reduce(into state: inout State, action: Action) -> Effect<Action, Never> {
+    func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
       switch action {
       case .increment:
         state.count += 1
@@ -723,7 +723,7 @@
       case response1(Int)
       case response2(String)
     }
-    func reduce(into state: inout State, action: Action) -> Effect<Action, Never> {
+    func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
       switch action {
       case .onAppear:
         state = State()
@@ -761,7 +761,7 @@
 
     @Dependency(\.mainQueue) var mainQueue
 
-    func reduce(into state: inout State, action: Action) -> Effect<Action, Never> {
+    func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
       switch action {
       case let .changeIdentity(name, surname):
         state.name = name
