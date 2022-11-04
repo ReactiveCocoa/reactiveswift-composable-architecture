@@ -20,7 +20,7 @@ struct RootView: View {
           )
 
           NavigationLink(
-            "Pullback and combine",
+            "Combining reducers",
             destination: TwoCountersView(
               store: self.store.scope(
                 state: \.twoCounters,
