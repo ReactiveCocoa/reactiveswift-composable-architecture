@@ -118,6 +118,7 @@
       _ = XCTWaiter.wait(for: [.init()], timeout: 0.5)
     }
 
+    #if os(macOS)
     @MainActor
     func testEffectEmitMainThread() async throws {
       try XCTSkipIf(ProcessInfo.processInfo.environment["CI"] != nil)
@@ -190,6 +191,7 @@
       )
       await ViewStore(store).send(.tap).finish()
     }
+    #endif
 
     @MainActor
     func testBindingUnhandledAction() {
