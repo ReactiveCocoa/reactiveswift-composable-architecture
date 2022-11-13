@@ -1,7 +1,8 @@
 PLATFORM_IOS = iOS Simulator,name=iPhone 11 Pro Max
 PLATFORM_MACOS = macOS
 PLATFORM_TVOS = tvOS Simulator,name=Apple TV
-PLATFORM_WATCHOS = watchOS Simulator,name=Apple Watch Series 5 - 44mm
+PLATFORM_WATCHOS = watchOS Simulator,name=Apple Watch Series 7 (45mm)
+
 default: test-all
 
 test-all: test-library test-examples
@@ -34,27 +35,11 @@ test-docs:
 		&& exit 1)
 
 test-examples:
-	xcodebuild test \
-		-scheme "CaseStudies (SwiftUI)" \
-		-destination platform="$(PLATFORM_IOS)"
-	xcodebuild test \
-		-scheme "CaseStudies (UIKit)" \
-		-destination platform="$(PLATFORM_IOS)"
-	xcodebuild test \
-		-scheme Search \
-		-destination platform="$(PLATFORM_IOS)"
-	xcodebuild test \
-		-scheme SpeechRecognition \
-		-destination platform="$(PLATFORM_IOS)"
-	xcodebuild test \
-		-scheme TicTacToe \
-		-destination platform="$(PLATFORM_IOS)"
-	xcodebuild test \
-		-scheme Todos \
-		-destination platform="$(PLATFORM_IOS)"
-	xcodebuild test \
-		-scheme VoiceMemos \
-		-destination platform="$(PLATFORM_IOS)"
+	for scheme in "CaseStudies (SwiftUI)" "CaseStudies (UIKit)" Search SpeechRecognition TicTacToe Todos VoiceMemos; do \
+		xcodebuild test \
+			-scheme $$scheme \
+			-destination platform="$(PLATFORM_IOS)"; \
+	done
 
 benchmark:
 	swift run --configuration release \

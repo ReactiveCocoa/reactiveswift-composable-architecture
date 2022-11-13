@@ -487,7 +487,6 @@ private struct HashableWrapper<Value>: Hashable {
     public func yield(while predicate: @escaping (State) -> Bool) async {
       let cancellable = Box<Disposable?>(wrappedValue: nil)
       try? await withTaskCancellationHandler(
-        handler: { cancellable.wrappedValue?.dispose() },
         operation: {
           try Task.checkCancellation()
           try await withUnsafeThrowingContinuation {
@@ -504,9 +503,9 @@ private struct HashableWrapper<Value>: Hashable {
                 _ = cancellable
               }
           }
-        }
+        },
+        onCancel: { cancellable.wrappedValue?.dispose() }
       )
-
     }
   }
 

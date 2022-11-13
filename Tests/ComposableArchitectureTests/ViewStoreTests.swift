@@ -172,8 +172,7 @@ final class ViewStoreTests: XCTestCase {
   }
 
   #if canImport(_Concurrency) && compiler(>=5.5.2)
-    func testSendWhile() {
-      let expectation = self.expectation(description: "await")
+    func testSendWhile() async {
       Task { @MainActor in
         enum Action {
           case response
@@ -197,13 +196,10 @@ final class ViewStoreTests: XCTestCase {
         XCTAssertNoDifference(viewStore.state, false)
         await viewStore.send(.tapped, while: { $0 })
         XCTAssertNoDifference(viewStore.state, false)
-        expectation.fulfill()
       }
-      self.wait(for: [expectation], timeout: 1)
     }
 
-    func testSuspend() {
-      let expectation = self.expectation(description: "await")
+    func testSuspend() async {
       Task { @MainActor in
         enum Action {
           case response
@@ -229,9 +225,7 @@ final class ViewStoreTests: XCTestCase {
         XCTAssertNoDifference(viewStore.state, true)
         await viewStore.yield(while: { $0 })
         XCTAssertNoDifference(viewStore.state, false)
-        expectation.fulfill()
       }
-      self.wait(for: [expectation], timeout: 1)
     }
   #endif
 }
