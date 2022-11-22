@@ -68,6 +68,7 @@ final class DependencyValuesTests: XCTestCase {
 
   func testDependencyDefaultIsReused() {
     DependencyValues.withValue(\.self, .init()) {
+        DependencyValues.withValue(\.context, .test) {
       @Dependency(\.reuseClient) var reuseClient: ReuseClient
 
       XCTAssertEqual(reuseClient.count(), 0)
@@ -75,9 +76,11 @@ final class DependencyValuesTests: XCTestCase {
       XCTAssertEqual(reuseClient.count(), 42)
     }
   }
+  }
 
   func testDependencyDefaultIsReused_SegmentedByContext() {
     DependencyValues.withValue(\.self, .init()) {
+      DependencyValues.withValue(\.context, .test) {
       @Dependency(\.reuseClient) var reuseClient: ReuseClient
 
       XCTAssertEqual(reuseClient.count(), 0)
@@ -116,6 +119,7 @@ final class DependencyValuesTests: XCTestCase {
       XCTAssertEqual(reuseClient.count(), 42)
     }
   }
+  }
 
   func testAccessingTestDependencyFromLiveContext_WhenUpdatingDependencies() {
     @Dependency(\.reuseClient) var reuseClient: ReuseClient
@@ -142,6 +146,7 @@ final class DependencyValuesTests: XCTestCase {
   }
 
   func testBinding() {
+    DependencyValues.withValue(\.context, .test) {
     @Dependency(\.childDependencyEarlyBinding) var childDependencyEarlyBinding:
       ChildDependencyEarlyBinding
     @Dependency(\.childDependencyLateBinding) var childDependencyLateBinding:
@@ -178,6 +183,7 @@ final class DependencyValuesTests: XCTestCase {
       XCTAssertEqual(childDependencyEarlyBindingEscaped.fetch(), 1_000)
       XCTAssertEqual(childDependencyLateBindingEscaped.fetch(), 1_000)
     }
+  }
   }
 
   func testNestedDependencyIsOverridden() {
