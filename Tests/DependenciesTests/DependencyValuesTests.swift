@@ -67,35 +67,35 @@ final class DependencyValuesTests: XCTestCase {
   }
 
   func testDependencyDefaultIsReused() {
-    DependencyValues.withValue(\.self, .init()) {
+      DependencyValues.withValue(\.self, .init()) {
         DependencyValues.withValue(\.context, .test) {
-      @Dependency(\.reuseClient) var reuseClient: ReuseClient
+        @Dependency(\.reuseClient) var reuseClient: ReuseClient
 
-      XCTAssertEqual(reuseClient.count(), 0)
-      reuseClient.setCount(42)
-      XCTAssertEqual(reuseClient.count(), 42)
+        XCTAssertEqual(reuseClient.count(), 0)
+        reuseClient.setCount(42)
+        XCTAssertEqual(reuseClient.count(), 42)
+      }
     }
-  }
   }
 
   func testDependencyDefaultIsReused_SegmentedByContext() {
     DependencyValues.withValue(\.self, .init()) {
       DependencyValues.withValue(\.context, .test) {
-      @Dependency(\.reuseClient) var reuseClient: ReuseClient
+        @Dependency(\.reuseClient) var reuseClient: ReuseClient
 
-      XCTAssertEqual(reuseClient.count(), 0)
-      reuseClient.setCount(42)
-      XCTAssertEqual(reuseClient.count(), 42)
-
-      DependencyValues.withValue(\.context, .preview) {
         XCTAssertEqual(reuseClient.count(), 0)
-        reuseClient.setCount(1729)
-        XCTAssertEqual(reuseClient.count(), 1729)
-      }
+        reuseClient.setCount(42)
+        XCTAssertEqual(reuseClient.count(), 42)
 
-      XCTAssertEqual(reuseClient.count(), 42)
+        DependencyValues.withValue(\.context, .preview) {
+          XCTAssertEqual(reuseClient.count(), 0)
+          reuseClient.setCount(1729)
+          XCTAssertEqual(reuseClient.count(), 1729)
+        }
 
-      DependencyValues.withValue(\.context, .live) {
+        XCTAssertEqual(reuseClient.count(), 42)
+
+        DependencyValues.withValue(\.context, .live) {
         // `XCTExpectFailure` is not supported on Linux
         #if DEBUG && !os(Linux)
           XCTExpectFailure {
@@ -106,19 +106,19 @@ final class DependencyValuesTests: XCTestCase {
               """
             )
           }
-        #endif
-        XCTAssertEqual(reuseClient.count(), 0)
-        reuseClient.setCount(-42)
-        XCTAssertEqual(
-          reuseClient.count(),
-          0,
-          "Don't cache dependency when using a test value in a live context"
-        )
-      }
+#endif
+          XCTAssertEqual(reuseClient.count(), 0)
+          reuseClient.setCount(-42)
+          XCTAssertEqual(
+            reuseClient.count(),
+            0,
+            "Don't cache dependency when using a test value in a live context"
+          )
+        }
 
-      XCTAssertEqual(reuseClient.count(), 42)
+        XCTAssertEqual(reuseClient.count(), 42)
+      }
     }
-  }
   }
 
   func testAccessingTestDependencyFromLiveContext_WhenUpdatingDependencies() {
@@ -147,43 +147,43 @@ final class DependencyValuesTests: XCTestCase {
 
   func testBinding() {
     DependencyValues.withValue(\.context, .test) {
-    @Dependency(\.childDependencyEarlyBinding) var childDependencyEarlyBinding:
+      @Dependency(\.childDependencyEarlyBinding) var childDependencyEarlyBinding:
       ChildDependencyEarlyBinding
-    @Dependency(\.childDependencyLateBinding) var childDependencyLateBinding:
+      @Dependency(\.childDependencyLateBinding) var childDependencyLateBinding:
       ChildDependencyLateBinding
-
-    XCTAssertEqual(childDependencyEarlyBinding.fetch(), 42)
-    XCTAssertEqual(childDependencyLateBinding.fetch(), 42)
-
-    DependencyValues.withValue(\.someDependency.fetch, { 1729 }) {
-      XCTAssertEqual(childDependencyEarlyBinding.fetch(), 1729)
-      XCTAssertEqual(childDependencyLateBinding.fetch(), 1729)
-    }
-
-    var childDependencyEarlyBindingEscaped: ChildDependencyEarlyBinding!
-    var childDependencyLateBindingEscaped: ChildDependencyLateBinding!
-
-    DependencyValues.withValue(\.someDependency.fetch, { 999 }) {
-      @Dependency(\.childDependencyEarlyBinding) var childDependencyEarlyBinding2:
+      
+      XCTAssertEqual(childDependencyEarlyBinding.fetch(), 42)
+      XCTAssertEqual(childDependencyLateBinding.fetch(), 42)
+      
+      DependencyValues.withValue(\.someDependency.fetch, { 1729 }) {
+        XCTAssertEqual(childDependencyEarlyBinding.fetch(), 1729)
+        XCTAssertEqual(childDependencyLateBinding.fetch(), 1729)
+      }
+      
+      var childDependencyEarlyBindingEscaped: ChildDependencyEarlyBinding!
+      var childDependencyLateBindingEscaped: ChildDependencyLateBinding!
+      
+      DependencyValues.withValue(\.someDependency.fetch, { 999 }) {
+        @Dependency(\.childDependencyEarlyBinding) var childDependencyEarlyBinding2:
         ChildDependencyEarlyBinding
-      @Dependency(\.childDependencyLateBinding) var childDependencyLateBinding2:
+        @Dependency(\.childDependencyLateBinding) var childDependencyLateBinding2:
         ChildDependencyLateBinding
-
-      childDependencyEarlyBindingEscaped = childDependencyEarlyBinding
-      childDependencyLateBindingEscaped = childDependencyLateBinding
-
-      XCTAssertEqual(childDependencyEarlyBinding2.fetch(), 999)
-      XCTAssertEqual(childDependencyLateBinding2.fetch(), 999)
+        
+        childDependencyEarlyBindingEscaped = childDependencyEarlyBinding
+        childDependencyLateBindingEscaped = childDependencyLateBinding
+        
+        XCTAssertEqual(childDependencyEarlyBinding2.fetch(), 999)
+        XCTAssertEqual(childDependencyLateBinding2.fetch(), 999)
+      }
+      
+      XCTAssertEqual(childDependencyEarlyBindingEscaped.fetch(), 42)
+      XCTAssertEqual(childDependencyLateBindingEscaped.fetch(), 42)
+      
+      DependencyValues.withValue(\.someDependency.fetch, { 1_000 }) {
+        XCTAssertEqual(childDependencyEarlyBindingEscaped.fetch(), 1_000)
+        XCTAssertEqual(childDependencyLateBindingEscaped.fetch(), 1_000)
+      }
     }
-
-    XCTAssertEqual(childDependencyEarlyBindingEscaped.fetch(), 42)
-    XCTAssertEqual(childDependencyLateBindingEscaped.fetch(), 42)
-
-    DependencyValues.withValue(\.someDependency.fetch, { 1_000 }) {
-      XCTAssertEqual(childDependencyEarlyBindingEscaped.fetch(), 1_000)
-      XCTAssertEqual(childDependencyLateBindingEscaped.fetch(), 1_000)
-    }
-  }
   }
 
   func testNestedDependencyIsOverridden() {
