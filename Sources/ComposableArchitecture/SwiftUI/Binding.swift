@@ -82,12 +82,11 @@ extension BindableState: CustomReflectable {
   }
 }
 
-// Until we can use swift-custom-dump this has to be commented out
-//  extension BindableState: CustomDumpRepresentable {
-//    public var customDumpValue: Any {
-//      self.wrappedValue
-//    }
-//  }
+extension BindableState: CustomDumpRepresentable {
+  public var customDumpValue: Any {
+    self.wrappedValue
+  }
+}
 
 extension BindableState: CustomDebugStringConvertible where Value: CustomDebugStringConvertible {
   public var debugDescription: String {
@@ -157,7 +156,6 @@ extension BindableAction {
       )
     }
   }
-
 #endif
 
 /// An action that describes simple mutations to some root state at a writable key path.

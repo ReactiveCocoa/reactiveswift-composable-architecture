@@ -10,6 +10,23 @@ import XCTestDynamicOverlay
   import os
 #endif
 
+// MARK: - Deprecated after 0.47.2
+
+extension ActorIsolated {
+  @available(
+    *,
+    deprecated,
+    message: "Use the non-async version of 'withValue'."
+  )
+  public func withValue<T: Sendable>(
+    _ operation: @Sendable (inout Value) async throws -> T
+  ) async rethrows -> T {
+    var value = self.value
+    defer { self.value = value }
+    return try await operation(&value)
+  }
+}
+
 // MARK: - Deprecated after 0.45.0:
 
 #if canImport(SwiftUI)

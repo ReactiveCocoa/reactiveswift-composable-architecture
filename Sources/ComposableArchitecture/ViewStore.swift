@@ -489,11 +489,8 @@ public final class ViewStore<ViewState, ViewAction> {
       get: @escaping (ViewState) -> Value,
       send valueToAction: @escaping (Value) -> ViewAction
     ) -> Binding<Value> {
-      @ObservedState var val = get(self.state)
-      return .init(
-        get: { [$val] in $val.wrappedValue },
-        set: { [weak self] in self?.send(valueToAction($0)) }
-      )
+      ObservedObject(wrappedValue: self)
+        .projectedValue[get: .init(rawValue: get), send: .init(rawValue: valueToAction)]
     }
     /// Derives a binding from the store that prevents direct writes to state and instead sends
     /// actions to the store.
@@ -585,6 +582,14 @@ public final class ViewStore<ViewState, ViewAction> {
       self.binding(send: { _ in action })
     }
   #endif
+
+  private subscript<Value>(
+    get state: HashableWrapper<(ViewState) -> Value>,
+    send action: HashableWrapper<(Value) -> ViewAction>
+  ) -> Value {
+    get { state.rawValue(self.state) }
+    set { self.send(action.rawValue(newValue)) }
+  }
 }
 
 /// A convenience type alias for referring to a view store of a given reducer's domain.
@@ -728,35 +733,6 @@ public struct ViewStoreTask: Hashable, Sendable {
 #if canImport(Combine)
   extension ViewStore: ObservableObject {
   }
-
-  final private class ValueWrapper<V>: ObservableObject {
-    var value: V {
-      willSet { objectWillChange.send() }
-    }
-
-    init(_ value: V) {
-      self.value = value
-    }
-  }
-
-  @propertyWrapper private struct ObservedState<Value>: DynamicProperty {
-    @ObservedObject private var box: ValueWrapper<Value>
-
-    var wrappedValue: Value {
-      get { box.value }
-      nonmutating set { box.value = newValue }
-    }
-
-    var projectedValue: Binding<Value> {
-      .init(
-        get: { wrappedValue },
-        set: { wrappedValue = $0 }
-      )
-    }
-    init(wrappedValue value: Value) {
-      self._box = ObservedObject(wrappedValue: .init(value))
-    }
-  }
 #endif
 
 /// A producer of store state.
@@ -795,4 +771,10 @@ public struct StoreProducer<State>: SignalProducerConvertible {
   ) -> SignalProducer<LocalValue, Never> {
     self.upstream.map(keyPath).skipRepeats()
   }
+}
+
+private struct HashableWrapper<Value>: Hashable {
+  let rawValue: Value
+  static func == (lhs: Self, rhs: Self) -> Bool { false }
+  func hash(into hasher: inout Hasher) {}
 }
