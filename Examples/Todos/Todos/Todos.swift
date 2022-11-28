@@ -50,7 +50,10 @@ struct Todos: ReducerProtocol {
         return .none
 
       case let .delete(indexSet):
-        state.todos.remove(atOffsets: indexSet)
+        let filteredTodos = state.filteredTodos
+        for index in indexSet {
+          state.todos.remove(id: filteredTodos[index].id)
+        }
         return .none
 
       case let .editModeChanged(editMode):
