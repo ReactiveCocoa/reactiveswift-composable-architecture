@@ -6,35 +6,55 @@ import XCTestDynamicOverlay
   import SwiftUI
 #endif
 
-/// A type that encapsulates a unit of work that can be run in the outside world, and can feed
-/// actions back to the ``Store``.
-///
-/// Effects are the perfect place to do side effects, such as network requests, saving/loading
-/// from disk, creating timers, interacting with dependencies, and more. They are returned from
-/// reducers so that the ``Store`` can perform the effects after the reducer is done running.
-///
-/// There are 2 distinct ways to create an `Effect`: one using Swift's native concurrency tools, and
-/// the other using ReactiveSwift framework:
-///
-/// * If using Swift's native structured concurrency tools then there are 3 main ways to create an
-/// effect, depending on if you want to emit one single action back into the system, or any number
-/// of actions, or just execute some work without emitting any actions:
-///   * ``EffectProducer/task(priority:operation:catch:file:fileID:line:)``
-///   * ``EffectProducer/run(priority:operation:catch:file:fileID:line:)``
-///   * ``EffectProducer/fireAndForget(priority:_:)``
-/// * If using ReactiveSwift in your application, in particular for the dependencies of your feature
-/// then you can create effects by making use of any of ReactiveSwift's operators, and then erasing the
-/// publisher type to ``EffectProducer`` with either `eraseToEffect` or `catchToEffect`. Note that
-/// the ReactiveSwift interface to ``EffectProducer`` is considered soft deprecated, and you should
-/// eventually port to Swift's native concurrency tools.
-///
-/// > Important: ``Store`` is not thread safe, and so all effects must receive values on the same
-/// thread. This is typically the main thread,  **and** if the store is being used to drive UI then
-/// it must receive values on the main thread.
-/// >
-/// > This is only an issue if using the ReactiveSwift interface of ``EffectProducer`` as mentioned
-/// above. If  you are using Swift's concurrency tools and the `.task`, `.run` and `.fireAndForget`
-/// functions on ``EffectTask``, then threading is automatically handled for you.
+/// This type is deprecated in favor of ``EffectTask``. See its documentation for more information.
+@available(
+  iOS,
+  deprecated: 9999.0,
+  message:
+    """
+    'EffectProducer' has been deprecated in favor of 'EffectTask'.
+
+     You are encouraged to use `EffectTask<Action>` to model the ouput of your reducers, and to use Swift concurrency to model asynchrony in dependencies.
+
+     See the migration roadmap for more information: https://github.com/pointfreeco/swift-composable-architecture/discussions/1477
+    """
+)
+@available(
+  macOS,
+  deprecated: 9999.0,
+  message:
+    """
+    'EffectProducer' has been deprecated in favor of 'EffectTask'.
+
+     You are encouraged to use `EffectTask<Action>` to model the ouput of your reducers, and to use Swift concurrency to model asynchrony in dependencies.
+
+     See the migration roadmap for more information: https://github.com/pointfreeco/swift-composable-architecture/discussions/1477
+    """
+)
+@available(
+  tvOS,
+  deprecated: 9999.0,
+  message:
+    """
+    'EffectProducer' has been deprecated in favor of 'EffectTask'.
+
+     You are encouraged to use `EffectTask<Action>` to model the ouput of your reducers, and to use Swift concurrency to model asynchrony in dependencies.
+
+     See the migration roadmap for more information: https://github.com/pointfreeco/swift-composable-architecture/discussions/1477
+    """
+)
+@available(
+  watchOS,
+  deprecated: 9999.0,
+  message:
+    """
+    'EffectProducer' has been deprecated in favor of 'EffectTask'.
+
+     You are encouraged to use `EffectTask<Action>` to model the ouput of your reducers, and to use Swift concurrency to model asynchrony in dependencies.
+
+     See the migration roadmap for more information: https://github.com/pointfreeco/swift-composable-architecture/discussions/1477
+    """
+)
 public struct EffectProducer<Action, Failure: Error> {
   @usableFromInline
   enum Operation {
@@ -63,20 +83,38 @@ extension EffectProducer {
   }
 }
 
-/// A convenience type alias for referring to an effect that can never fail, like the kind of
-/// ``EffectProducer`` returned by a reducer after processing an action.
+/// A type that encapsulates a unit of work that can be run in the outside world, and can feed
+/// actions back to the ``Store``.
 ///
-/// Instead of specifying `Never` as `Failure`:
+/// Effects are the perfect place to do side effects, such as network requests, saving/loading
+/// from disk, creating timers, interacting with dependencies, and more. They are returned from
+/// reducers so that the ``Store`` can perform the effects after the reducer is done running.
 ///
-/// ```swift
-/// func reduce(into state: inout State, action: Action) -> EffectProducer<Action, Never> { … }
-/// ```
+/// There are 2 distinct ways to create an `Effect`: one using Swift's native concurrency tools, and
+/// the other using Apple's Combine framework:
 ///
-/// You can specify a single generic:
+/// * If using Swift's native structured concurrency tools then there are 3 main ways to create an
+/// effect, depending on if you want to emit one single action back into the system, or any number
+/// of actions, or just execute some work without emitting any actions:
+///   * ``EffectProducer/task(priority:operation:catch:file:fileID:line:)``
+///   * ``EffectProducer/run(priority:operation:catch:file:fileID:line:)``
+///   * ``EffectProducer/fireAndForget(priority:_:)``
+/// * If using Combine in your application, in particular for the dependencies of your feature
+/// then you can create effects by making use of any of Combine's operators, and then erasing the
+/// publisher type to ``EffectProducer`` with either `eraseToEffect` or `catchToEffect`. Note that
+/// the Combine interface to ``EffectProducer`` is considered soft deprecated, and you should
+/// eventually port to Swift's native concurrency tools.
 ///
-/// ```swift
-/// func reduce(into state: inout State, action: Action) -> EffectTask<Action>  { … }
-/// ```
+/// > Important: The publisher interface to ``EffectTask`` is considered deperecated, and you should
+/// try converting any uses of that interface to Swift's native concurrency tools.
+/// >
+/// > Also, ``Store`` is not thread safe, and so all effects must receive values on the same
+/// thread. This is typically the main thread,  **and** if the store is being used to drive UI then
+/// it must receive values on the main thread.
+/// >
+/// > This is only an issue if using the Combine interface of ``EffectProducer`` as mentioned
+/// above. If  you are using Swift's concurrency tools and the `.task`, `.run` and `.fireAndForget`
+/// functions on ``EffectTask``, then threading is automatically handled for you.
 public typealias EffectTask<Action> = Effect<Action, Never>
 
 extension EffectProducer where Failure == Never {
@@ -614,57 +652,20 @@ extension EffectProducer {
 }
 
 @available(
-  iOS,
-  deprecated: 9999.0,
+  *,
   message:
     """
-    'Effect' has been deprecated in favor of 'EffectTask' when `Failure == Never`, or
-    `EffectProducer<Output, Failure>` in general.
+    'Effect' has been deprecated in favor of 'EffectTask' when 'Failure == Never', or 'EffectProducer<Output, Failure>' in general.
     
-    You are encouraged to use `EffectTask<Action>` to model the ouput of your reducers, and to Swift
-    concurrency to model failable streams of values.
+    You are encouraged to use 'EffectTask<Action>' to model the output of your reducers, and to use Swift concurrency to model failable streams of values.
 
-    See the migration roadmap for more information: https://github.com/pointfreeco/swift-composable-architecture/discussions/1477
-    """
-)
-@available(
-  macOS,
-  deprecated: 9999.0,
-  message:
-    """
-    'Effect' has been deprecated in favor of 'EffectTask' when `Failure == Never`, or
-    `EffectProducer<Output, Failure>` in general.
-    
-    You are encouraged to use `EffectTask<Action>` to model the ouput of your reducers, and to Swift
-    concurrency to model failable streams of values.
+    To find and replace instances of 'Effect<Action, Never>' to 'EffectTask<Action, Never>' in your codebase, use the following regular expression:
 
-    See the migration roadmap for more information: https://github.com/pointfreeco/swift-composable-architecture/discussions/1477
-    """
-)
-@available(
-  tvOS,
-  deprecated: 9999.0,
-  message:
-    """
-    'Effect' has been deprecated in favor of 'EffectTask' when `Failure == Never`, or
-    `EffectProducer<Output, Failure>` in general.
-    
-    You are encouraged to use `EffectTask<Action>` to model the ouput of your reducers, and to Swift
-    concurrency to model failable streams of values.
+      Find:
+        Effect<([^,]+), Never>
 
-    See the migration roadmap for more information: https://github.com/pointfreeco/swift-composable-architecture/discussions/1477
-    """
-)
-@available(
-  watchOS,
-  deprecated: 9999.0,
-  message:
-    """
-    'Effect' has been deprecated in favor of 'EffectTask' when `Failure == Never`, or
-    `EffectProducer<Output, Failure>` in general.
-    
-    You are encouraged to use `EffectTask<Action>` to model the ouput of your reducers, and to Swift
-    concurrency to model failable streams of values.
+      Replace:
+        EffectTask<$1>
 
     See the migration roadmap for more information: https://github.com/pointfreeco/swift-composable-architecture/discussions/1477
     """

@@ -249,7 +249,7 @@ final class EffectCancellationTests: XCTestCase {
       }
     }
     .eraseToEffect()
-    .cancellable(id: 1)
+    .cancellable(id: id)
 
     for _ in 1...1_000 {
       effect = effect.cancellable(id: id)

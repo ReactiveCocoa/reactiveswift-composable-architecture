@@ -13,7 +13,7 @@
 ### State management
 
 - ``ReducerProtocol``
-- ``EffectProducer``
+- ``EffectTask``
 - ``Store``
 - ``ViewStore``
 
