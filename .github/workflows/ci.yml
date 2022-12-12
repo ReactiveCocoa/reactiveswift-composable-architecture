@@ -45,15 +45,8 @@ jobs:
     name: SwiftPM Linux
     runs-on: ubuntu-latest
     steps:
-      - name: Install Swift
-        run: |
-          eval "$(curl -sL https://swiftenv.fuller.li/install.sh)"
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Pull dependencies
-        run: |
-          swift package resolve
+      - uses: actions/checkout@v2
+      - name: Swift version
+        run: swift --version
       - name: Test via SwiftPM
-        run: |
-          swift --version
-          swift test --enable-test-discovery
+        run: swift test --enable-test-discovery

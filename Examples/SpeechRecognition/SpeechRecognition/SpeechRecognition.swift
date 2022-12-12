@@ -1,5 +1,4 @@
 import ComposableArchitecture
-import ReactiveSwift
 import Speech
 @preconcurrency import SwiftUI
 
@@ -190,7 +189,7 @@ extension SpeechClient {
               }
               text += word + " "
               c.yield(
-                value: .init(
+                .init(
                   bestTranscription: .init(
                     formattedString: text,
                     segments: []
@@ -200,8 +199,6 @@ extension SpeechClient {
                 )
               )
             }
-
-            lifetime += disposable
           }
         }
       }

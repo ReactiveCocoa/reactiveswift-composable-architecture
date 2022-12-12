@@ -88,6 +88,7 @@
 				DCBCB77224290F6C00DE1F59 /* Todos */,
 				DCBCB78924290F6D00DE1F59 /* TodosTests */,
 			);
+			indentWidth = 2;
 			sourceTree = "<group>";
 		};
 		DCBCB77124290F6C00DE1F59 /* Products */ = {

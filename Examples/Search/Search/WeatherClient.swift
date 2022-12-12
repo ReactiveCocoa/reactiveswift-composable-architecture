@@ -65,7 +65,6 @@ extension WeatherClient {
 
       let (data, _) = try await URLSession.shared.data(from: components.url!)
       return try jsonDecoder.decode(Search.self, from: data)
-        }
     }
   )
 }

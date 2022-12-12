@@ -95,6 +95,7 @@
 				CA23320C2447ACFA00B818EB /* SpeechRecognition */,
 				CA2332232447ACFC00B818EB /* SpeechRecognitionTests */,
 			);
+			indentWidth = 2;
 			sourceTree = "<group>";
 		};
 		CA23320B2447ACFA00B818EB /* Products */ = {

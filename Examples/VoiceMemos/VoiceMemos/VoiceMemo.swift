@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import Foundation
+import ReactiveSwift
 import SwiftUI
 
 struct VoiceMemo: Equatable, Identifiable {
@@ -61,14 +62,14 @@ let voiceMemoReducer = Reducer<
       memo.mode = .playing(progress: 0)
 
       return .run { [url = memo.url] send in
-        let start = environment.mainRunLoop.now
+        let start = environment.mainRunLoop.currentDate
 
         async let playAudio: Void = send(
           .audioPlayerClient(TaskResult { try await environment.audioPlayerClient.play(url) })
         )
 
-        for try await tick in environment.mainRunLoop.timer(interval: 0.5) {
-          await send(.timerUpdated(tick.date.timeIntervalSince(start.date)))
+        for try await tick in environment.mainRunLoop.timer(interval: .milliseconds(500)) {
+          await send(.timerUpdated(tick.timeIntervalSince(start)))
         }
       }
       .cancellable(id: PlayID.self, cancelInFlight: true)

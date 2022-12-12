@@ -56,6 +56,7 @@
 				CA6AC25C2450FDB800C71CB3 /* App */,
 				DC9193F72420104100A5BE1F /* Products */,
 			);
+			indentWidth = 2;
 			sourceTree = "<group>";
 		};
 		DC9193F72420104100A5BE1F /* Products */ = {
