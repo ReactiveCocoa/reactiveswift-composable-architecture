@@ -1,7 +1,10 @@
 import Foundation
 import ReactiveSwift
-import SwiftUI
 import XCTestDynamicOverlay
+
+#if canImport(SwiftUI)
+  import SwiftUI
+#endif
 
 /// The ``Effect`` type encapsulates a unit of work that can be run in the outside world, and can
 /// feed data back to the ``Store``. It is the perfect place to do side effects, such as network
@@ -316,17 +319,19 @@ public struct Send<Action> {
     self.send(action)
   }
 
-  /// Sends an action back into the system from an effect with animation.
-  ///
-  /// - Parameters:
-  ///   - action: An action.
-  ///   - animation: An animation.
-  public func callAsFunction(_ action: Action, animation: Animation?) {
-    guard !Task.isCancelled else { return }
-    withAnimation(animation) {
-      self(action)
+  #if canImport(SwiftUI)
+    /// Sends an action back into the system from an effect with animation.
+    ///
+    /// - Parameters:
+    ///   - action: An action.
+    ///   - animation: An animation.
+    public func callAsFunction(_ action: Action, animation: Animation?) {
+      guard !Task.isCancelled else { return }
+      withAnimation(animation) {
+        self(action)
+      }
     }
-  }
+  #endif
 }
 
 // MARK: - Composing Effects

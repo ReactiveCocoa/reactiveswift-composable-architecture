@@ -14,6 +14,7 @@ class TodosTests: XCTestCase {
       reducer: appReducer,
       environment: AppEnvironment(
         mainQueue: self.mainQueue,
+        uuid: { UUID.incrementing() }
       )
     )
 

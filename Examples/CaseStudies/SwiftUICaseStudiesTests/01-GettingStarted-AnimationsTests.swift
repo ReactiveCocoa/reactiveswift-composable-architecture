@@ -6,7 +6,7 @@ import XCTest
 
 @MainActor
 class AnimationTests: XCTestCase {
-  func testRainbow() {
+  func testRainbow() async {
     let mainQueue = TestScheduler()
 
     let store = TestStore(
@@ -17,44 +17,44 @@ class AnimationTests: XCTestCase {
       )
     )
 
-    store.send(.rainbowButtonTapped)
+    await store.send(.rainbowButtonTapped)
 
-    store.receive(.setColor(.red)) {
+    await store.receive(.setColor(.red)) {
       $0.circleColor = .red
     }
 
     await mainQueue.advance(by: .seconds(1))
-    store.receive(.setColor(.blue)) {
+    await store.receive(.setColor(.blue)) {
       $0.circleColor = .blue
     }
 
     await mainQueue.advance(by: .seconds(1))
-    store.receive(.setColor(.green)) {
+    await store.receive(.setColor(.green)) {
       $0.circleColor = .green
     }
 
     await mainQueue.advance(by: .seconds(1))
-    store.receive(.setColor(.orange)) {
+    await store.receive(.setColor(.orange)) {
       $0.circleColor = .orange
     }
 
     await mainQueue.advance(by: .seconds(1))
-    store.receive(.setColor(.pink)) {
+    await store.receive(.setColor(.pink)) {
       $0.circleColor = .pink
     }
 
     await mainQueue.advance(by: .seconds(1))
-    store.receive(.setColor(.purple)) {
+    await store.receive(.setColor(.purple)) {
       $0.circleColor = .purple
     }
 
     await mainQueue.advance(by: .seconds(1))
-    store.receive(.setColor(.yellow)) {
+    await store.receive(.setColor(.yellow)) {
       $0.circleColor = .yellow
     }
 
     await mainQueue.advance(by: .seconds(1))
-    store.receive(.setColor(.black)) {
+    await store.receive(.setColor(.black)) {
       $0.circleColor = .black
     }
 
@@ -63,41 +63,41 @@ class AnimationTests: XCTestCase {
     await mainQueue.advance(by: .seconds(10))
   }
 
-    func testReset() async {
-      let mainQueue = TestScheduler()
+  func testReset() async {
+    let mainQueue = TestScheduler()
 
-      let store = TestStore(
-        initialState: AnimationsState(),
-        reducer: animationsReducer,
-        environment: AnimationsEnvironment(
-          mainQueue: mainQueue
-        )
+    let store = TestStore(
+      initialState: AnimationsState(),
+      reducer: animationsReducer,
+      environment: AnimationsEnvironment(
+        mainQueue: mainQueue
       )
+    )
 
-      await store.send(.rainbowButtonTapped)
+    await store.send(.rainbowButtonTapped)
 
-      await store.receive(.setColor(.red)) {
-        $0.circleColor = .red
-      }
-
-      await mainQueue.advance(by: .seconds(1))
-      await store.receive(.setColor(.blue)) {
-        $0.circleColor = .blue
-      }
-
-      await store.send(.resetButtonTapped) {
-        $0.alert = AlertState(
-          title: TextState("Reset state?"),
-          primaryButton: .destructive(
-            TextState("Reset"),
-            action: .send(.resetConfirmationButtonTapped, animation: .default)
-          ),
-          secondaryButton: .cancel(TextState("Cancel"))
-        )
-      }
-
-      await store.send(.resetConfirmationButtonTapped) {
-        $0 = AnimationsState()
-      }
+    await store.receive(.setColor(.red)) {
+      $0.circleColor = .red
     }
+
+    await mainQueue.advance(by: .seconds(1))
+    await store.receive(.setColor(.blue)) {
+      $0.circleColor = .blue
+    }
+
+    await store.send(.resetButtonTapped) {
+      $0.alert = AlertState(
+        title: TextState("Reset state?"),
+        primaryButton: .destructive(
+          TextState("Reset"),
+          action: .send(.resetConfirmationButtonTapped, animation: .default)
+        ),
+        secondaryButton: .cancel(TextState("Cancel"))
+      )
+    }
+
+    await store.send(.resetConfirmationButtonTapped) {
+      $0 = AnimationsState()
+    }
+  }
 }

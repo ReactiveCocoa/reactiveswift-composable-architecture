@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import ReactiveSwift
 import SwiftUI
 
 @main
@@ -10,7 +11,7 @@ struct TodosApp: App {
           initialState: AppState(),
           reducer: appReducer,
           environment: AppEnvironment(
-            mainQueue: .main,
+            mainQueue: QueueScheduler.main,
             uuid: { UUID() }
           )
         )

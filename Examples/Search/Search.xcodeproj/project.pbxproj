@@ -88,6 +88,7 @@
 				CA86E49924253C2500357AD9 /* Search */,
 				CA86E4B024253C2700357AD9 /* SearchTests */,
 			);
+			indentWidth = 2;
 			sourceTree = "<group>";
 		};
 		CA86E49824253C2500357AD9 /* Products */ = {

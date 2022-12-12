@@ -4,226 +4,225 @@ import XCTest
 
 @testable import ComposableArchitecture
 
-#if canImport(os)
-  import os.signpost
-#endif
-
-@MainActor
-final class ReducerTests: XCTestCase {
-  func testCallableAsFunction() {
-    let reducer = Reducer<Int, Void, Void> { state, _, _ in
-      state += 1
-      return .none
-    }
-
-    var state = 0
-    _ = reducer.run(&state, (), ())
-    XCTAssertNoDifference(state, 1)
-  }
-
-  func testCombine_EffectsAreMerged() async {
-    typealias Scheduler = DateScheduler
-    enum Action: Equatable {
-      case increment
-    }
-
-    var fastValue: Int?
-    let fastReducer = Reducer<Int, Action, Scheduler> { state, _, scheduler in
-      state += 1
-      return Effect.fireAndForget { fastValue = 42 }
-        .deferred(for: 1, scheduler: scheduler)
-    }
-
-    var slowValue: Int?
-    let slowReducer = Reducer<Int, Action, Scheduler> { state, _, scheduler in
-      state += 1
-      return Effect.fireAndForget { slowValue = 1729 }
-        .deferred(for: 2, scheduler: scheduler)
-    }
-
-    let mainQueue = TestScheduler()
-    let store = TestStore(
-      initialState: 0,
-      reducer: .combine(fastReducer, slowReducer),
-      environment: mainQueue
-    )
-
-    await store.send(.increment) {
-      $0 = 2
-    }
-    // Waiting a second causes the fast effect to fire.
-    await mainQueue.advance(by: 1)
-    XCTAssertNoDifference(fastValue, 42)
-    // Waiting one more second causes the slow effect to fire. This proves that the effects
-    // are merged together, as opposed to concatenated.
-    await mainQueue.advance(by: 1)
-    XCTAssertNoDifference(slowValue, 1729)
-  }
-
-  func testCombine() async {
-    enum Action: Equatable {
-      case increment
-    }
-
-    var childEffectExecuted = false
-    let childReducer = Reducer<Int, Action, Void> { state, _, _ in
-      state += 1
-      return Effect.fireAndForget { childEffectExecuted = true }
-    }
-
-    var mainEffectExecuted = false
-    let mainReducer = Reducer<Int, Action, Void> { state, _, _ in
-      state += 1
-      return Effect.fireAndForget { mainEffectExecuted = true }
-    }
-    .combined(with: childReducer)
-
-    let store = TestStore(
-      initialState: 0,
-      reducer: mainReducer,
-      environment: ()
-    )
-
-    await store.send(.increment) {
-      $0 = 2
-    }
-
-    XCTAssertTrue(childEffectExecuted)
-    XCTAssertTrue(mainEffectExecuted)
-  }
-
-  func testDebug() async {
-    var logs: [String] = []
-    let logsExpectation = self.expectation(description: "logs")
-    logsExpectation.expectedFulfillmentCount = 2
-
-    let reducer = Reducer<DebugState, DebugAction, Void> { state, action, _ in
-      switch action {
-      case .incrWithBool:
-        return .none
-      case .incr:
-        state.count += 1
-        return .none
-      case .noop:
+// `@MainActor` introduces issues gathering tests on Linux
+#if !os(Linux)
+  @MainActor
+  final class ReducerTests: XCTestCase {
+    func testCallableAsFunction() {
+      let reducer = Reducer<Int, Void, Void> { state, _, _ in
+        state += 1
         return .none
       }
-    }
-    .debug("[prefix]") { _ in
-      DebugEnvironment(
-        printer: {
-          logs.append($0)
-          logsExpectation.fulfill()
-        }
-      )
+
+      var state = 0
+      _ = reducer.run(&state, (), ())
+      XCTAssertNoDifference(state, 1)
     }
 
-    let store = TestStore(
-      initialState: .init(),
-      reducer: reducer,
-      environment: ()
-    )
-    await store.send(.incr) { $0.count = 1 }
-    await store.send(.noop)
-
-    self.wait(for: [logsExpectation], timeout: 5)
-
-    XCTAssertNoDifference(
-      logs,
-      [
-        #"""
-        [prefix]: received action:
-          DebugAction.incr
-        - DebugState(count: 0)
-        + DebugState(count: 1)
-
-        """#,
-        #"""
-        [prefix]: received action:
-          DebugAction.noop
-          (No state changes)
-
-        """#,
-      ]
-    )
-  }
-
-  func testDebug_ActionFormat_OnlyLabels() {
-    var logs: [String] = []
-    let logsExpectation = self.expectation(description: "logs")
-
-    let reducer = Reducer<DebugState, DebugAction, Void> { state, action, _ in
-      switch action {
-      case let .incrWithBool(bool):
-        state.count += bool ? 1 : 0
-        return .none
-      default:
-        return .none
+    func testCombine_EffectsAreMerged() async {
+      typealias Scheduler = DateScheduler
+      enum Action: Equatable {
+        case increment
       }
-    }
-    .debug("[prefix]", actionFormat: .labelsOnly) { _ in
-      DebugEnvironment(
-        printer: {
-          logs.append($0)
-          logsExpectation.fulfill()
-        }
+
+      var fastValue: Int?
+      let fastReducer = Reducer<Int, Action, Scheduler> { state, _, scheduler in
+        state += 1
+        return Effect.fireAndForget { fastValue = 42 }
+          .deferred(for: 1, scheduler: scheduler)
+      }
+
+      var slowValue: Int?
+      let slowReducer = Reducer<Int, Action, Scheduler> { state, _, scheduler in
+        state += 1
+        return Effect.fireAndForget { slowValue = 1729 }
+          .deferred(for: 2, scheduler: scheduler)
+      }
+
+      let mainQueue = TestScheduler()
+      let store = TestStore(
+        initialState: 0,
+        reducer: .combine(fastReducer, slowReducer),
+        environment: mainQueue
       )
+
+      await store.send(.increment) {
+        $0 = 2
+      }
+      // Waiting a second causes the fast effect to fire.
+      await mainQueue.advance(by: 1)
+      XCTAssertNoDifference(fastValue, 42)
+      // Waiting one more second causes the slow effect to fire. This proves that the effects
+      // are merged together, as opposed to concatenated.
+      await mainQueue.advance(by: 1)
+      XCTAssertNoDifference(slowValue, 1729)
     }
 
-    let viewStore = ViewStore(
-      Store(
+    func testCombine() async {
+      enum Action: Equatable {
+        case increment
+      }
+
+      var childEffectExecuted = false
+      let childReducer = Reducer<Int, Action, Void> { state, _, _ in
+        state += 1
+        return Effect.fireAndForget { childEffectExecuted = true }
+      }
+
+      var mainEffectExecuted = false
+      let mainReducer = Reducer<Int, Action, Void> { state, _, _ in
+        state += 1
+        return Effect.fireAndForget { mainEffectExecuted = true }
+      }
+      .combined(with: childReducer)
+
+      let store = TestStore(
+        initialState: 0,
+        reducer: mainReducer,
+        environment: ()
+      )
+
+      await store.send(.increment) {
+        $0 = 2
+      }
+
+      XCTAssertTrue(childEffectExecuted)
+      XCTAssertTrue(mainEffectExecuted)
+    }
+
+    func testDebug() async {
+      var logs: [String] = []
+      let logsExpectation = self.expectation(description: "logs")
+      logsExpectation.expectedFulfillmentCount = 2
+
+      let reducer = Reducer<DebugState, DebugAction, Void> { state, action, _ in
+        switch action {
+        case .incrWithBool:
+          return .none
+        case .incr:
+          state.count += 1
+          return .none
+        case .noop:
+          return .none
+        }
+      }
+      .debug("[prefix]") { _ in
+        DebugEnvironment(
+          printer: {
+            logs.append($0)
+            logsExpectation.fulfill()
+          }
+        )
+      }
+
+      let store = TestStore(
         initialState: .init(),
         reducer: reducer,
         environment: ()
       )
-    )
-    viewStore.send(.incrWithBool(true))
+      await store.send(.incr) { $0.count = 1 }
+      await store.send(.noop)
 
-    self.wait(for: [logsExpectation], timeout: 5)
+      self.wait(for: [logsExpectation], timeout: 5)
 
-    XCTAssertNoDifference(
-      logs,
-      [
-        #"""
-        [prefix]: received action:
-          DebugAction.incrWithBool
-        - DebugState(count: 0)
-        + DebugState(count: 1)
+      XCTAssertNoDifference(
+        logs,
+        [
+          #"""
+          [prefix]: received action:
+            DebugAction.incr
+          - DebugState(count: 0)
+          + DebugState(count: 1)
 
-        """#
-      ]
-    )
+          """#,
+          #"""
+          [prefix]: received action:
+            DebugAction.noop
+            (No state changes)
+
+          """#,
+        ]
+      )
+    }
+
+    func testDebug_ActionFormat_OnlyLabels() {
+      var logs: [String] = []
+      let logsExpectation = self.expectation(description: "logs")
+
+      let reducer = Reducer<DebugState, DebugAction, Void> { state, action, _ in
+        switch action {
+        case let .incrWithBool(bool):
+          state.count += bool ? 1 : 0
+          return .none
+        default:
+          return .none
+        }
+      }
+      .debug("[prefix]", actionFormat: .labelsOnly) { _ in
+        DebugEnvironment(
+          printer: {
+            logs.append($0)
+            logsExpectation.fulfill()
+          }
+        )
+      }
+
+      let viewStore = ViewStore(
+        Store(
+          initialState: .init(),
+          reducer: reducer,
+          environment: ()
+        )
+      )
+      viewStore.send(.incrWithBool(true))
+
+      self.wait(for: [logsExpectation], timeout: 5)
+
+      XCTAssertNoDifference(
+        logs,
+        [
+          #"""
+          [prefix]: received action:
+            DebugAction.incrWithBool
+          - DebugState(count: 0)
+          + DebugState(count: 1)
+
+          """#
+        ]
+      )
+    }
+
+    #if canImport(os)
+      @available(iOS 12.0, *)
+      func testDefaultSignpost() {
+        let reducer = Reducer<Int, Void, Void>.empty.signpost(log: .default)
+        var n = 0
+        let effect = reducer.run(&n, (), ())
+        let expectation = self.expectation(description: "effect")
+        effect
+          .producer
+          .startWithCompleted {
+            expectation.fulfill()
+          }
+        self.wait(for: [expectation], timeout: 0.1)
+      }
+
+      @available(iOS 12.0, *)
+      func testDisabledSignpost() {
+        let reducer = Reducer<Int, Void, Void>.empty.signpost(log: .disabled)
+        var n = 0
+        let effect = reducer.run(&n, (), ())
+        let expectation = self.expectation(description: "effect")
+        effect
+          .producer
+          .startWithCompleted {
+            expectation.fulfill()
+          }
+        self.wait(for: [expectation], timeout: 0.1)
+      }
+    #endif
   }
-
-  #if canImport(os)
-    @available(iOS 12.0, *)
-    func testDefaultSignpost() {
-      let reducer = Reducer<Int, Void, Void>.empty.signpost(log: .default)
-      var n = 0
-      let effect = reducer.run(&n, (), ())
-      let expectation = self.expectation(description: "effect")
-      effect
-        .producer
-        .startWithCompleted {
-          expectation.fulfill()
-        }
-      self.wait(for: [expectation], timeout: 0.1)
-    }
-
-    @available(iOS 12.0, *)
-    func testDisabledSignpost() {
-      let reducer = Reducer<Int, Void, Void>.empty.signpost(log: .disabled)
-      var n = 0
-      let effect = reducer.run(&n, (), ())
-      let expectation = self.expectation(description: "effect")
-      effect
-        .producer
-        .startWithCompleted {
-          expectation.fulfill()
-        }
-      self.wait(for: [expectation], timeout: 0.1)
-    }
-  #endif
-}
+#endif
 
 enum DebugAction: Equatable {
   case incrWithBool(Bool)

@@ -1,5 +1,4 @@
 import ComposableArchitecture
-import ReactiveSwift
 import Speech
 
 extension SpeechClient {
@@ -79,7 +78,6 @@ private actor Speech {
         audioEngine.wrappedValue?.inputNode.removeTap(onBus: 0)
         recognitionTask.wrappedValue?.finish()
       }
-      lifetime += cancellable
 
       self.audioEngine?.inputNode.installTap(
         onBus: 0,

@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import ReactiveSwift
 import SwiftUI
 
 enum Filter: LocalizedStringKey, CaseIterable, Hashable {

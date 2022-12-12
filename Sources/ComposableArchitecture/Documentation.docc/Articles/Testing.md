@@ -320,10 +320,10 @@ time-based asynchrony, but in a way that is controllable. One way to do this is 
 scheduler to the environment:
 
 ```swift
-import CombineSchedulers
+import ReactiveSwift
 
 struct Environment {
-  var mainQueue: any SchedulerOf<DispatchQueue>
+  var mainQueue: DateScheduler
 }
 ```
 

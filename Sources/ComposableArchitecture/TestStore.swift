@@ -4,6 +4,10 @@
   import Foundation
   import XCTestDynamicOverlay
 
+  #if os(Linux)
+    import CDispatch
+  #endif
+
   /// A testable runtime for a reducer.
   ///
   /// This object aids in writing expressive and exhaustive tests for features built in the

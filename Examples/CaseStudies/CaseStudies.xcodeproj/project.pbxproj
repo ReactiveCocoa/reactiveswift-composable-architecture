@@ -374,6 +374,7 @@
 				DC4C6EA82450DD380066A05D /* UIKitCaseStudies */,
 				DC4C6EBF2450DD390066A05D /* UIKitCaseStudiesTests */,
 			);
+			indentWidth = 2;
 			sourceTree = "<group>";
 		};
 		DC89C41424460F95006900B9 /* Products */ = {

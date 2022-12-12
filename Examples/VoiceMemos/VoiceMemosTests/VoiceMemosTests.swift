@@ -25,7 +25,6 @@ class VoiceMemosTests: XCTestCase {
     environment.audioRecorder.stopRecording = {
       didFinish.continuation.yield(true)
       didFinish.continuation.finish()
-      }
     }
     environment.mainRunLoop = mainRunLoop
     environment.temporaryDirectory = { URL(fileURLWithPath: "/tmp") }
@@ -82,7 +81,7 @@ class VoiceMemosTests: XCTestCase {
 
     var environment = VoiceMemosEnvironment.unimplemented
     environment.audioRecorder.requestRecordPermission = { false }
-    environment.mainRunLoop = ImmediateScheduler()
+    environment.mainRunLoop = mainRunLoop
     environment.openSettings = { await didOpenSettings.setValue(true) }
 
     let store = TestStore(
@@ -113,7 +112,7 @@ class VoiceMemosTests: XCTestCase {
     environment.audioRecorder.startRecording = { _ in
       try await didFinish.stream.first { _ in true }!
     }
-    environment.mainRunLoop = ImmediateScheduler()
+    environment.mainRunLoop = TestScheduler(startDate: Date(timeIntervalSince1970: 0))
     environment.temporaryDirectory = { URL(fileURLWithPath: "/tmp") }
     environment.uuid = { UUID(uuidString: "DEADBEEF-DEAD-BEEF-DEAD-BEEFDEADBEEF")! }
 
@@ -145,7 +144,7 @@ class VoiceMemosTests: XCTestCase {
   func testPlayMemoHappyPath() async {
     var environment = VoiceMemosEnvironment.unimplemented
     environment.audioPlayer.play = { _ in
-      try await self.mainRunLoop.sleep(for: 1.25)
+      try await self.mainRunLoop.sleep(for: .milliseconds(1250))
       return true
     }
     environment.mainRunLoop = mainRunLoop
@@ -190,7 +189,7 @@ class VoiceMemosTests: XCTestCase {
 
     var environment = VoiceMemosEnvironment.unimplemented
     environment.audioPlayer.play = { _ in throw SomeError() }
-    environment.mainRunLoop = ImmediateScheduler()
+    environment.mainRunLoop = mainRunLoop
 
     let url = URL(fileURLWithPath: "pointfreeco/functions.m4a")
     let store = TestStore(
@@ -269,7 +268,7 @@ class VoiceMemosTests: XCTestCase {
     let url = URL(fileURLWithPath: "pointfreeco/functions.m4a")
     var environment = VoiceMemosEnvironment.unimplemented
     environment.audioPlayer.play = { _ in try await Task.never() }
-    environment.mainRunLoop = ImmediateScheduler()
+    environment.mainRunLoop = mainRunLoop
 
     let store = TestStore(
       initialState: VoiceMemosState(
