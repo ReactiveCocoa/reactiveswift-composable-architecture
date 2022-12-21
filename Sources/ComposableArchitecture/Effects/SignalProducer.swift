@@ -101,7 +101,7 @@ extension Effect {
     //     bug was fixed in iOS 14, but to remain compatible with iOS 13 and higher we need to do
     //     a little trickery to fail in a slightly different way.
     self.init(SignalProducer(error: error))
-      }
+  }
 
   /// Creates an effect that can supply a single value asynchronously in the future.
   ///
@@ -150,7 +150,7 @@ extension Effect {
             observer.send(error: error)
           }
         }
-  }
+      }
     )
   }
 
@@ -526,7 +526,7 @@ extension SignalProducer {
     outputType: NewValue.Type = NewValue.self,
     failureType: NewError.Type = NewError.self
   ) -> Effect<NewValue, NewError> {
-      self
+    self
       .flatMapError { _ in .empty }
       .flatMap(.latest) { _ in .empty }
       .eraseToEffect()

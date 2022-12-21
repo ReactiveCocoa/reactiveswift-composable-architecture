@@ -406,19 +406,19 @@ extension WithViewStore {
 // MARK: - Deprecated after 0.39.0:
 
 #if canImport(SwiftUI)
-extension CaseLet {
-  @available(*, deprecated, renamed: "EnumState")
-  public typealias GlobalState = EnumState
+  extension CaseLet {
+    @available(*, deprecated, renamed: "EnumState")
+    public typealias GlobalState = EnumState
 
-  @available(*, deprecated, renamed: "EnumAction")
-  public typealias GlobalAction = EnumAction
+    @available(*, deprecated, renamed: "EnumAction")
+    public typealias GlobalAction = EnumAction
 
-  @available(*, deprecated, renamed: "CaseState")
-  public typealias LocalState = CaseState
+    @available(*, deprecated, renamed: "CaseState")
+    public typealias LocalState = CaseState
 
-  @available(*, deprecated, renamed: "CaseAction")
-  public typealias LocalAction = CaseAction
-}
+    @available(*, deprecated, renamed: "CaseAction")
+    public typealias LocalAction = CaseAction
+  }
 #endif
 
 #if DEBUG

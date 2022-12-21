@@ -118,7 +118,7 @@ class EffectOperationTests: XCTestCase {
       XCTFail()
     }
 
-      XCTAssertEqual(values.sorted(), [42, 1729]) // merge is racy, hence the sorted()
+    XCTAssertEqual(values.sorted(), [42, 1729])  // merge is racy, hence the sorted()
   }
 
   func testConcatenateFuses() async {
