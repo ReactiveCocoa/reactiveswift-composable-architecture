@@ -17,7 +17,7 @@ struct VoiceMemosApp: App {
             mainRunLoop: QueueScheduler.main,
             openSettings: {
               await MainActor.run {
-              UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+                UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
               }
             },
             temporaryDirectory: { URL(fileURLWithPath: NSTemporaryDirectory()) },
