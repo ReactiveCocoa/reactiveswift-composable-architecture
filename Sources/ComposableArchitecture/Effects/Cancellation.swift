@@ -166,7 +166,7 @@ extension EffectProducer {
 
 /// Execute an operation with a cancellation identifier.
 ///
-/// If the operation is in-flight when `Task.cancel(id:)` is called with the same identifier, or
+/// If the operation is in-flight when `Task.cancel(id:)` is called with the same identifier, the
 /// operation will be cancelled.
 ///
 /// ```
