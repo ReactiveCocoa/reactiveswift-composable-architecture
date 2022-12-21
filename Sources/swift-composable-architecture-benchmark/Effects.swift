@@ -1,7 +1,7 @@
 import Benchmark
-import Combine
 import ComposableArchitecture
 import Foundation
+import ReactiveSwift
 
 let effectSuite = BenchmarkSuite(name: "Effects") {
   $0.benchmark("Merged Effect.none (create, flat)") {
@@ -18,9 +18,9 @@ let effectSuite = BenchmarkSuite(name: "Effects") {
 
   let effect = Effect<Int, Never>.merge((1...100).map { _ in .none })
   var didComplete = false
-  $0.benchmark("Merged Effect.none (sink)") {
+  $0.benchmark("Merged Effect.none (start)") {
     doNotOptimizeAway(
-      effect.sink(receiveCompletion: { _ in didComplete = true }, receiveValue: { _ in })
+      effect.producer.startWithCompleted { didComplete = true }
     )
   } tearDown: {
     precondition(didComplete)
