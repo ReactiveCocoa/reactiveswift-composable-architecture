@@ -2,7 +2,7 @@ import XCTest
 
 @testable import ComposableArchitecture
 
-// `XCTExpectFailure` is not supported on Linux
+// `XCTExpectFailure` is not supported on Linux / `@MainActor` introduces issues gathering tests on Linux
 #if !os(Linux)
   @MainActor
   final class EffectFailureTests: XCTestCase {
