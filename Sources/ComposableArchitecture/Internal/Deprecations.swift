@@ -12,28 +12,30 @@ import XCTestDynamicOverlay
 
 // NB: Deprecated after 0.39.0:
 
-extension CaseLet {
-  @available(*, deprecated, renamed: "EnumState")
-  public typealias GlobalState = EnumState
+#if canImport(SwiftUI)
+  extension CaseLet {
+    @available(*, deprecated, renamed: "EnumState")
+    public typealias GlobalState = EnumState
 
-  @available(*, deprecated, renamed: "EnumAction")
-  public typealias GlobalAction = EnumAction
+    @available(*, deprecated, renamed: "EnumAction")
+    public typealias GlobalAction = EnumAction
 
-  @available(*, deprecated, renamed: "CaseState")
-  public typealias LocalState = CaseState
+    @available(*, deprecated, renamed: "CaseState")
+    public typealias LocalState = CaseState
 
-  @available(*, deprecated, renamed: "CaseAction")
-  public typealias LocalAction = CaseAction
-}
+    @available(*, deprecated, renamed: "CaseAction")
+    public typealias LocalAction = CaseAction
+  }
+#endif
 
 #if DEBUG
-extension TestStore {
-  @available(*, deprecated, renamed: "ScopedState")
-  public typealias LocalState = ScopedState
+  extension TestStore {
+    @available(*, deprecated, renamed: "ScopedState")
+    public typealias LocalState = ScopedState
 
-  @available(*, deprecated, renamed: "ScopedAction")
-  public typealias LocalAction = ScopedAction
-}
+    @available(*, deprecated, renamed: "ScopedAction")
+    public typealias LocalAction = ScopedAction
+  }
 #endif
 
 // NB: Deprecated after 0.38.2:
@@ -42,8 +44,8 @@ extension Effect where Failure == Error {
   @_disfavoredOverload
   @available(
     *,
-     deprecated,
-     message: "Use the non-failing version of 'Effect.task'"
+    deprecated,
+    message: "Use the non-failing version of 'Effect.task'"
   )
   public static func task(
     priority: TaskPriority? = nil,
@@ -82,8 +84,8 @@ extension Effect where Failure == Error {
 ///   - environment: The environment of dependencies for the application.
 @available(
   *,
-   deprecated,
-   message:
+  deprecated,
+  message:
     """
     If you use this initializer, please open a discussion on GitHub and let us know how: \
     https://github.com/pointfreeco/swift-composable-architecture/discussions/new
@@ -131,8 +133,8 @@ extension ViewStore {
 extension Effect {
   @available(
     *,
-     deprecated,
-     message:
+    deprecated,
+    message:
       """
       Using a variadic list is no longer supported. Use an array of identifiers instead. For more \
       on this change, see: https://github.com/pointfreeco/swift-composable-architecture/pull/1041
@@ -149,8 +151,8 @@ extension Effect {
 extension Reducer {
   @available(
     *,
-     deprecated,
-     message: "'pullback' no longer takes a 'breakpointOnNil' argument"
+    deprecated,
+    message: "'pullback' no longer takes a 'breakpointOnNil' argument"
   )
   public func pullback<ParentState, ParentAction, ParentEnvironment>(
     state toChildState: CasePath<ParentState, State>,
@@ -171,8 +173,8 @@ extension Reducer {
 
   @available(
     *,
-     deprecated,
-     message: "'optional' no longer takes a 'breakpointOnNil' argument"
+    deprecated,
+    message: "'optional' no longer takes a 'breakpointOnNil' argument"
   )
   public func optional(
     breakpointOnNil: Bool,
@@ -186,8 +188,8 @@ extension Reducer {
 
   @available(
     *,
-     deprecated,
-     message: "'forEach' no longer takes a 'breakpointOnNil' argument"
+    deprecated,
+    message: "'forEach' no longer takes a 'breakpointOnNil' argument"
   )
   public func forEach<ParentState, ParentAction, ParentEnvironment, ID>(
     state toElementsState: WritableKeyPath<ParentState, IdentifiedArray<ID, State>>,
@@ -208,8 +210,8 @@ extension Reducer {
 
   @available(
     *,
-     deprecated,
-     message: "'forEach' no longer takes a 'breakpointOnNil' argument"
+    deprecated,
+    message: "'forEach' no longer takes a 'breakpointOnNil' argument"
   )
   public func forEach<ParentState, ParentAction, ParentEnvironment, Key>(
     state toElementsState: WritableKeyPath<ParentState, [Key: State]>,
@@ -265,13 +267,13 @@ extension Reducer {
             var actions = ""
             customDump(self.receivedActions.map(\.action), to: &actions)
             XCTFail(
-                """
-                Must handle \(self.receivedActions.count) received \
-                action\(self.receivedActions.count == 1 ? "" : "s") before performing this work: …
+              """
+              Must handle \(self.receivedActions.count) received \
+              action\(self.receivedActions.count == 1 ? "" : "s") before performing this work: …
 
-                Unhandled actions: \(actions)
-                """,
-                file: step.file, line: step.line
+              Unhandled actions: \(actions)
+              """,
+              file: step.file, line: step.line
             )
           }
           do {
@@ -285,13 +287,13 @@ extension Reducer {
             var actions = ""
             customDump(self.receivedActions.map(\.action), to: &actions)
             XCTFail(
-                """
-                Must handle \(self.receivedActions.count) received \
-                action\(self.receivedActions.count == 1 ? "" : "s") before performing this work: …
+              """
+              Must handle \(self.receivedActions.count) received \
+              action\(self.receivedActions.count == 1 ? "" : "s") before performing this work: …
 
-                Unhandled actions: \(actions)
-                """,
-                file: step.file, line: step.line
+              Unhandled actions: \(actions)
+              """,
+              file: step.file, line: step.line
             )
           }
           do {
@@ -390,14 +392,14 @@ extension Reducer {
       }
     }
   }
-  #endif
+#endif
 
-  // NB: Deprecated after 0.27.1:
-  #if canImport(SwiftUI)
+// NB: Deprecated after 0.27.1:
+#if canImport(SwiftUI)
   extension AlertState.Button {
     @available(
       *, deprecated,
-       message: "Cancel buttons must be given an explicit label as their first argument"
+      message: "Cancel buttons must be given an explicit label as their first argument"
     )
     public static func cancel(action: AlertState.ButtonAction? = nil) -> Self {
       .init(action: action, label: TextState("Cancel"), role: .cancel)
@@ -428,14 +430,16 @@ extension Reducer {
   extension Store {
     @available(
       *, deprecated,
-       message:
+      message:
         """
         If you use this method, please open a discussion on GitHub and let us know how: \
         https://github.com/pointfreeco/swift-composable-architecture/discussions/new
         """
     )
     public func producerScope<ChildState, ChildAction>(
-      state toChildState: @escaping (SignalProducer<State, Never>) -> SignalProducer<ChildState, Never>,
+      state toChildState: @escaping (SignalProducer<State, Never>) -> SignalProducer<
+        ChildState, Never
+      >,
       action fromChildAction: @escaping (ChildAction) -> Action
     ) -> SignalProducer<Store<ChildState, ChildAction>, Never> {
 
@@ -472,14 +476,16 @@ extension Reducer {
 
     @available(
       *, deprecated,
-       message:
+      message:
         """
         If you use this method, please open a discussion on GitHub and let us know how: \
         https://github.com/pointfreeco/swift-composable-architecture/discussions/new
         """
     )
     public func producerScope<ChildState>(
-      state toChildState: @escaping (SignalProducer<State, Never>) -> SignalProducer<ChildState, Never>
+      state toChildState: @escaping (SignalProducer<State, Never>) -> SignalProducer<
+        ChildState, Never
+      >
     ) -> SignalProducer<Store<ChildState, Action>, Never> {
       self.producerScope(state: toChildState, action: { $0 })
     }
@@ -488,7 +494,7 @@ extension Reducer {
   extension ViewStore where Action: BindableAction, Action.State == State {
     @available(
       *, deprecated,
-       message:
+      message:
         """
         Dynamic member lookup is no longer supported for bindable state. Instead of dot-chaining on \
         the view store, e.g. 'viewStore.$value', invoke the 'binding' method on view store with a \
@@ -511,7 +517,7 @@ extension Reducer {
   extension BindingAction {
     @available(
       *, deprecated,
-       message:
+      message:
         """
         For improved safety, bindable properties must now be wrapped explicitly in 'BindableState', \
         and accessed via key paths to that 'BindableState', like '\\.$value'
@@ -531,7 +537,7 @@ extension Reducer {
 
     @available(
       *, deprecated,
-       message:
+      message:
         """
         For improved safety, bindable properties must now be wrapped explicitly in 'BindableState', \
         and accessed via key paths to that 'BindableState', like '\\.$value'
@@ -548,14 +554,14 @@ extension Reducer {
   extension Reducer {
     @available(
       *, deprecated,
-       message:
+      message:
         """
         'Reducer.binding()' no longer takes an explicit extract function and instead the reducer's \
         'Action' type must conform to 'BindableAction'
         """
     )
     public func binding(action toBindingAction: @escaping (Action) -> BindingAction<State>?)
-    -> Self
+      -> Self
     {
       Self { state, action, environment in
         toBindingAction(action)?.set(&state)
@@ -565,27 +571,27 @@ extension Reducer {
   }
 
   #if canImport(SwiftUI)
-  extension ViewStore {
-    @available(
-      *, deprecated,
-       message:
-        """
+    extension ViewStore {
+      @available(
+        *, deprecated,
+        message:
+          """
         For improved safety, bindable properties must now be wrapped explicitly in 'BindableState'. \
         Bindings are now derived via 'ViewStore.binding' with a key path to that 'BindableState' \
         (for example, 'viewStore.binding(\\.$value)'). For dynamic member lookup to be available, \
         the view store's 'Action' type must also conform to 'BindableAction'.
         """
-    )
-    public func binding<Value: Equatable>(
-      keyPath: WritableKeyPath<State, Value>,
-      send action: @escaping (BindingAction<State>) -> Action
-    ) -> Binding<Value> {
-      self.binding(
-        get: { $0[keyPath: keyPath] },
-        send: { action(.set(keyPath, $0)) }
       )
+      public func binding<Value: Equatable>(
+        keyPath: WritableKeyPath<State, Value>,
+        send action: @escaping (BindingAction<State>) -> Action
+      ) -> Binding<Value> {
+        self.binding(
+          get: { $0[keyPath: keyPath] },
+          send: { action(.set(keyPath, $0)) }
+        )
+      }
     }
-  }
   #endif
 
   // NB: Deprecated after 0.23.0:
@@ -700,10 +706,10 @@ extension Reducer {
       @ViewBuilder content: @escaping (Store<EachState, EachAction>) -> EachContent
     )
     where
-    Data == [EachState],
-    Content == WithViewStore<
-      [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
-    >
+      Data == [EachState],
+      Content == WithViewStore<
+        [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
+      >
     {
       let data = store.state
       self.data = data
@@ -727,12 +733,12 @@ extension Reducer {
       @ViewBuilder content: @escaping (Store<EachState, EachAction>) -> EachContent
     )
     where
-    Data == [EachState],
-    Content == WithViewStore<
-      [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
-    >,
-  EachState: Identifiable,
-    EachState.ID == ID
+      Data == [EachState],
+      Content == WithViewStore<
+        [ID], (Data.Index, EachAction), ForEach<[(offset: Int, element: ID)], ID, EachContent>
+      >,
+      EachState: Identifiable,
+      EachState.ID == ID
     {
       self.init(store, id: \.id, content: content)
     }
