@@ -76,9 +76,9 @@ extension Effect {
               }
             }
 
-                    cancellationCancellables[id, default: []].insert(
+            cancellationCancellables[id, default: []].insert(
               cancellationDisposable
-                    )
+            )
 
             return SignalProducer(values.value)
               .concat(subject.output.producer)

@@ -461,8 +461,8 @@ extension Effect {
           await operation(
             Send { action in
               send(transform(action))
-              }
-            )
+            }
+          )
         }
       )
     }
