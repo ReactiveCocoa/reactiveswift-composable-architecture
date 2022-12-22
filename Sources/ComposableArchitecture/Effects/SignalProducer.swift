@@ -4,9 +4,9 @@ import ReactiveSwift
 @available(macOS, deprecated: 9999.0)
 @available(tvOS, deprecated: 9999.0)
 @available(watchOS, deprecated: 9999.0)
-extension Effect {
+extension Effect: SignalProducerConvertible {
   @inlinable
-  var producer: SignalProducer<Action, Failure> {
+  public var producer: SignalProducer<Action, Failure> {
     switch self.operation {
     case .none:
       return .empty
@@ -260,7 +260,7 @@ extension Effect {
   }
 }
 
-extension Effect where Failure == Error {
+extension Effect where Failure == Swift.Error {
   /// Initializes an effect that lazily executes some work in the real world and synchronously sends
   /// that data back into the store.
   ///
