@@ -58,7 +58,7 @@ final class ReusableComponentsFavoritingTests: XCTestCase {
         "Favoriting failed."
       }
     }
-    let scheduler = DispatchQueue.test
+    let scheduler = TestScheduler()
 
     let episodes: IdentifiedArrayOf<Episode.State> = [
       Episode.State(

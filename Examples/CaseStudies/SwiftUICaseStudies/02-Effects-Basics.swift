@@ -50,6 +50,7 @@ struct EffectsBasics: ReducerProtocol {
       return state.count >= 0
         ? .none
         : .task {
+          try await self.mainQueue.sleep(for: .seconds(1))
           return .decrementDelayResponse
         }
         .cancellable(id: DelayID.self)

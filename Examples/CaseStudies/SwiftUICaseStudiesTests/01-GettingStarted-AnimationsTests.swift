@@ -12,8 +12,8 @@ final class AnimationTests: XCTestCase {
       reducer: Animations()
     )
 
-    let mainQueue = DispatchQueue.test
-    store.dependencies.mainQueue = mainQueue.eraseToAnyScheduler()
+    let mainQueue = TestScheduler()
+    store.dependencies.mainQueue = mainQueue
 
     await store.send(.rainbowButtonTapped)
     await store.receive(.setColor(.red)) {
@@ -64,8 +64,8 @@ final class AnimationTests: XCTestCase {
       reducer: Animations()
     )
 
-    let mainQueue = DispatchQueue.test
-    store.dependencies.mainQueue = mainQueue.eraseToAnyScheduler()
+    let mainQueue = TestScheduler()
+    store.dependencies.mainQueue = mainQueue
 
     await store.send(.rainbowButtonTapped)
     await store.receive(.setColor(.red)) {

@@ -15,7 +15,7 @@ final class WebSocketTests: XCTestCase {
     let actions = AsyncStream<WebSocketClient.Action>.streamWithContinuation()
     let messages = AsyncStream<TaskResult<WebSocketClient.Message>>.streamWithContinuation()
 
-    store.dependencies.mainQueue = .immediate
+    store.dependencies.mainQueue = ImmediateScheduler()
     store.dependencies.webSocket.open = { _, _, _ in actions.stream }
     store.dependencies.webSocket.receive = { _ in messages.stream }
     store.dependencies.webSocket.send = { _, _ in }
@@ -66,7 +66,7 @@ final class WebSocketTests: XCTestCase {
     let actions = AsyncStream<WebSocketClient.Action>.streamWithContinuation()
     let messages = AsyncStream<TaskResult<WebSocketClient.Message>>.streamWithContinuation()
 
-    store.dependencies.mainQueue = .immediate
+    store.dependencies.mainQueue = ImmediateScheduler()
     store.dependencies.webSocket.open = { _, _, _ in actions.stream }
     store.dependencies.webSocket.receive = { _ in messages.stream }
     store.dependencies.webSocket.send = { _, _ in
@@ -108,10 +108,10 @@ final class WebSocketTests: XCTestCase {
     )
 
     let actions = AsyncStream<WebSocketClient.Action>.streamWithContinuation()
-    let mainQueue = DispatchQueue.test
+    let mainQueue = TestScheduler()
     var pingsCount = 0
 
-    store.dependencies.mainQueue = mainQueue.eraseToAnyScheduler()
+    store.dependencies.mainQueue = mainQueue
     store.dependencies.webSocket.open = { _, _, _ in actions.stream }
     store.dependencies.webSocket.receive = { _ in try await Task.never() }
     store.dependencies.webSocket.sendPing = { @MainActor _ in pingsCount += 1 }
@@ -144,7 +144,7 @@ final class WebSocketTests: XCTestCase {
 
     let actions = AsyncStream<WebSocketClient.Action>.streamWithContinuation()
 
-    store.dependencies.mainQueue = .immediate
+    store.dependencies.mainQueue = ImmediateScheduler()
     store.dependencies.webSocket.open = { _, _, _ in actions.stream }
     store.dependencies.webSocket.receive = { _ in try await Task.never() }
     store.dependencies.webSocket.sendPing = { _ in try await Task.never() }

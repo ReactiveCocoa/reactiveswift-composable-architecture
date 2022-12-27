@@ -13,8 +13,8 @@ final class LifecycleTests: XCTestCase {
       reducer: LifecycleDemo()
     )
 
-    let mainQueue = DispatchQueue.test
-    store.dependencies.mainQueue = mainQueue.eraseToAnyScheduler()
+    let mainQueue = TestScheduler()
+    store.dependencies.mainQueue = mainQueue
 
     await store.send(.toggleTimerButtonTapped) {
       $0.count = 0

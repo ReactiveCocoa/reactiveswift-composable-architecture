@@ -50,7 +50,7 @@ extension Effect where Action == Date, Failure == Never {
   ///     reducer: Feature()
   ///     )
   ///
-  ///   store.dependencies.mainQueue = mainQueue.eraseToAnyScheduler()
+  ///   store.dependencies.mainQueue = mainQueue
   ///
   ///   await store.send(.startButtonTapped)
   ///

@@ -148,8 +148,8 @@ import XCTestDynamicOverlay
 /// )
 ///
 /// // Create a test dispatch scheduler to control the timing of effects
-/// let mainQueue = DispatchQueue.test
-/// store.dependencies.mainQueue = mainQueue.eraseToAnyScheduler()
+/// let mainQueue = TestScheduler()
+/// store.dependencies.mainQueue = mainQueue
 ///
 ///     // Simulate a search response with one item
 /// store.dependencies.mainQueue.apiClient.search = { _ in

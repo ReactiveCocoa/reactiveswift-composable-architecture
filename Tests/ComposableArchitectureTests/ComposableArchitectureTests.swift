@@ -152,7 +152,7 @@ import XCTest
       await store.send(.incr) { $0 = 2 }
       await store.send(.cancel)
       // NB: Wait a bit more time to handle effects so this test is less brittle in CI
-      await store.finish(timeout: 500 * NSEC_PER_MSEC)
+      await store.finish(timeout: NSEC_PER_SEC)
     }
   }
 #endif
