@@ -107,7 +107,9 @@ public final class ViewStore<ViewState, ViewAction> {
       .startWithValues {
         [weak objectWillChange = self.objectWillChange, weak _state = self._state] in
         guard let objectWillChange = objectWillChange, let _state = _state else { return }
-        objectWillChange.send()
+        #if canImport(Combine)
+          objectWillChange.send()
+        #endif
         _state.value = $0
       }
   }
@@ -141,7 +143,9 @@ public final class ViewStore<ViewState, ViewAction> {
       .startWithValues {
         [weak objectWillChange = self.objectWillChange, weak _state = self._state] in
         guard let objectWillChange = objectWillChange, let _state = _state else { return }
-        objectWillChange.send()
+          #if canImport(Combine)
+            objectWillChange.send()
+          #endif
         _state.value = $0
       }
   }
@@ -254,7 +258,7 @@ public final class ViewStore<ViewState, ViewAction> {
   /// This means you can either use the value passed to the closure or you can reach into
   /// `viewStore.state` directly.
   ///
-  public var produced: StoreProducer<State> {
+  public var produced: StoreProducer<ViewState> {
     StoreProducer(viewStore: self)
   }
 

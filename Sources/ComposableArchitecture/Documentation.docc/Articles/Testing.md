@@ -363,7 +363,7 @@ let store = TestStore(
   reducer: Feature()
 )
 
-store.dependencies.mainQueue = .immediate
+store.dependencies.mainQueue = ImmediateScheduler()
 ```
 
 With that small change we can drop the `timeout` arguments from the

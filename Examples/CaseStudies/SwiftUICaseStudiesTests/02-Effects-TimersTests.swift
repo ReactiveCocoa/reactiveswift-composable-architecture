@@ -12,8 +12,8 @@ final class TimersTests: XCTestCase {
       reducer: Timers()
     )
 
-    let mainQueue = DispatchQueue.test
-    store.dependencies.mainQueue = mainQueue.eraseToAnyScheduler()
+    let mainQueue = TestScheduler()
+    store.dependencies.mainQueue = mainQueue
 
     await store.send(.toggleTimerButtonTapped) {
       $0.isTimerActive = true

@@ -1,7 +1,11 @@
 @_spi(Internals) import ComposableArchitecture
 import XCTest
 
-@testable import ReactiveSwift
+#if DEBUG
+  @testable import ReactiveSwift
+#else
+  import ReactiveSwift
+#endif
 
 final class EffectCancellationTests: XCTestCase {
   struct CancelID: Hashable {}
@@ -65,7 +69,7 @@ final class EffectCancellationTests: XCTestCase {
     var value: Int?
 
     Effect(value: 1)
-      .deferred(for: 0.15, scheduler: QueueScheduler.main)
+      .deferred(for: 0.5, scheduler: QueueScheduler.main)
       .cancellable(id: CancelID())
       .producer
       .startWithValues { value = $0 }
@@ -180,59 +184,61 @@ final class EffectCancellationTests: XCTestCase {
     XCTAssertEqual(values, [1])
   }
 
-  func testConcurrentCancels() {
-    let queues = [
-      DispatchQueue.main,
-      DispatchQueue.global(qos: .background),
-      DispatchQueue.global(qos: .default),
-      DispatchQueue.global(qos: .unspecified),
-      DispatchQueue.global(qos: .userInitiated),
-      DispatchQueue.global(qos: .userInteractive),
-      DispatchQueue.global(qos: .utility),
-    ]
-    let ids = (1...10).map { _ in UUID() }
+  #if DEBUG
+    func testConcurrentCancels() {
+      let queues = [
+        DispatchQueue.main,
+        DispatchQueue.global(qos: .background),
+        DispatchQueue.global(qos: .default),
+        DispatchQueue.global(qos: .unspecified),
+        DispatchQueue.global(qos: .userInitiated),
+        DispatchQueue.global(qos: .userInteractive),
+        DispatchQueue.global(qos: .utility),
+      ]
+      let ids = (1...10).map { _ in UUID() }
 
-    let effect = Effect.merge(
-      // Original upper bound was 1000, but it was triggering EXC_BAD_ACCESS crashes...
-      // Enabling ThreadSanitizer reveals data races in RAS internals, more specifically
-      // `TransformerCore.start` (accessing `hasDeliveredTerminalEvent` var), which can
-      // be the cause?
-      (1...200).map { idx -> Effect<Int, Never> in
-        let id = ids[idx % 10]
+      let effect = Effect.merge(
+        // Original upper bound was 1000, but it was triggering EXC_BAD_ACCESS crashes...
+        // Enabling ThreadSanitizer reveals data races in RAS internals, more specifically
+        // `TransformerCore.start` (accessing `hasDeliveredTerminalEvent` var), which can
+        // be the cause?
+        (1...200).map { idx -> Effect<Int, Never> in
+          let id = ids[idx % 10]
 
-        return Effect.merge(
-          Effect(value: idx)
-            .deferred(
-              for: Double.random(in: 1...100) / 1000,
-              scheduler: QueueScheduler(internalQueue: queues.randomElement()!)
-            )
-            .cancellable(id: id),
+          return Effect.merge(
+            Effect(value: idx)
+              .deferred(
+                for: Double.random(in: 1...100) / 1000,
+                scheduler: QueueScheduler(internalQueue: queues.randomElement()!)
+              )
+              .cancellable(id: id),
 
-          SignalProducer(value: ())
-            .delay(
-              Double.random(in: 1...100) / 1000,
-              on: QueueScheduler(internalQueue: queues.randomElement()!)
-            )
-            .flatMap(.latest) { Effect.cancel(id: id).producer }
-            .eraseToEffect()
+            SignalProducer(value: ())
+              .delay(
+                Double.random(in: 1...100) / 1000,
+                on: QueueScheduler(internalQueue: queues.randomElement()!)
+              )
+              .flatMap(.latest) { Effect.cancel(id: id).producer }
+              .eraseToEffect()
+          )
+        }
+      )
+
+      let expectation = self.expectation(description: "wait")
+      effect
+        .producer
+        .on(completed: { expectation.fulfill() }, value: { _ in })
+        .start()
+      self.wait(for: [expectation], timeout: 999)
+
+      for id in ids {
+        XCTAssertNil(
+          _cancellationCancellables[_CancelToken(id: id)],
+          "cancellationCancellables should not contain id \(id)"
         )
       }
-    )
-
-    let expectation = self.expectation(description: "wait")
-    effect
-      .producer
-      .on(completed: { expectation.fulfill() }, value: { _ in })
-      .start()
-    self.wait(for: [expectation], timeout: 999)
-
-    for id in ids {
-      XCTAssertNil(
-        _cancellationCancellables[_CancelToken(id: id)],
-        "cancellationCancellables should not contain id \(id)"
-      )
     }
-  }
+  #endif
 
   func testNestedCancels() {
     let id = UUID()

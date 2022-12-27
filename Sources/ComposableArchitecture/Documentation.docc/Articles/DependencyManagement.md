@@ -180,7 +180,7 @@ func testTodos() async {
   )
 
   store.dependencies.date = .constant(Date(timeIntervalSinceReferenceDate: 1234567890))
-  store.dependencies.mainQueue = .immediate
+  store.dependencies.mainQueue = ImmediateScheduler()
   store.dependencies.uuid = .incrementing
 
   // ...

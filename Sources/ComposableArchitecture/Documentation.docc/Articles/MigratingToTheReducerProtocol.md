@@ -583,7 +583,7 @@ override dependencies driving a feature.
 For example, to install a test scheduler as the main queue dependency:
 
 ```swift
-let mainQueue = DispatchQueue.test
+let mainQueue = TestScheduler()
 store.dependencies.mainQueue = mainQueue
 
 await store.send(.timerButtonStarted)
