@@ -207,7 +207,7 @@ final class EffectCancellationTests: XCTestCase {
         // Enabling ThreadSanitizer reveals data races in RAS internals, more specifically
         // `TransformerCore.start` (accessing `hasDeliveredTerminalEvent` var), which can
         // be the cause?
-        (1...300).map { idx -> Effect<Int, Never> in
+        (1...200).map { idx -> Effect<Int, Never> in
           let id = ids[idx % 10]
 
           return Effect.merge(

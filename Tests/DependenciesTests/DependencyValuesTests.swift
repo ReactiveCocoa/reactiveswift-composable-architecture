@@ -14,7 +14,8 @@ private enum TestKey: TestDependencyKey {
 
 final class DependencyValuesTests: XCTestCase {
   func testMissingLiveValue() {
-    #if DEBUG
+    // `XCTExpectFailure` is not supported on Linux
+    #if DEBUG && !os(Linux)
       var line = 0
       XCTExpectFailure {
         var values = DependencyValues._current

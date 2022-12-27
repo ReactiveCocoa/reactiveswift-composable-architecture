@@ -1,7 +1,6 @@
+import ComposableArchitecture
 import ReactiveSwift
 import XCTest
-
-@testable import ComposableArchitecture
 
 final class SchedulerTests: XCTestCase {
   func testAdvance() async {

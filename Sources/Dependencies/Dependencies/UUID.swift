@@ -125,26 +125,46 @@ public struct UUIDGenerator: Sendable {
   }
 }
 
-private final class IncrementingUUIDGenerator: @unchecked Sendable {
-  private let lock: os_unfair_lock_t
-  private var sequence = 0
+#if canImport(os)
+  private final class IncrementingUUIDGenerator: @unchecked Sendable {
+    private let lock: os_unfair_lock_t
+    private var sequence = 0
 
-  init() {
-    self.lock = os_unfair_lock_t.allocate(capacity: 1)
-    self.lock.initialize(to: os_unfair_lock())
-  }
-
-  deinit {
-    self.lock.deinitialize(count: 1)
-    self.lock.deallocate()
-  }
-
-  func callAsFunction() -> UUID {
-    os_unfair_lock_lock(self.lock)
-    defer {
-      self.sequence += 1
-      os_unfair_lock_unlock(self.lock)
+    init() {
+      self.lock = os_unfair_lock_t.allocate(capacity: 1)
+      self.lock.initialize(to: os_unfair_lock())
     }
-    return UUID(uuidString: "00000000-0000-0000-0000-\(String(format: "%012x", self.sequence))")!
+
+    deinit {
+      self.lock.deinitialize(count: 1)
+      self.lock.deallocate()
+    }
+
+    func callAsFunction() -> UUID {
+      os_unfair_lock_lock(self.lock)
+      defer {
+        self.sequence += 1
+        os_unfair_lock_unlock(self.lock)
+      }
+      return UUID(uuidString: "00000000-0000-0000-0000-\(String(format: "%012x", self.sequence))")!
+    }
   }
-}
+#else
+  private final class IncrementingUUIDGenerator: @unchecked Sendable {
+    private let lock: NSLock
+    private var sequence = 0
+
+    init() {
+      self.lock = NSLock()
+    }
+
+    func callAsFunction() -> UUID {
+      self.lock.lock()
+      defer {
+        self.sequence += 1
+        self.lock.unlock()
+      }
+      return UUID(uuidString: "00000000-0000-0000-0000-\(String(format: "%012x", self.sequence))")!
+    }
+  }
+#endif

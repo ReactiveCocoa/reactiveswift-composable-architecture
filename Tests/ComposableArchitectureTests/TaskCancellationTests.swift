@@ -1,6 +1,10 @@
 #if DEBUG
   import XCTest
 
+  #if os(Linux)
+    import CDispatch
+  #endif
+
   @testable import ComposableArchitecture
 
   final class TaskCancellationTests: XCTestCase {

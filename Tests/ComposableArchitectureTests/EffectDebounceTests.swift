@@ -1,7 +1,6 @@
+import ComposableArchitecture
 import ReactiveSwift
 import XCTest
-
-@testable import ComposableArchitecture
 
 // `@MainActor` introduces issues gathering tests on Linux
 #if !os(Linux)

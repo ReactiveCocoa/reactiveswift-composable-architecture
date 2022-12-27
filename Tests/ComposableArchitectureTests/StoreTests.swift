@@ -43,15 +43,17 @@ import XCTest
       XCTAssertNoDifference(values, [0, 1, 2, 3])
     }
 
-    func testCancellableIsRemovedOnImmediatelyCompletingEffect() {
-      let store = Store(initialState: (), reducer: EmptyReducer<Void, Void>())
+    #if DEBUG
+      func testCancellableIsRemovedOnImmediatelyCompletingEffect() {
+        let store = Store(initialState: (), reducer: EmptyReducer<Void, Void>())
 
-      XCTAssertEqual(store.effectDisposables.count, 0)
+        XCTAssertEqual(store.effectDisposables.count, 0)
 
-      _ = store.send(())
+        _ = store.send(())
 
-      XCTAssertEqual(store.effectDisposables.count, 0)
-    }
+        XCTAssertEqual(store.effectDisposables.count, 0)
+      }
+    #endif
 
     #if DEBUG
       func testCancellableIsRemovedWhenEffectCompletes() {

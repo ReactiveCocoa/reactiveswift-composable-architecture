@@ -73,30 +73,48 @@ extension DependencyValues {
   }
 }
 
-/// A dependency that yields a random number generator to a closure.
-///
-/// See ``DependencyValues/withRandomNumberGenerator`` for more information.
-public final class WithRandomNumberGenerator: @unchecked Sendable {
-  private var generator: RandomNumberGenerator
-  private let lock: os_unfair_lock_t
+#if canImport(os)
+  /// A dependency that yields a random number generator to a closure.
+  ///
+  /// See ``DependencyValues/withRandomNumberGenerator`` for more information.
+  public final class WithRandomNumberGenerator: @unchecked Sendable {
+    private var generator: RandomNumberGenerator
+    private let lock: os_unfair_lock_t
 
-  public init<T: RandomNumberGenerator & Sendable>(_ generator: T) {
-    self.generator = generator
-    self.lock = os_unfair_lock_t.allocate(capacity: 1)
-    self.lock.initialize(to: os_unfair_lock())
-  }
+    public init<T: RandomNumberGenerator & Sendable>(_ generator: T) {
+      self.generator = generator
+      self.lock = os_unfair_lock_t.allocate(capacity: 1)
+      self.lock.initialize(to: os_unfair_lock())
+    }
 
-  deinit {
-    self.lock.deinitialize(count: 1)
-    self.lock.deallocate()
-  }
+    deinit {
+      self.lock.deinitialize(count: 1)
+      self.lock.deallocate()
+    }
 
-  public func callAsFunction<R>(_ work: (inout RandomNumberGenerator) -> R) -> R {
-    os_unfair_lock_lock(self.lock)
-    defer { os_unfair_lock_unlock(self.lock) }
-    return work(&self.generator)
+    public func callAsFunction<R>(_ work: (inout RandomNumberGenerator) -> R) -> R {
+      os_unfair_lock_lock(self.lock)
+      defer { os_unfair_lock_unlock(self.lock) }
+      return work(&self.generator)
+    }
   }
-}
+#else
+  public final class WithRandomNumberGenerator: @unchecked Sendable {
+    private var generator: RandomNumberGenerator
+    private let lock: NSLock
+
+    public init<T: RandomNumberGenerator & Sendable>(_ generator: T) {
+      self.generator = generator
+      self.lock = NSLock()
+    }
+
+    public func callAsFunction<R>(_ work: (inout RandomNumberGenerator) -> R) -> R {
+      self.lock.lock()
+      defer { self.lock.unlock() }
+      return work(&self.generator)
+    }
+  }
+#endif
 
 private struct UnimplementedRandomNumberGenerator: RandomNumberGenerator {
   var generator = SystemRandomNumberGenerator()
