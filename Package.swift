@@ -49,7 +49,7 @@ let package = Package(
       name: "Dependencies",
       dependencies: [
         "ReactiveSwift",
-        .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay")
+        .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
       ]
     ),
     .testTarget(

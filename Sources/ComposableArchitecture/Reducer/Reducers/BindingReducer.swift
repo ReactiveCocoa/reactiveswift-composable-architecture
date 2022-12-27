@@ -1,4 +1,6 @@
-import SwiftUI
+#if canImport(SwiftUI)
+  import SwiftUI
+#endif
 
 /// A reducer that updates bindable state when it receives binding actions.
 public struct BindingReducer<State, Action>: ReducerProtocol

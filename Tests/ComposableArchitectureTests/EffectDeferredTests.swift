@@ -1,7 +1,6 @@
+import ComposableArchitecture
 import ReactiveSwift
 import XCTest
-
-@testable import ComposableArchitecture
 
 final class EffectDeferredTests: XCTestCase {
   func testDeferred() async {

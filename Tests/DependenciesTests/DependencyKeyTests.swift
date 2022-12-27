@@ -20,7 +20,8 @@ final class DependencyKeyTests: XCTestCase {
     XCTAssertEqual(42, Dependency.liveValue.value)
     XCTAssertEqual(42, Dependency.previewValue.value)
 
-    #if DEBUG
+    // `XCTExpectFailure` is not supported on Linux
+    #if DEBUG && !os(Linux)
       XCTExpectFailure {
         XCTAssertEqual(42, Dependency.testValue.value)
       } issueMatcher: { issue in
@@ -51,7 +52,8 @@ final class DependencyKeyTests: XCTestCase {
     XCTAssertEqual(42, Key.liveValue)
     XCTAssertEqual(42, Key.previewValue)
 
-    #if DEBUG
+    // `XCTExpectFailure` is not supported on Linux
+    #if DEBUG && !os(Linux)
       XCTExpectFailure {
         XCTAssertEqual(42, Key.testValue)
       } issueMatcher: { issue in
@@ -85,7 +87,8 @@ final class DependencyKeyTests: XCTestCase {
     XCTAssertEqual(42, Key.liveValue)
     XCTAssertEqual(1729, Key.previewValue)
 
-    #if DEBUG
+    // `XCTExpectFailure` is not supported on Linux
+    #if DEBUG && !os(Linux)
       XCTExpectFailure {
         XCTAssertEqual(42, Key.testValue)
       } issueMatcher: { issue in
@@ -111,7 +114,8 @@ final class DependencyKeyTests: XCTestCase {
   }
 
   func testDependencyKeyCascading_ImplementOnlyLive_Named() {
-    #if DEBUG
+    // `XCTExpectFailure` is not supported on Linux
+    #if DEBUG && !os(Linux)
       DependencyValues.withValues {
         $0.context = .test
       } operation: {
