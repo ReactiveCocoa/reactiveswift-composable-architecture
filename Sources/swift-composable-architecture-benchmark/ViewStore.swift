@@ -1,5 +1,7 @@
 import Benchmark
-import Combine
+#if canImport(Combine)
+  import Combine
+#endif
 import ComposableArchitecture
 import Foundation
 
