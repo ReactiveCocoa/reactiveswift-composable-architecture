@@ -5,9 +5,9 @@
         "package": "ReactiveSwift",
         "repositoryURL": "https://github.com/ReactiveCocoa/ReactiveSwift",
         "state": {
-          "branch": "7.1.0",
+          "branch": null,
           "revision": "509916c99f49a5e6c8196c968b8b7e3dbd48db04",
-          "version": null
+          "version": "7.1.0"
         }
       },
       {
