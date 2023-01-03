@@ -76,9 +76,9 @@ extension EffectProducer {
               }
             }
 
-            _cancellationCancellables[id, default: []].insert(
+                    _cancellationCancellables[id, default: []].insert(
               cancellationDisposable
-            )
+                    )
 
             return SignalProducer(values.value)
               .concat(subject.output.producer)
@@ -164,6 +164,7 @@ extension EffectProducer {
   }
 }
 
+#if swift(>=5.7)
 /// Execute an operation with a cancellation identifier.
 ///
 /// If the operation is in-flight when `Task.cancel(id:)` is called with the same identifier, the
@@ -206,13 +207,44 @@ extension EffectProducer {
 ///   - operation: An async operation.
 /// - Throws: An error thrown by the operation.
 /// - Returns: A value produced by operation.
+  @_unsafeInheritExecutor
 public func withTaskCancellation<T: Sendable>(
   id: AnyHashable,
   cancelInFlight: Bool = false,
   operation: @Sendable @escaping () async throws -> T
 ) async rethrows -> T {
   let id = _CancelToken(id: id)
-  let (cancellable, task) = _cancellablesLock.sync { () -> (AnyDisposable, Task<T, Error>) in
+    let (cancellable, task) = _cancellablesLock.sync { () -> (AnyDisposable, Task<T, Error>) in
+      if cancelInFlight {
+        _cancellationCancellables[id]?.forEach { $0.dispose() }
+      }
+      let task = Task { try await operation() }
+      let cancellable = AnyDisposable { task.cancel() }
+      _cancellationCancellables[id, default: []].insert(cancellable)
+      return (cancellable, task)
+    }
+    defer {
+      _cancellablesLock.sync {
+        _cancellationCancellables[id]?.remove(cancellable)
+        if _cancellationCancellables[id]?.isEmpty == .some(true) {
+          _cancellationCancellables[id] = nil
+        }
+      }
+    }
+    do {
+      return try await task.cancellableValue
+    } catch {
+      return try Result<T, Error>.failure(error)._rethrowGet()
+    }
+  }
+#else
+  public func withTaskCancellation<T: Sendable>(
+    id: AnyHashable,
+    cancelInFlight: Bool = false,
+    operation: @Sendable @escaping () async throws -> T
+  ) async rethrows -> T {
+    let id = _CancelToken(id: id)
+    let (cancellable, task) = _cancellablesLock.sync { () -> (AnyDisposable, Task<T, Error>) in
     if cancelInFlight {
       _cancellationCancellables[id]?.forEach { $0.dispose() }
     }
@@ -235,7 +267,9 @@ public func withTaskCancellation<T: Sendable>(
     return try Result<T, Error>.failure(error)._rethrowGet()
   }
 }
+#endif
 
+#if swift(>=5.7)
 /// Execute an operation with a cancellation identifier.
 ///
 /// A convenience for calling ``withTaskCancellation(id:cancelInFlight:operation:)-4dtr6`` with a
@@ -248,6 +282,7 @@ public func withTaskCancellation<T: Sendable>(
 ///   - operation: An async operation.
 /// - Throws: An error thrown by the operation.
 /// - Returns: A value produced by operation.
+  @_unsafeInheritExecutor
 public func withTaskCancellation<T: Sendable>(
   id: Any.Type,
   cancelInFlight: Bool = false,
@@ -259,6 +294,19 @@ public func withTaskCancellation<T: Sendable>(
     operation: operation
   )
 }
+#else
+  public func withTaskCancellation<T: Sendable>(
+    id: Any.Type,
+    cancelInFlight: Bool = false,
+    operation: @Sendable @escaping () async throws -> T
+  ) async rethrows -> T {
+    try await withTaskCancellation(
+      id: ObjectIdentifier(id),
+      cancelInFlight: cancelInFlight,
+      operation: operation
+    )
+  }
+#endif
 
 extension Task where Success == Never, Failure == Never {
   /// Cancel any currently in-flight operation with the given identifier.
