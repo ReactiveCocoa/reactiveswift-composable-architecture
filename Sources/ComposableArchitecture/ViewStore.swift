@@ -491,8 +491,8 @@ public final class ViewStore<ViewState, ViewAction> {
   ) -> Binding<Value> {
     @ObservedState var val = get(self.state)
     return .init(
-        get: { [$val] in $val.wrappedValue },
-        set: { [weak self] in self?.send(valueToAction($0)) }
+      get: { [$val] in $val.wrappedValue },
+      set: { [weak self] in self?.send(valueToAction($0)) }
     )
   }
   /// Derives a binding from the store that prevents direct writes to state and instead sends
@@ -780,12 +780,12 @@ final private class ValueWrapper<V>: ObservableObject {
 
 @propertyWrapper private struct ObservedState<Value>: DynamicProperty {
   @ObservedObject private var box: ValueWrapper<Value>
-  
+
   var wrappedValue: Value {
     get { box.value }
     nonmutating set { box.value = newValue }
   }
-  
+
   var projectedValue: Binding<Value> {
     .init(
       get: { wrappedValue },
