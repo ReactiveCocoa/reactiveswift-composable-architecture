@@ -180,39 +180,39 @@ extension EffectProducer where Failure == Never {
   ) -> Self {
     withEscapedDependencies { escaped in
       Self(
-      operation: .run(priority) { send in
+        operation: .run(priority) { send in
           await escaped.yield {
-          do {
-            try await send(operation())
-          } catch is CancellationError {
-            return
-          } catch {
-            guard let handler = handler else {
-              #if DEBUG
-                var errorDump = ""
-                customDump(error, to: &errorDump, indent: 4)
-                runtimeWarn(
-                  """
-                  An "EffectTask.task" returned from "\(fileID):\(line)" threw an unhandled \
-                  error. …
-
-                  \(errorDump)
-
-                  All non-cancellation errors must be explicitly handled via the "catch" \
-                  parameter on "EffectTask.task", or via a "do" block.
-                  """,
-                  file: file,
-                  line: line
-                )
-              #endif
+            do {
+              try await send(operation())
+            } catch is CancellationError {
               return
+            } catch {
+              guard let handler = handler else {
+                #if DEBUG
+                  var errorDump = ""
+                  customDump(error, to: &errorDump, indent: 4)
+                  runtimeWarn(
+                    """
+                    An "EffectTask.task" returned from "\(fileID):\(line)" threw an unhandled \
+                    error. …
+
+                    \(errorDump)
+
+                    All non-cancellation errors must be explicitly handled via the "catch" \
+                    parameter on "EffectTask.task", or via a "do" block.
+                    """,
+                    file: file,
+                    line: line
+                  )
+                #endif
+                return
+              }
+              await send(handler(error))
             }
-            await send(handler(error))
           }
         }
-      }
-    )
-  }
+      )
+    }
   }
 
   /// Wraps an asynchronous unit of work that can emit any number of times in an effect.
@@ -264,38 +264,38 @@ extension EffectProducer where Failure == Never {
   ) -> Self {
     withEscapedDependencies { escaped in
       Self(
-      operation: .run(priority) { send in
+        operation: .run(priority) { send in
           await escaped.yield {
-          do {
-            try await operation(send)
-          } catch is CancellationError {
-            return
-          } catch {
-            guard let handler = handler else {
-              #if DEBUG
-                var errorDump = ""
-                customDump(error, to: &errorDump, indent: 4)
-                runtimeWarn(
-                  """
-                  An "EffectTask.run" returned from "\(fileID):\(line)" threw an unhandled error. …
-
-                  \(errorDump)
-
-                  All non-cancellation errors must be explicitly handled via the "catch" parameter \
-                  on "EffectTask.run", or via a "do" block.
-                  """,
-                  file: file,
-                  line: line
-                )
-              #endif
+            do {
+              try await operation(send)
+            } catch is CancellationError {
               return
+            } catch {
+              guard let handler = handler else {
+                #if DEBUG
+                  var errorDump = ""
+                  customDump(error, to: &errorDump, indent: 4)
+                  runtimeWarn(
+                    """
+                    An "EffectTask.run" returned from "\(fileID):\(line)" threw an unhandled error. …
+
+                    \(errorDump)
+
+                    All non-cancellation errors must be explicitly handled via the "catch" parameter \
+                    on "EffectTask.run", or via a "do" block.
+                    """,
+                    file: file,
+                    line: line
+                  )
+                #endif
+                return
+              }
+              await handler(error, send)
             }
-            await handler(error, send)
           }
         }
-      }
-    )
-  }
+      )
+    }
   }
 
   /// Creates an effect that executes some work in the real world that doesn't need to feed data
@@ -511,31 +511,33 @@ extension EffectProducer {
       return .init(
         operation: .producer(
           producer
-            .map(withEscapedDependencies { escaped in
+            .map(
+              withEscapedDependencies { escaped in
               { action in
                 escaped.yield {
                   transform(action)
                 }
               }
-            })
+              }
+            )
         )
       )
     case let .run(priority, operation):
       return withEscapedDependencies { escaped in
           .init(
-        operation: .run(priority) { send in
+            operation: .run(priority) { send in
               await escaped.yield {
-          await operation(
-            Send { action in
-              send(transform(action))
+                await operation(
+                  Send { action in
+                    send(transform(action))
+                  }
+                )
+              }
             }
           )
-        }
-            }
-      )
+      }
     }
   }
-}
 }
 
 // MARK: - Testing Effects
@@ -668,7 +670,7 @@ extension EffectProducer {
   message:
     """
     'Effect' has been deprecated in favor of 'EffectTask' when 'Failure == Never', or 'EffectProducer<Output, Failure>' in general.
-    
+
     You are encouraged to use 'EffectTask<Action>' to model the output of your reducers, and to use Swift concurrency to model failable streams of values.
 
     To find and replace instances of 'Effect<Action, Never>' to 'EffectTask<Action, Never>' in your codebase, use the following regular expression:
