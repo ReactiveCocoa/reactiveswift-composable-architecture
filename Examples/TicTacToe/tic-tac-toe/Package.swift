@@ -27,7 +27,8 @@ let package = Package(
     .library(name: "TwoFactorUIKit", targets: ["TwoFactorUIKit"]),
   ],
   dependencies: [
-    .package(name: "reactiveswift-composable-architecture", path: "../../..")
+    .package(name: "reactiveswift-composable-architecture", path: "../../.."),
+    .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "0.1.0"),
   ],
   targets: [
     .target(
@@ -36,7 +37,7 @@ let package = Package(
         "AuthenticationClient",
         "LoginCore",
         "NewGameCore",
-        .product(name: "ComposableArchitecture", package: "reactiveswift-composable-architecture"),
+        .product(name: "Dependencies", package: "swift-dependencies")
       ]
     ),
     .testTarget(
@@ -63,7 +64,7 @@ let package = Package(
     .target(
       name: "AuthenticationClient",
       dependencies: [
-        .product(name: "Dependencies", package: "reactiveswift-composable-architecture")
+        .product(name: "Dependencies", package: "swift-dependencies")
       ]
     ),
     .target(

@@ -26,7 +26,6 @@
 
 - <doc:Testing>
 - ``TestStore``
-- ``ActorIsolated``
 
 ## See Also
 

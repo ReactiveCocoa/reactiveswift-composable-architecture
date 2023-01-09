@@ -14,7 +14,7 @@ import XCTest
           case incrNow
           case squareNow
         }
-        @Dependency(\.mainQueue) var mainQueue
+        @Dependency(\.mainQueueScheduler) var mainQueue
         func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
           switch action {
           case .incrAndSquareLater:
@@ -42,7 +42,7 @@ import XCTest
       )
 
       let mainQueue = TestScheduler()
-      store.dependencies.mainQueue = mainQueue
+      store.dependencies.mainQueueScheduler = mainQueue
 
       await store.send(.incrAndSquareLater)
       await mainQueue.advance(by: 1)

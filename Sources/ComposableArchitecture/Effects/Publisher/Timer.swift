@@ -19,7 +19,7 @@ extension EffectProducer where Action == Date, Failure == Never {
   /// struct Feature: ReducerProtocol {
   ///   struct State { var count = 0 }
   ///   enum Action { case startButtonTapped, stopButtonTapped, timerTicked }
-  ///   @Dependency(\.mainQueue) var mainQueue
+  ///   @Dependency(\.mainQueueScheduler) var mainQueue
   ///   struct TimerID: Hashable {}
   ///
   ///   func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
@@ -50,7 +50,7 @@ extension EffectProducer where Action == Date, Failure == Never {
   ///     reducer: Feature()
   ///   )
   ///
-  ///   store.dependencies.mainQueue = mainQueue
+  ///   store.dependencies.mainQueueScheduler = mainQueue
   ///
   ///   await store.send(.startButtonTapped)
   ///

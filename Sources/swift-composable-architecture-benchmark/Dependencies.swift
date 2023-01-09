@@ -10,7 +10,7 @@ let dependenciesSuite = BenchmarkSuite(name: "Dependencies") { suite in
       .dependency(\.calendar, .autoupdatingCurrent)
       .dependency(\.date, .init { Date() })
       .dependency(\.locale, .autoupdatingCurrent)
-      .dependency(\.mainQueue, ImmediateScheduler())
+      .dependency(\.mainQueueScheduler, ImmediateScheduler())
       .dependency(\.timeZone, .autoupdatingCurrent)
       .dependency(\.uuid, .init { UUID() })
 
