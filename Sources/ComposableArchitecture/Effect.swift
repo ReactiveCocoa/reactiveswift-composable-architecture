@@ -3,7 +3,7 @@ import ReactiveSwift
 import XCTestDynamicOverlay
 
 #if canImport(SwiftUI)
-  import SwiftUI
+import SwiftUI
 #endif
 
 /// This type is deprecated in favor of ``EffectTask``. See its documentation for more information.
@@ -178,10 +178,10 @@ extension EffectProducer where Failure == Never {
     fileID: StaticString = #fileID,
     line: UInt = #line
   ) -> Self {
-    let dependencies = DependencyValues._current
-    return Self(
+    withEscapedDependencies { escaped in
+      Self(
       operation: .run(priority) { send in
-        await DependencyValues.$_current.withValue(dependencies) {
+          await escaped.yield {
           do {
             try await send(operation())
           } catch is CancellationError {
@@ -193,12 +193,13 @@ extension EffectProducer where Failure == Never {
                 customDump(error, to: &errorDump, indent: 4)
                 runtimeWarn(
                   """
-                  An "EffectTask.task" returned from "\(fileID):\(line)" threw an unhandled error. …
+                  An "EffectTask.task" returned from "\(fileID):\(line)" threw an unhandled \
+                  error. …
 
                   \(errorDump)
 
-                  All non-cancellation errors must be explicitly handled via the "catch" parameter \
-                  on "EffectTask.task", or via a "do" block.
+                  All non-cancellation errors must be explicitly handled via the "catch" \
+                  parameter on "EffectTask.task", or via a "do" block.
                   """,
                   file: file,
                   line: line
@@ -211,6 +212,7 @@ extension EffectProducer where Failure == Never {
         }
       }
     )
+  }
   }
 
   /// Wraps an asynchronous unit of work that can emit any number of times in an effect.
@@ -260,10 +262,10 @@ extension EffectProducer where Failure == Never {
     fileID: StaticString = #fileID,
     line: UInt = #line
   ) -> Self {
-    let dependencies = DependencyValues._current
-    return Self(
+    withEscapedDependencies { escaped in
+      Self(
       operation: .run(priority) { send in
-        await DependencyValues.$_current.withValue(dependencies) {
+          await escaped.yield {
           do {
             try await operation(send)
           } catch is CancellationError {
@@ -293,6 +295,7 @@ extension EffectProducer where Failure == Never {
         }
       }
     )
+  }
   }
 
   /// Creates an effect that executes some work in the real world that doesn't need to feed data
@@ -370,17 +373,17 @@ public struct Send<Action> {
   }
 
   #if canImport(SwiftUI)
-    /// Sends an action back into the system from an effect with animation.
-    ///
-    /// - Parameters:
-    ///   - action: An action.
-    ///   - animation: An animation.
-    public func callAsFunction(_ action: Action, animation: Animation?) {
-      guard !Task.isCancelled else { return }
-      withAnimation(animation) {
-        self(action)
-      }
+  /// Sends an action back into the system from an effect with animation.
+  ///
+  /// - Parameters:
+  ///   - action: An action.
+  ///   - animation: An animation.
+  public func callAsFunction(_ action: Action, animation: Animation?) {
+    guard !Task.isCancelled else { return }
+    withAnimation(animation) {
+      self(action)
     }
+  }
   #endif
 }
 
@@ -505,25 +508,34 @@ extension EffectProducer {
     case .none:
       return .none
     case let .producer(producer):
-      let dependencies = DependencyValues._current
-      let transform = { action in
-        DependencyValues.$_current.withValue(dependencies) {
-          transform(action)
-        }
-      }
-      return .init(operation: .producer(producer.map(transform)))
-    case let .run(priority, operation):
       return .init(
+        operation: .producer(
+          producer
+            .map(withEscapedDependencies { escaped in
+              { action in
+                escaped.yield {
+                  transform(action)
+                }
+              }
+            })
+        )
+      )
+    case let .run(priority, operation):
+      return withEscapedDependencies { escaped in
+          .init(
         operation: .run(priority) { send in
+              await escaped.yield {
           await operation(
             Send { action in
               send(transform(action))
             }
           )
         }
+            }
       )
     }
   }
+}
 }
 
 // MARK: - Testing Effects

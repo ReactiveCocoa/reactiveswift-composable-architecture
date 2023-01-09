@@ -677,7 +677,7 @@
         reducer: KrzysztofExample()
       )
       store.exhaustivity = .off
-      store.dependencies.mainQueue = mainQueue
+      store.dependencies.mainQueueScheduler = mainQueue
 
       store.send(.advanceAgeAndMoodAfterDelay)
       mainQueue.advance(by: 1)
@@ -758,7 +758,7 @@
       case advanceAgeAndMoodAfterDelay
     }
 
-    @Dependency(\.mainQueue) var mainQueue
+    @Dependency(\.mainQueueScheduler) var mainQueue
 
     func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
       switch action {

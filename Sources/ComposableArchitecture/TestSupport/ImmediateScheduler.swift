@@ -4,7 +4,7 @@ import ReactiveSwift
 /// Make `ImmediateScheduler` confirm to `DateScheduler`
 /// so that it can be used for testing whenever a `DateScheduler`
 /// is expected.
-extension ImmediateScheduler: DateScheduler {
+extension ReactiveSwift.ImmediateScheduler: DateScheduler {
   public var currentDate: Date {
     Date(timeIntervalSince1970: 0)
   }

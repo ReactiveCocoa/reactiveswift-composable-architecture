@@ -143,23 +143,24 @@ extension EffectProducer {
   public static func future(
     _ attemptToFulfill: @escaping (@escaping (Result<Action, Failure>) -> Void) -> Void
   ) -> Self {
-    let dependencies = DependencyValues._current
-    return SignalProducer.deferred {
-      DependencyValues.$_current.withValue(dependencies) {
-        SignalProducer { observer, _ in
-          attemptToFulfill { result in
-            switch result {
-            case let .success(value):
-              observer.send(value: value)
-              observer.sendCompleted()
-            case let .failure(error):
-              observer.send(error: error)
+    withEscapedDependencies { escaped in
+      SignalProducer.deferred {
+        escaped.yield {
+          SignalProducer { observer, _ in
+            attemptToFulfill { result in
+              switch result {
+              case let .success(value):
+                observer.send(value: value)
+                observer.sendCompleted()
+              case let .failure(error):
+                observer.send(error: error)
+              }
             }
           }
         }
       }
+      .eraseToEffect()
     }
-    .eraseToEffect()
   }
 
   /// Initializes an effect that lazily executes some work in the real world and synchronously sends
@@ -244,13 +245,14 @@ extension EffectProducer {
   public static func run(
     _ work: @escaping (Signal<Action, Failure>.Observer) -> Disposable
   ) -> Self {
-    let dependencies = DependencyValues._current
-    return SignalProducer<Action, Failure> { observer, lifetime in
-      lifetime += DependencyValues.$_current.withValue(dependencies) {
+    withEscapedDependencies { escaped in
+      SignalProducer<Action, Failure> { observer, lifetime in
+      lifetime += escaped.yield {
         work(observer)
       }
     }
     .eraseToEffect()
+  }
   }
 
   /// Creates an effect that executes some work in the real world that doesn't need to feed data
@@ -264,17 +266,18 @@ extension EffectProducer {
   @available(tvOS, deprecated: 9999.0, message: "Use the async version, instead.")
   @available(watchOS, deprecated: 9999.0, message: "Use the async version, instead.")
   public static func fireAndForget(_ work: @escaping () throws -> Void) -> Self {
-    let dependencies = DependencyValues._current
-    return SignalProducer.deferred {
-      DependencyValues.$_current.withValue(dependencies) {
+    withEscapedDependencies { escaped in
+      SignalProducer.deferred {
+        escaped.yield {
         SignalProducer { observer, lifetime in
-          try? work()
+        try? work()
           observer.sendCompleted()
-        }
       }
+    }
     }
     .eraseToEffect()
   }
+}
 }
 
 extension EffectProducer where Failure == Swift.Error {
@@ -422,7 +425,13 @@ extension SignalProducer {
   public func eraseToEffect<T>(
     _ transform: @escaping (Value) -> T
   ) -> EffectProducer<T, Error> {
-    self.map(transform)
+    self.map(withEscapedDependencies { escaped in
+      { action in
+        escaped.yield {
+          transform(action)
+        }
+      }
+    })
       .eraseToEffect()
   }
 
@@ -494,15 +503,15 @@ extension SignalProducer {
   public func catchToEffect<T>(
     _ transform: @escaping (Result<Value, Error>) -> T
   ) -> EffectTask<T> {
-    let dependencies = DependencyValues._current
-    let transform = { action in
-      DependencyValues.$_current.withValue(dependencies) {
-        transform(action)
-      }
-    }
     return
       self
-      .map { transform(.success($0)) }
+      .map(withEscapedDependencies { escaped in
+        { action in
+          escaped.yield {
+            transform(.success(action))
+      }
+    }
+      })
       .flatMapError { SignalProducer<T, Never>(value: transform(.failure($0))) }
       .eraseToEffect()
   }
