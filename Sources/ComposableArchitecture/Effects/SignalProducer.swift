@@ -154,11 +154,11 @@ extension EffectProducer {
                 observer.sendCompleted()
               case let .failure(error):
                 observer.send(error: error)
-              }
+        }
             }
           }
-        }
-      }
+    }
+  }
       .eraseToEffect()
     }
   }
@@ -249,10 +249,10 @@ extension EffectProducer {
       SignalProducer<Action, Failure> { observer, lifetime in
       lifetime += escaped.yield {
         work(observer)
+        }
       }
+      .eraseToEffect()
     }
-    .eraseToEffect()
-  }
   }
 
   /// Creates an effect that executes some work in the real world that doesn't need to feed data
@@ -270,14 +270,14 @@ extension EffectProducer {
       SignalProducer.deferred {
         escaped.yield {
         SignalProducer { observer, lifetime in
-        try? work()
+          try? work()
           observer.sendCompleted()
+        }
       }
     }
+      .eraseToEffect()
     }
-    .eraseToEffect()
   }
-}
 }
 
 extension EffectProducer where Failure == Swift.Error {
@@ -425,13 +425,15 @@ extension SignalProducer {
   public func eraseToEffect<T>(
     _ transform: @escaping (Value) -> T
   ) -> EffectProducer<T, Error> {
-    self.map(withEscapedDependencies { escaped in
+    self.map(
+      withEscapedDependencies { escaped in
       { action in
         escaped.yield {
           transform(action)
         }
       }
-    })
+      }
+    )
       .eraseToEffect()
   }
 
@@ -505,13 +507,15 @@ extension SignalProducer {
   ) -> EffectTask<T> {
     return
       self
-      .map(withEscapedDependencies { escaped in
+      .map(
+        withEscapedDependencies { escaped in
         { action in
           escaped.yield {
             transform(.success(action))
-      }
-    }
-      })
+          }
+        }
+        }
+      )
       .flatMapError { SignalProducer<T, Never>(value: transform(.failure($0))) }
       .eraseToEffect()
   }
