@@ -154,11 +154,11 @@ extension EffectProducer {
                 observer.sendCompleted()
               case let .failure(error):
                 observer.send(error: error)
-        }
+              }
             }
           }
-    }
-  }
+        }
+      }
       .eraseToEffect()
     }
   }
@@ -247,8 +247,8 @@ extension EffectProducer {
   ) -> Self {
     withEscapedDependencies { escaped in
       SignalProducer<Action, Failure> { observer, lifetime in
-      lifetime += escaped.yield {
-        work(observer)
+        lifetime += escaped.yield {
+          work(observer)
         }
       }
       .eraseToEffect()
@@ -269,12 +269,12 @@ extension EffectProducer {
     withEscapedDependencies { escaped in
       SignalProducer.deferred {
         escaped.yield {
-        SignalProducer { observer, lifetime in
-          try? work()
-          observer.sendCompleted()
+          SignalProducer { observer, lifetime in
+            try? work()
+            observer.sendCompleted()
+          }
         }
       }
-    }
       .eraseToEffect()
     }
   }
@@ -427,14 +427,14 @@ extension SignalProducer {
   ) -> EffectProducer<T, Error> {
     self.map(
       withEscapedDependencies { escaped in
-      { action in
-        escaped.yield {
-          transform(action)
+        { action in
+          escaped.yield {
+            transform(action)
+          }
         }
       }
-      }
     )
-      .eraseToEffect()
+    .eraseToEffect()
   }
 
   /// Turns any producer into an ``EffectTask`` that cannot fail by wrapping its output and failure
@@ -509,11 +509,11 @@ extension SignalProducer {
       self
       .map(
         withEscapedDependencies { escaped in
-        { action in
-          escaped.yield {
-            transform(.success(action))
+          { action in
+            escaped.yield {
+              transform(.success(action))
+            }
           }
-        }
         }
       )
       .flatMapError { SignalProducer<T, Never>(value: transform(.failure($0))) }
