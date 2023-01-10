@@ -3,7 +3,7 @@ import ReactiveSwift
 import XCTestDynamicOverlay
 
 #if canImport(SwiftUI)
-import SwiftUI
+  import SwiftUI
 #endif
 
 /// This type is deprecated in favor of ``EffectTask``. See its documentation for more information.
@@ -373,17 +373,17 @@ public struct Send<Action> {
   }
 
   #if canImport(SwiftUI)
-  /// Sends an action back into the system from an effect with animation.
-  ///
-  /// - Parameters:
-  ///   - action: An action.
-  ///   - animation: An animation.
-  public func callAsFunction(_ action: Action, animation: Animation?) {
-    guard !Task.isCancelled else { return }
-    withAnimation(animation) {
-      self(action)
+    /// Sends an action back into the system from an effect with animation.
+    ///
+    /// - Parameters:
+    ///   - action: An action.
+    ///   - animation: An animation.
+    public func callAsFunction(_ action: Action, animation: Animation?) {
+      guard !Task.isCancelled else { return }
+      withAnimation(animation) {
+        self(action)
+      }
     }
-  }
   #endif
 }
 
@@ -513,28 +513,28 @@ extension EffectProducer {
           producer
             .map(
               withEscapedDependencies { escaped in
-              { action in
-                escaped.yield {
-                  transform(action)
+                { action in
+                  escaped.yield {
+                    transform(action)
+                  }
                 }
-              }
               }
             )
         )
       )
     case let .run(priority, operation):
       return withEscapedDependencies { escaped in
-          .init(
-            operation: .run(priority) { send in
-              await escaped.yield {
-                await operation(
-                  Send { action in
-                    send(transform(action))
-                  }
-                )
-              }
+        .init(
+          operation: .run(priority) { send in
+            await escaped.yield {
+              await operation(
+                Send { action in
+                  send(transform(action))
+                }
+              )
             }
-          )
+          }
+        )
       }
     }
   }
