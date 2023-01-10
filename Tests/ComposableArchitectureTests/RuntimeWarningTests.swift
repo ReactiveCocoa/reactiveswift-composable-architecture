@@ -56,7 +56,7 @@
           }
         }
       )
-      ViewStore(store).send(.tap)
+      ViewStore(store, observe: { $0 }).send(.tap)
       _ = XCTWaiter.wait(for: [.init()], timeout: 0.5)
     }
 
@@ -113,7 +113,7 @@
 
       let store = Store<Int, Void>(initialState: 0, reducer: EmptyReducer())
       Task {
-        ViewStore(store).send(())
+        ViewStore(store, observe: { $0 }).send(())
       }
       _ = XCTWaiter.wait(for: [.init()], timeout: 0.5)
     }
@@ -189,7 +189,7 @@
             }
           }
         )
-        await ViewStore(store).send(.tap).finish()
+        await ViewStore(store, observe: { $0 }).send(.tap).finish()
       }
     #endif
 
@@ -211,7 +211,7 @@
       var line: UInt = 0
       XCTExpectFailure {
         line = #line
-        viewStore.binding(\.$value).wrappedValue = 42
+        ViewStore(store, observe: { $0 }).binding(\.$value).wrappedValue = 42
       } issueMatcher: {
         $0.compactDescription == """
           A binding action sent from a view store at "\(#fileID):\(line + 1)" was not handled. …
