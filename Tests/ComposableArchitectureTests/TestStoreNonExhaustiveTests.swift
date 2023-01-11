@@ -4,7 +4,7 @@
   import ComposableArchitecture
   import ReactiveSwift
   import XCTest
- 
+
   @MainActor
   final class TestStoreNonExhaustiveTests: XCTestCase {
     func testSkipReceivedActions_NonStrict() async {
@@ -227,7 +227,7 @@
         reducer: Counter()
       )
       store.exhaustivity = .off(showSkippedAssertions: true)
- 
+
       store.send(.increment) {
         $0.count = 1
         // Ignoring state change: isEven = false

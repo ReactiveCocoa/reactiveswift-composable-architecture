@@ -1167,35 +1167,35 @@ extension TestStore where ScopedState: Equatable, Action: Equatable {
       matching: { expectedAction == $0 },
       failureMessage: "Expected to receive an action \(expectedAction), but didn't get one.",
       onReceive: { receivedAction in
-    if expectedAction != receivedAction {
-      let difference = TaskResultDebugging.$emitRuntimeWarnings.withValue(false) {
-        diff(expectedAction, receivedAction, format: .proportional)
-          .map { "\($0.indent(by: 4))\n\n(Expected: −, Received: +)" }
-          ?? """
-          Expected:
-          \(String(describing: expectedAction).indent(by: 2))
+        if expectedAction != receivedAction {
+          let difference = TaskResultDebugging.$emitRuntimeWarnings.withValue(false) {
+            diff(expectedAction, receivedAction, format: .proportional)
+              .map { "\($0.indent(by: 4))\n\n(Expected: −, Received: +)" }
+              ?? """
+              Expected:
+              \(String(describing: expectedAction).indent(by: 2))
 
-          Received:
-          \(String(describing: receivedAction).indent(by: 2))
-          """
-      }
+              Received:
+              \(String(describing: receivedAction).indent(by: 2))
+              """
+          }
 
           XCTFailHelper(
-        """
-        Received unexpected action: …
+            """
+            Received unexpected action: …
 
-        \(difference)
-        """,
+            \(difference)
+            """,
             file: file,
             line: line
-      )
-    }
+          )
+        }
       },
       updateStateToExpectedResult,
-        file: file,
-        line: line
-      )
-    }
+      file: file,
+      line: line
+    )
+  }
 
   /// Asserts a matching action was received from an effect and asserts how the state changes.
   ///
@@ -1243,7 +1243,7 @@ extension TestStore where ScopedState: Equatable, Action: Equatable {
       file: file,
       line: line
     )
-    }
+  }
 
   /// Asserts an action was received matching a case path and asserts how the state changes.
   ///
@@ -1553,7 +1553,7 @@ extension TestStore where ScopedState: Equatable, Action: Equatable {
       _ = {
         self.receive(casePath, assert: updateStateToExpectedResult, file: file, line: line)
       }()
-    await Task.megaYield()
+      await Task.megaYield()
     }
   #endif
 
@@ -1811,7 +1811,7 @@ extension TestStore {
     )
     self.reducer.state = self.reducer.receivedActions.last!.state
     self.reducer.receivedActions = []
-}
+  }
 
   /// Cancels any currently in-flight effects.
   ///
