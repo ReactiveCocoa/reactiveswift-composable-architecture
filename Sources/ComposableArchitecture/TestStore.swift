@@ -1895,7 +1895,7 @@ extension TestStore {
     )
 
     for effect in self.reducer.inFlightEffects {
-      _ = Effect<Never, Never>.cancel(id: effect.id).producer.startWithValues { _ in }
+      _ = Effect<Never, Never>.cancel(id: effect.id).producer.startWithCompleted {}
     }
     self.reducer.inFlightEffects = []
   }
@@ -2215,7 +2215,8 @@ private func _XCTExpectFailure(
   strict: Bool = true,
   failingBlock: () -> Void
 ) {
-  #if DEBUG
+  // Obj-C runtime functions not supported on Linux, e.g. `NSSelectorFromString`
+  #if DEBUG && !os(Linux)
     guard
       let XCTExpectedFailureOptions = NSClassFromString("XCTExpectedFailureOptions")
         as Any as? NSObjectProtocol,
