@@ -1,9 +1,10 @@
 import Benchmark
+import ComposableArchitecture
+import Foundation
+
 #if canImport(Combine)
   import Combine
 #endif
-import ComposableArchitecture
-import Foundation
 
 let viewStoreSuite = BenchmarkSuite(name: "ViewStore") {
   let store = Store(
