@@ -40,7 +40,8 @@ final class ScopeTests: XCTestCase {
     }
   }
 
-  #if DEBUG
+  // `XCTExpectFailure` is not supported on Linux
+  #if DEBUG && !os(Linux)
     func testNilChild() async {
       let store = TestStore(
         initialState: Child2.State.count(0),

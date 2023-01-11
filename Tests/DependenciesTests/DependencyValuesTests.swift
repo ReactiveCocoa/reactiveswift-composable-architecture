@@ -93,7 +93,8 @@ final class DependencyValuesTests: XCTestCase {
       XCTAssertEqual(reuseClient.count(), 42)
 
       DependencyValues.withValue(\.context, .live) {
-        #if DEBUG
+        // `XCTExpectFailure` is not supported on Linux
+        #if DEBUG && !os(Linux)
           XCTExpectFailure {
             $0.compactDescription.contains(
               """
@@ -124,7 +125,8 @@ final class DependencyValuesTests: XCTestCase {
         XCTAssertEqual($0.reuseClient.count(), 0)
         XCTAssertEqual(reuseClient.count(), 0)
       } operation: {
-        #if DEBUG
+        // `XCTExpectFailure` is not supported on Linux
+        #if DEBUG && !os(Linux)
           XCTExpectFailure {
             $0.compactDescription.contains(
               """

@@ -35,7 +35,8 @@ final class ForEachReducerTests: XCTestCase {
     await store.send(.buttonTapped)
   }
 
-  #if DEBUG
+  // `XCTExpectFailure` is not supported on Linux
+  #if DEBUG && !os(Linux)
     func testMissingElement() async {
       let store = TestStore(
         initialState: Elements.State(),

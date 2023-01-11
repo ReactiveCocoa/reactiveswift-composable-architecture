@@ -31,7 +31,8 @@ final class IfCaseLetReducerTests: XCTestCase {
     }
   }
 
-  #if DEBUG
+  // `XCTExpectFailure` is not supported on Linux
+  #if DEBUG && !os(Linux)
     func testNilChild() async {
       struct SomeError: Error, Equatable {}
 
