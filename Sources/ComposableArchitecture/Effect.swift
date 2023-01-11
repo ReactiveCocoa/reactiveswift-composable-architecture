@@ -667,6 +667,7 @@ extension EffectProducer {
 
 @available(
   *,
+  deprecated,
   message:
     """
     'Effect' has been deprecated in favor of 'EffectTask' when 'Failure == Never', or 'EffectProducer<Output, Failure>' in general.
