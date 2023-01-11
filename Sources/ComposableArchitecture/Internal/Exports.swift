@@ -3,4 +3,6 @@
 @_exported import CustomDump
 @_exported import Dependencies
 @_exported import IdentifiedCollections
-@_exported import _SwiftUINavigationState
+#if !os(Linux)
+  @_exported import _SwiftUINavigationState
+#endif
