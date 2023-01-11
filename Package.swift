@@ -37,6 +37,7 @@ let package = Package(
         .product(name: "CasePaths", package: "swift-case-paths"),
         .product(name: "CustomDump", package: "swift-custom-dump"),
         .product(name: "IdentifiedCollections", package: "swift-identified-collections"),
+        .product(name: "ReactiveSwift", package: "ReactiveSwift"),
         .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
       ]
     ),
@@ -49,7 +50,7 @@ let package = Package(
     .target(
       name: "Dependencies",
       dependencies: [
-        "ReactiveSwift",
+        .product(name: "ReactiveSwift", package: "ReactiveSwift"),
         .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay"),
       ]
     ),
