@@ -6,7 +6,6 @@
   @testable import ComposableArchitecture
 
   final class DebugTests: XCTestCase {
-    #if canImport(SwiftUI)
     func testDebugCaseOutput() {
       enum Action {
         case action1(Bool, label: String)

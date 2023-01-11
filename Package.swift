@@ -85,3 +85,14 @@ let package = Package(
 //    ])
 //  )
 //}
+
+#if os(Linux)
+  for target in package.targets {
+    target.dependencies = target.dependencies.filter {
+      if case .productItem("_SwiftUINavigationState", _, _, _) = $0 {
+        return false
+      }
+      return true
+    }
+  }
+#endif
