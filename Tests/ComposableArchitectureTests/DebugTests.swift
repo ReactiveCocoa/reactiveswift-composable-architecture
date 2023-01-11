@@ -44,23 +44,23 @@
     }
 
     #if canImport(SwiftUI)
-    func testBindingAction() {
-      struct State {
-        @BindableState var width = 0
-      }
-      let action = BindingAction.set(\State.$width, 50)
-      var dump = ""
-      customDump(action, to: &dump)
-      XCTAssertEqual(
-        dump,
-        #"""
-        BindingAction.set(
-          WritableKeyPath<State, BindableState<Int>>,
-          50
+      func testBindingAction() {
+        struct State {
+          @BindableState var width = 0
+        }
+        let action = BindingAction.set(\State.$width, 50)
+        var dump = ""
+        customDump(action, to: &dump)
+        XCTAssertEqual(
+          dump,
+          #"""
+          BindingAction.set(
+            WritableKeyPath<State, BindableState<Int>>,
+            50
+          )
+          """#
         )
-        """#
-      )
-    }
+      }
     #endif
 
     @MainActor
