@@ -11,11 +11,14 @@ func runtimeWarn(
     let message = message()
     let category = category ?? "Runtime Warning"
     if _XCTIsTesting {
-      if let file = file, let line = line {
-        XCTFail(message, file: file, line: line)
-      } else {
-        XCTFail(message)
-      }
+      // `XCTExpectFailure` is not supported on Linux
+      #if !os(Linux)
+        if let file = file, let line = line {
+          XCTFail(message, file: file, line: line)
+        } else {
+          XCTFail(message)
+        }
+      #endif
     } else {
       #if canImport(os)
         os_log(
