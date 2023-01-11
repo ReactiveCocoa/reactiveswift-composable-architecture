@@ -1,5 +1,8 @@
-#if DEBUG
+
+// `@MainActor` introduces issues gathering tests on Linux
+#if DEBUG && !os(Linux)
   import ComposableArchitecture
+  import ReactiveSwift
   import XCTest
  
   @MainActor
@@ -493,7 +496,7 @@
     }
 
     func testPartialExhaustivityPrefix() async {
-      let testScheduler = DispatchQueue.test
+      let testScheduler = TestScheduler()
       enum Action {
         case buttonTapped
         case response(Int)
@@ -668,14 +671,14 @@
     // This example comes from Krzysztof Zabłocki's blog post:
     // https://www.merowing.info/exhaustive-testing-in-tca/
     func testKrzysztofExample3() {
-      let mainQueue = DispatchQueue.test
+      let mainQueue = TestScheduler()
 
       let store = TestStore(
         initialState: KrzysztofExample.State(),
         reducer: KrzysztofExample()
       )
       store.exhaustivity = .off
-      store.dependencies.mainQueue = mainQueue.eraseToAnyScheduler()
+      store.dependencies.mainQueue = mainQueue
 
       store.send(.advanceAgeAndMoodAfterDelay)
       mainQueue.advance(by: 1)
@@ -770,8 +773,7 @@
           .init(value: .changeAge(state.age + 1)),
           .init(value: .changeMood(state.mood + 1))
         )
-        .delay(for: 1, scheduler: self.mainQueue)
-        .eraseToEffect()
+        .deferred(for: 1, scheduler: self.mainQueue)
 
       case let .changeAge(age):
         state.age = age
