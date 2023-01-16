@@ -728,6 +728,35 @@ public struct ViewStoreTask: Hashable, Sendable {
 #if canImport(Combine)
   extension ViewStore: ObservableObject {
   }
+
+  final private class ValueWrapper<V>: ObservableObject {
+    var value: V {
+      willSet { objectWillChange.send() }
+    }
+
+    init(_ value: V) {
+      self.value = value
+    }
+  }
+
+  @propertyWrapper private struct ObservedState<Value>: DynamicProperty {
+    @ObservedObject private var box: ValueWrapper<Value>
+
+    var wrappedValue: Value {
+      get { box.value }
+      nonmutating set { box.value = newValue }
+    }
+
+    var projectedValue: Binding<Value> {
+      .init(
+        get: { wrappedValue },
+        set: { wrappedValue = $0 }
+      )
+    }
+    init(wrappedValue value: Value) {
+      self._box = ObservedObject(wrappedValue: .init(value))
+    }
+  }
 #endif
 
 /// A producer of store state.
@@ -765,34 +794,5 @@ public struct StoreProducer<State>: SignalProducerConvertible {
     dynamicMember keyPath: KeyPath<Value, LocalValue>
   ) -> SignalProducer<LocalValue, Never> {
     self.upstream.map(keyPath).skipRepeats()
-  }
-}
-
-final private class ValueWrapper<V>: ObservableObject {
-  var value: V {
-    willSet { objectWillChange.send() }
-  }
-
-  init(_ value: V) {
-    self.value = value
-  }
-}
-
-@propertyWrapper private struct ObservedState<Value>: DynamicProperty {
-  @ObservedObject private var box: ValueWrapper<Value>
-
-  var wrappedValue: Value {
-    get { box.value }
-    nonmutating set { box.value = newValue }
-  }
-
-  var projectedValue: Binding<Value> {
-    .init(
-      get: { wrappedValue },
-      set: { wrappedValue = $0 }
-    )
-  }
-  init(wrappedValue value: Value) {
-    self._box = ObservedObject(wrappedValue: .init(value))
   }
 }
