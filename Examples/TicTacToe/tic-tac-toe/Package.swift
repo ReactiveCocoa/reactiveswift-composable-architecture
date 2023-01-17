@@ -37,7 +37,7 @@ let package = Package(
         "AuthenticationClient",
         "LoginCore",
         "NewGameCore",
-        .product(name: "Dependencies", package: "swift-dependencies")
+        .product(name: "Dependencies", package: "swift-dependencies"),
       ]
     ),
     .testTarget(
