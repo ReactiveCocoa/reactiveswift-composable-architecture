@@ -675,9 +675,10 @@
       let store = TestStore(
         initialState: KrzysztofExample.State(),
         reducer: KrzysztofExample()
-      )
+      ) {
+        $0.mainQueue = mainQueue
+      }
       store.exhaustivity = .off
-      store.dependencies.mainQueueScheduler = mainQueue
 
       store.send(.advanceAgeAndMoodAfterDelay)
       mainQueue.advance(by: 1)
