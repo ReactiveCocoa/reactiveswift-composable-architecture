@@ -48,9 +48,9 @@ extension EffectProducer where Action == Date, Failure == Never {
   ///   let store = TestStore(
   ///     initialState: Feature.State(),
   ///     reducer: Feature()
-  ///   )
-  ///
-  ///   store.dependencies.mainQueueScheduler = mainQueue
+  ///   ) {
+  ///     $0.mainQueue = mainQueue
+  ///   }
   ///
   ///   await store.send(.startButtonTapped)
   ///

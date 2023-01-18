@@ -16,9 +16,9 @@ final class ReusableComponentsDownloadComponentTests: XCTestCase {
         url: URL(string: "https://www.pointfree.co")!
       ),
       reducer: DownloadComponent()
-    )
-
-    store.dependencies.downloadClient.download = { _ in self.download.stream }
+    ) {
+      $0.downloadClient.download = { _ in self.download.stream }
+    }
 
     await store.send(.buttonTapped) {
       $0.mode = .startingToDownload
@@ -44,9 +44,9 @@ final class ReusableComponentsDownloadComponentTests: XCTestCase {
         url: URL(string: "https://www.pointfree.co")!
       ),
       reducer: DownloadComponent()
-    )
-
-    store.dependencies.downloadClient.download = { _ in self.download.stream }
+    ) {
+      $0.downloadClient.download = { _ in self.download.stream }
+    }
 
     await store.send(.buttonTapped) {
       $0.mode = .startingToDownload
@@ -84,9 +84,9 @@ final class ReusableComponentsDownloadComponentTests: XCTestCase {
         url: URL(string: "https://www.pointfree.co")!
       ),
       reducer: DownloadComponent()
-    )
-
-    store.dependencies.downloadClient.download = { _ in self.download.stream }
+    ) {
+      $0.downloadClient.download = { _ in self.download.stream }
+    }
 
     let task = await store.send(.buttonTapped) {
       $0.mode = .startingToDownload
@@ -123,9 +123,9 @@ final class ReusableComponentsDownloadComponentTests: XCTestCase {
         url: URL(string: "https://www.pointfree.co")!
       ),
       reducer: DownloadComponent()
-    )
-
-    store.dependencies.downloadClient.download = { _ in self.download.stream }
+    ) {
+      $0.downloadClient.download = { _ in self.download.stream }
+    }
 
     await store.send(.buttonTapped) {
       $0.alert = AlertState {
