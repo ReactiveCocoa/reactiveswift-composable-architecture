@@ -388,11 +388,11 @@ public struct Send<Action> {
     ///   - action: An action.
     ///   - transaction: A transaction.
     public func callAsFunction(_ action: Action, transaction: Transaction) {
-    guard !Task.isCancelled else { return }
+      guard !Task.isCancelled else { return }
       withTransaction(transaction) {
-      self(action)
+        self(action)
+      }
     }
-  }
   #endif
 }
 
