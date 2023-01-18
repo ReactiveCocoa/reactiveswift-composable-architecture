@@ -379,8 +379,17 @@ public struct Send<Action> {
   ///   - action: An action.
   ///   - animation: An animation.
   public func callAsFunction(_ action: Action, animation: Animation?) {
+    callAsFunction(action, transaction: Transaction(animation: animation))
+  }
+    
+    /// Sends an action back into the system from an effect with transaction.
+    ///
+    /// - Parameters:
+    ///   - action: An action.
+    ///   - transaction: A transaction.
+    public func callAsFunction(_ action: Action, transaction: Transaction) {
     guard !Task.isCancelled else { return }
-    withAnimation(animation) {
+      withTransaction(transaction) {
       self(action)
     }
   }
