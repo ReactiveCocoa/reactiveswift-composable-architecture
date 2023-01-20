@@ -1,7 +1,7 @@
 import CustomDump
 
 #if canImport(SwiftUI)
-  import SwiftUI
+import SwiftUI
 #endif
 
 /// A property wrapper type that can designate properties of app state that can be directly bindable
@@ -14,7 +14,7 @@ import CustomDump
 /// Read <doc:Bindings> for more information.
 @dynamicMemberLookup
 @propertyWrapper
-public struct BindableState<Value> {
+public struct BindingState<Value> {
   /// The underlying value wrapped by the bindable state.
   public var wrappedValue: Value
 
@@ -26,13 +26,13 @@ public struct BindableState<Value> {
   /// A projection that can be used to derive bindings from a view store.
   ///
   /// Use the projected value to derive bindings from a view store with properties annotated with
-  /// `@BindableState`. To get the `projectedValue`, prefix the property with `$`:
+  /// `@BindingState`. To get the `projectedValue`, prefix the property with `$`:
   ///
   /// ```swift
   /// TextField("Display name", text: viewStore.binding(\.$displayName))
   /// ```
   ///
-  /// See ``BindableState`` for more details.
+  /// See ``BindingState`` for more details.
   public var projectedValue: Self {
     get { self }
     set { self = newValue }
@@ -44,17 +44,17 @@ public struct BindableState<Value> {
   /// - Returns: A new bindable state.
   public subscript<Subject>(
     dynamicMember keyPath: WritableKeyPath<Value, Subject>
-  ) -> BindableState<Subject> {
+  ) -> BindingState<Subject> {
     get { .init(wrappedValue: self.wrappedValue[keyPath: keyPath]) }
     set { self.wrappedValue[keyPath: keyPath] = newValue.wrappedValue }
   }
 }
 
-extension BindableState: Equatable where Value: Equatable {}
+extension BindingState: Equatable where Value: Equatable {}
 
-extension BindableState: Hashable where Value: Hashable {}
+extension BindingState: Hashable where Value: Hashable {}
 
-extension BindableState: Decodable where Value: Decodable {
+extension BindingState: Decodable where Value: Decodable {
   public init(from decoder: Decoder) throws {
     do {
       let container = try decoder.singleValueContainer()
@@ -65,7 +65,7 @@ extension BindableState: Decodable where Value: Decodable {
   }
 }
 
-extension BindableState: Encodable where Value: Encodable {
+extension BindingState: Encodable where Value: Encodable {
   public func encode(to encoder: Encoder) throws {
     do {
       var container = encoder.singleValueContainer()
@@ -76,29 +76,29 @@ extension BindableState: Encodable where Value: Encodable {
   }
 }
 
-extension BindableState: CustomReflectable {
+extension BindingState: CustomReflectable {
   public var customMirror: Mirror {
     Mirror(reflecting: self.wrappedValue)
   }
 }
 
-extension BindableState: CustomDumpRepresentable {
+extension BindingState: CustomDumpRepresentable {
   public var customDumpValue: Any {
     self.wrappedValue
   }
 }
 
-extension BindableState: CustomDebugStringConvertible where Value: CustomDebugStringConvertible {
+extension BindingState: CustomDebugStringConvertible where Value: CustomDebugStringConvertible {
   public var debugDescription: String {
     self.wrappedValue.debugDescription
   }
 }
 
-extension BindableState: Sendable where Value: Sendable {}
+extension BindingState: Sendable where Value: Sendable {}
 
 /// An action type that exposes a `binding` case that holds a ``BindingAction``.
 ///
-/// Used in conjunction with ``BindableState`` to safely eliminate the boilerplate typically
+/// Used in conjunction with ``BindingState`` to safely eliminate the boilerplate typically
 /// associated with mutating multiple fields in state.
 ///
 /// Read <doc:Bindings> for more information.
@@ -119,7 +119,7 @@ extension BindableAction {
   ///
   /// - Returns: A binding action.
   public static func set<Value: Equatable>(
-    _ keyPath: WritableKeyPath<State, BindableState<Value>>,
+    _ keyPath: WritableKeyPath<State, BindingState<Value>>,
     _ value: Value
   ) -> Self {
     self.binding(.set(keyPath, value))
@@ -127,42 +127,42 @@ extension BindableAction {
 }
 
 #if canImport(SwiftUI)
-  extension ViewStore where ViewAction: BindableAction, ViewAction.State == ViewState {
-    /// Returns a binding to the resulting bindable state of a given key path.
-    ///
-    /// - Parameter keyPath: A key path to a specific bindable state.
-    /// - Returns: A new binding.
-    public func binding<Value: Equatable>(
-      _ keyPath: WritableKeyPath<ViewState, BindableState<Value>>,
-      file: StaticString = #file,
-      fileID: StaticString = #fileID,
-      line: UInt = #line
-    ) -> Binding<Value> {
-      self.binding(
-        get: { $0[keyPath: keyPath].wrappedValue },
-        send: { value in
-          #if DEBUG
-            let debugger = BindableActionViewStoreDebugger(
-              value: value, bindableActionType: ViewAction.self, file: file, fileID: fileID,
-              line: line
-            )
-            let set: (inout ViewState) -> Void = {
-              $0[keyPath: keyPath].wrappedValue = value
-              debugger.wasCalled = true
-            }
-          #else
-            let set: (inout ViewState) -> Void = { $0[keyPath: keyPath].wrappedValue = value }
-          #endif
-          return .binding(.init(keyPath: keyPath, set: set, value: value))
-        }
-      )
-    }
+extension ViewStore where ViewAction: BindableAction, ViewAction.State == ViewState {
+  /// Returns a binding to the resulting bindable state of a given key path.
+  ///
+  /// - Parameter keyPath: A key path to a specific bindable state.
+  /// - Returns: A new binding.
+  public func binding<Value: Equatable>(
+    _ keyPath: WritableKeyPath<ViewState, BindingState<Value>>,
+    file: StaticString = #file,
+    fileID: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Binding<Value> {
+    self.binding(
+      get: { $0[keyPath: keyPath].wrappedValue },
+      send: { value in
+        #if DEBUG
+          let debugger = BindableActionViewStoreDebugger(
+            value: value, bindableActionType: ViewAction.self, file: file, fileID: fileID,
+            line: line
+          )
+          let set: (inout ViewState) -> Void = {
+            $0[keyPath: keyPath].wrappedValue = value
+            debugger.wasCalled = true
+          }
+        #else
+          let set: (inout ViewState) -> Void = { $0[keyPath: keyPath].wrappedValue = value }
+        #endif
+        return .binding(.init(keyPath: keyPath, set: set, value: value))
+      }
+    )
   }
+}
 #endif
 
 /// An action that describes simple mutations to some root state at a writable key path.
 ///
-/// Used in conjunction with ``BindableState`` and ``BindableAction`` to safely eliminate the
+/// Used in conjunction with ``BindingState`` and ``BindableAction`` to safely eliminate the
 /// boilerplate typically associated with mutating multiple fields in state.
 ///
 /// Read <doc:Bindings> for more information.
@@ -185,12 +185,12 @@ extension BindingAction {
   ///
   /// - Parameters:
   ///   - keyPath: A key path to the property that should be mutated. This property must be
-  ///     annotated with the ``BindableState`` property wrapper.
+  ///     annotated with the ``BindingState`` property wrapper.
   ///   - value: A value to assign at the given key path.
   /// - Returns: An action that describes simple mutations to some root state at a writable key
   ///   path.
   public static func set<Value: Equatable>(
-    _ keyPath: WritableKeyPath<Root, BindableState<Value>>,
+    _ keyPath: WritableKeyPath<Root, BindingState<Value>>,
     _ value: Value
   ) -> Self {
     return .init(
@@ -213,14 +213,14 @@ extension BindingAction {
   ///   // Return an authorization request effect
   /// ```
   public static func ~= <Value>(
-    keyPath: WritableKeyPath<Root, BindableState<Value>>,
+    keyPath: WritableKeyPath<Root, BindingState<Value>>,
     bindingAction: Self
   ) -> Bool {
     keyPath == bindingAction.keyPath
   }
 
   init<Value: Equatable>(
-    keyPath: WritableKeyPath<Root, BindableState<Value>>,
+    keyPath: WritableKeyPath<Root, BindingState<Value>>,
     set: @escaping (inout Root) -> Void,
     value: Value
   ) {
@@ -238,7 +238,7 @@ extension BindingAction {
   /// key path.
   ///
   /// Useful in transforming binding actions on view state into binding actions on reducer state
-  /// when the domain contains ``BindableState`` and ``BindableAction``.
+  /// when the domain contains ``BindingState`` and ``BindableAction``.
   ///
   /// For example, we can model an feature that can bind an integer count to a stepper and make a
   /// network request to fetch a fact about that integer with the following domain:
@@ -246,7 +246,7 @@ extension BindingAction {
   /// ```swift
   /// struct MyFeature: ReducerProtocol {
   ///   struct State: Equatable {
-  ///     @BindableState var count = 0
+  ///     @BindingState var count = 0
   ///     var fact: String?
   ///     ...
   ///   }
@@ -284,7 +284,7 @@ extension BindingAction {
   /// ```swift
   /// extension MyFeatureView {
   ///   struct ViewState: Equatable {
-  ///     @BindableState var count: Int
+  ///     @BindingState var count: Int
   ///     let fact: String?
   ///     // no access to any other state on `MyFeature.State`, like child domains
   ///   }
