@@ -8,6 +8,7 @@
 - ``EffectProducer/task(priority:operation:catch:file:fileID:line:)``
 - ``EffectProducer/run(priority:operation:catch:file:fileID:line:)``
 - ``EffectProducer/fireAndForget(priority:_:)``
+- ``EffectProducer/send(_:)``
 - ``TaskResult``
 
 ### Cancellation
