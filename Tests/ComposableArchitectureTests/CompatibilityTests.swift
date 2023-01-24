@@ -46,7 +46,7 @@ final class CompatibilityTests: XCTestCase {
           .cancellable(id: cancelID)
 
       case .kickOffAction:
-          return EffectTask(value: .actionSender(OnDeinit { observer.send(value: .stop) }))
+        return .send(.actionSender(OnDeinit {  observer.send(value: .stop) }))
 
       case .actionSender:
         return .none
