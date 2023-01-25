@@ -722,7 +722,7 @@
         initialState: KrzysztofExample.State(),
         reducer: KrzysztofExample()
       ) {
-        $0.mainQueue = mainQueue
+        $0.mainQueueScheduler = mainQueue
       }
       store.exhaustivity = .off
 

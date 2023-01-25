@@ -3,7 +3,7 @@ import ReactiveSwift
 import XCTestDynamicOverlay
 
 #if canImport(SwiftUI)
-import SwiftUI
+  import SwiftUI
 #endif
 
 /// This type is deprecated in favor of ``EffectTask``. See its documentation for more information.
@@ -115,7 +115,7 @@ extension EffectProducer {
 /// > This is only an issue if using the Combine interface of ``EffectProducer`` as mentioned
 /// > above. If  you are using Swift's concurrency tools and the `.task`, `.run`, and
 /// > `.fireAndForget` functions on ``EffectTask``, then threading is automatically handled for you.
-public typealias EffectTask<Action> = EffectPublisher<Action, Never>
+public typealias EffectTask<Action> = EffectProducer<Action, Never>
 
 extension EffectProducer where Failure == Never {
   /// Wraps an asynchronous unit of work in an effect.
@@ -340,20 +340,22 @@ extension EffectProducer where Failure == Never {
     Self(value: action)
   }
 
-  /// Initializes an effect that immediately emits the action passed in.
-  ///
-  /// > Note: We do not recommend using `Effect.send` to share logic. Instead, limit usage to
-  /// > child-parent communication, where a child may want to emit a "delegate" action for a parent
-  /// > to listen to.
-  /// >
-  /// > For more information, see <doc:Performance#Sharing-logic-with-actions>.
-  ///
-  /// - Parameters:
-  ///   - action: The action that is immediately emitted by the effect.
-  ///   - animation: An animation.
-  public static func send(_ action: Action, animation: Animation? = nil) -> Self {
-    Self(value: action).animation(animation)
-  }
+  #if canImport(SwiftUI)
+    /// Initializes an effect that immediately emits the action passed in.
+    ///
+    /// > Note: We do not recommend using `Effect.send` to share logic. Instead, limit usage to
+    /// > child-parent communication, where a child may want to emit a "delegate" action for a parent
+    /// > to listen to.
+    /// >
+    /// > For more information, see <doc:Performance#Sharing-logic-with-actions>.
+    ///
+    /// - Parameters:
+    ///   - action: The action that is immediately emitted by the effect.
+    ///   - animation: An animation.
+    public static func send(_ action: Action, animation: Animation? = nil) -> Self {
+      Self(value: action).animation(animation)
+    }
+  #endif
 }
 
 /// A type that can send actions back into the system when used from
@@ -401,15 +403,15 @@ public struct Send<Action> {
   }
 
   #if canImport(SwiftUI)
-  /// Sends an action back into the system from an effect with animation.
-  ///
-  /// - Parameters:
-  ///   - action: An action.
-  ///   - animation: An animation.
-  public func callAsFunction(_ action: Action, animation: Animation?) {
-    callAsFunction(action, transaction: Transaction(animation: animation))
-  }
-    
+    /// Sends an action back into the system from an effect with animation.
+    ///
+    /// - Parameters:
+    ///   - action: An action.
+    ///   - animation: An animation.
+    public func callAsFunction(_ action: Action, animation: Animation?) {
+      callAsFunction(action, transaction: Transaction(animation: animation))
+    }
+
     /// Sends an action back into the system from an effect with transaction.
     ///
     /// - Parameters:
