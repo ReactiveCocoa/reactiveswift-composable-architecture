@@ -49,7 +49,7 @@ extension EffectProducer where Action == Date, Failure == Never {
   ///     initialState: Feature.State(),
   ///     reducer: Feature()
   ///   ) {
-  ///     $0.mainQueue = mainQueue
+  ///     $0.mainQueueScheduler = mainQueue
   ///   }
   ///
   ///   await store.send(.startButtonTapped)
