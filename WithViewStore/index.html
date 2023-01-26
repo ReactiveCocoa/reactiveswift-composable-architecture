@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComposableArchitecture - WithViewStore</title>
+    <link rel="stylesheet" type="text/css" href="/reactiveswift-composable-architecture/all.css" media="all" />
+</head>
+<body>
+    <header>
+        <a href="/reactiveswift-composable-architecture/">
+            <strong>
+                ComposableArchitecture
+            </strong>
+            <span>Documentation</span>
+        </a>
+    </header>
+
+    <!--
+    <form class="search">
+        <input type="search" placeholder="Search" />
+    </form>
+    -->
+
+    <nav>
+        <div class="wrapper">
+            <h2>On This Page</h2>
+            <ol><li><a href="#relationships">Relationships</a><ul><li><a href="#relationships">Conforms To</a></li></ul></li><li><a href="#nested type aliases">Nested Type Aliases</a><ul><li class="typealias"><a href="#withviewstore.state">State</a></li><li class="typealias"><a href="#withviewstore.action">Action</a></li></ul></li><li><a href="#properties">Properties</a><ul><li class="variable"><a href="#withviewstore.body">body</a></li></ul></li><li><a href="#methods">Methods</a><ul><li class="function"><a href="#withviewstore.debug(_:)">debug(_:​)</a></li></ul></li></ol>
+        </div>
+    </nav>
+
+    <main>
+        <article>
+            <h1>
+    <small>Structure</small>
+    <code class="name">With​View​Store</code>
+</h1>
+
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">struct</span> <span class="type">WithViewStore</span>&lt;<span class="variable">ViewState</span>, <span class="variable">ViewAction</span>, <span class="variable">Content</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>A view helper that transforms a <code>Store</code> into a <code>ViewStore</code> so that its state can be observed
+by a view builder.</p>
+
+</div>
+<div class="discussion">
+    <p>This helper is an alternative to observing the view store manually on your view, which requires
+the boilerplate of a custom initializer.</p>
+
+<p>For example, the following view, which manually observes the store it is handed by constructing
+a view store in its initializer:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">ProfileView</span>: <span class="type">View</span> {
+  <span class="keyword">let</span> <span class="variable">store</span>: <a href="/reactiveswift-composable-architecture/Store"><span class="type">Store</span></a>&lt;<span class="type">ProfileState</span>, <span class="type">ProfileAction</span>&gt;
+  <span class="attribute">@</span><span class="type">ObservedObject</span> <span class="keyword">var</span> <span class="variable">viewStore</span>: <a href="/reactiveswift-composable-architecture/ViewStore"><span class="type">ViewStore</span></a>&lt;<span class="type">ProfileState</span>, <span class="type">ProfileAction</span>&gt;
+
+  <span class="keyword">init</span>(<span class="variable">store</span>: <a href="/reactiveswift-composable-architecture/Store"><span class="type">Store</span></a>&lt;<span class="type">ProfileState</span>, <span class="type">ProfileAction</span>&gt;) {
+    <span class="keyword">self</span>.<span class="variable">store</span> = <span class="variable">store</span>
+    <span class="keyword">self</span>.<span class="variable">viewStore</span> = <span class="variable">ViewStore</span>(<span class="variable">store</span>)
+  }
+
+  <span class="keyword">var</span> <span class="variable">body</span>: <span class="keyword">some</span> <span class="type">View</span> {
+    <span class="variable">Text</span>(<span class="string literal">"</span><span class="string literal"/>\<span class="string literal">(</span><span class="keyword">self</span>.<span class="variable">viewStore</span>.<span class="variable">username</span><span class="string literal">)</span><span class="string literal"/><span class="string literal">"</span>)
+    <span class="comment">// ...</span>
+  }
+}
+</code></pre></body></html>
+<p>…can be written more simply using <code>WithViewStore</code>:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">ProfileView</span>: <span class="type">View</span> {
+  <span class="keyword">let</span> <span class="variable">store</span>: <a href="/reactiveswift-composable-architecture/Store"><span class="type">Store</span></a>&lt;<span class="type">ProfileState</span>, <span class="type">ProfileAction</span>&gt;
+
+  <span class="keyword">var</span> <span class="variable">body</span>: <span class="keyword">some</span> <span class="type">View</span> {
+    <span class="variable">WithViewStore</span>(<span class="keyword">self</span>.<span class="variable">store</span>, <span class="variable">observe</span>: { <span class="variable">$0</span> }) { <span class="variable">viewStore</span> <span class="keyword">in</span>
+      <span class="variable">Text</span>(<span class="string literal">"</span><span class="string literal"/>\<span class="string literal">(</span><span class="variable">viewStore</span>.<span class="variable">username</span><span class="string literal">)</span><span class="string literal"/><span class="string literal">"</span>)
+      <span class="comment">// ...</span>
+    }
+  }
+}
+</code></pre></body></html>
+<p>There may be times where the slightly more verbose style of observing a store is preferred
+instead of using <code>WithViewStore</code>:</p>
+
+<ol>
+<li>
+<p>When <code>WithViewStore</code> wraps complex views the Swift compiler can quickly become bogged down,
+leading to degraded compiler performance and diagnostics. If you are experience such instability
+you should consider manually setting up observation with an <code>@ObservedObject</code> property as
+described above.</p>
+</li>
+<li>
+<p>Sometimes you may want to observe the state in a store in a context that is not a view
+builder. In such cases <code>WithViewStore</code> will not work since it is intended only for SwiftUI
+views.</p>
+<p>An example of this is interfacing with SwiftUI's <code>App</code> protocol, which uses a separate
+<code>@SceneBuilder</code> instead of <code>@ViewBuilder</code>. In this case you must use an <code>@ObservedObject</code>:</p>
+<pre><code class="language-swift">@main
+struct MyApp: App {
+  let store = Store&lt;AppState, AppAction&gt;(/* ... */)
+  @ObservedObject var viewStore: ViewStore&lt;SceneState, CommandAction&gt;
+
+  struct SceneState: Equatable {
+    // ...
+    init(state: AppState) {
+      // ...
+    }
+  }
+
+  init() {
+    self.viewStore = ViewStore(
+      self.store.scope(
+        state: SceneState.init(state:)
+        action: AppAction.scene
+      )
+    )
+  }
+
+  var body: some Scene {
+    WindowGroup {
+      MyRootView()
+    }
+    .commands {
+      CommandMenu(&quot;Help&quot;) {
+        Button(&quot;About \(self.viewStore.appName)&quot;) {
+          self.viewStore.send(.aboutButtonTapped)
+        }
+      }
+    }
+  }
+}
+</code></pre>
+<p>Note that it is highly discouraged for you to observe <em>all</em> of your root store's state.
+It is almost never needed and will cause many view recomputations leading to poor
+performance. This is why we construct a separate <code>SceneState</code> type that holds onto only the
+state that the view needs for rendering. See <a href="doc:Performance">doc:Performance</a> for more information on this
+topic.</p>
+</li>
+</ol>
+
+<p>If your view does not need access to any state in the store and only needs to be able to send
+actions, then you should consider not using <code>WithViewStore</code> at all. Instead, you can send
+actions to a <code>Store</code> in a lightweight way like so:</p>
+
+<html><body><pre class="highlight"><code><span class="variable">Button</span>(<span class="string literal">"</span><span class="string literal">Tap me</span><span class="string literal">"</span>) {
+  <span class="variable">ViewStore</span>(<span class="keyword">self</span>.<span class="variable">store</span>).<span class="variable">send</span>(.<span class="variable">buttonTapped</span>)
+}
+</code></pre></body></html>
+</div>
+<section id="relationships">
+    <h2 hidden>Relationships</h2>
+        <figure>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.40.1 (20161225.0304)
+ -->
+<!-- Title: %135 Pages: 1 -->
+<svg width="1357pt" height="292pt"
+ viewBox="0.00 0.00 1357.46 291.60" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 287.6013)">
+<title>%135</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-287.6013 1353.4613,-287.6013 1353.4613,4 -4,4"/>
+<!-- WithViewStore -->
+<g id="node1" class="node structure current">
+<title>WithViewStore</title>
+<g id="a_node1"><a xlink:href="/reactiveswift-composable-architecture/WithViewStore" xlink:title="WithViewStore">
+<path fill="none" stroke="#000000" stroke-width="3" d="M769.9618,-159.7703C769.9618,-159.7703 577.9618,-159.7703 577.9618,-159.7703 571.9618,-159.7703 565.9618,-153.7703 565.9618,-147.7703 565.9618,-147.7703 565.9618,-135.7703 565.9618,-135.7703 565.9618,-129.7703 571.9618,-123.7703 577.9618,-123.7703 577.9618,-123.7703 769.9618,-123.7703 769.9618,-123.7703 775.9618,-123.7703 781.9618,-129.7703 781.9618,-135.7703 781.9618,-135.7703 781.9618,-147.7703 781.9618,-147.7703 781.9618,-153.7703 775.9618,-159.7703 769.9618,-159.7703"/>
+<text text-anchor="middle" x="673.9618" y="-138.0703" font-family="Menlo" font-size="14.00" fill="#000000">WithViewStore</text>
+</a>
+</g>
+</g>
+<!-- Scene -->
+<g id="node2" class="node unknown">
+<title>Scene</title>
+<path fill="none" stroke="#000000" d="M1332.8561,-97.5122C1332.8561,-97.5122 1140.8561,-97.5122 1140.8561,-97.5122 1134.8561,-97.5122 1128.8561,-91.5122 1128.8561,-85.5122 1128.8561,-85.5122 1128.8561,-73.5122 1128.8561,-73.5122 1128.8561,-67.5122 1134.8561,-61.5122 1140.8561,-61.5122 1140.8561,-61.5122 1332.8561,-61.5122 1332.8561,-61.5122 1338.8561,-61.5122 1344.8561,-67.5122 1344.8561,-73.5122 1344.8561,-73.5122 1344.8561,-85.5122 1344.8561,-85.5122 1344.8561,-91.5122 1338.8561,-97.5122 1332.8561,-97.5122"/>
+<text text-anchor="middle" x="1236.8561" y="-75.8122" font-family="Menlo" font-size="14.00" fill="#000000">Scene</text>
+</g>
+<!-- WithViewStore&#45;&gt;Scene -->
+<g id="edge5" class="edge conformsTo">
+<title>WithViewStore&#45;&gt;Scene</title>
+<path fill="none" stroke="#000000" d="M782.1603,-129.8031C878.49,-119.1487 1019.1355,-103.5929 1118.4453,-92.6089"/>
+<polygon fill="#000000" stroke="#000000" points="1118.9729,-96.0719 1128.5275,-91.4937 1118.2034,-89.1144 1118.9729,-96.0719"/>
+</g>
+<!-- ToolbarContent -->
+<g id="node3" class="node unknown">
+<title>ToolbarContent</title>
+<path fill="none" stroke="#000000" d="M768.6571,-36C768.6571,-36 576.6571,-36 576.6571,-36 570.6571,-36 564.6571,-30 564.6571,-24 564.6571,-24 564.6571,-12 564.6571,-12 564.6571,-6 570.6571,0 576.6571,0 576.6571,0 768.6571,0 768.6571,0 774.6571,0 780.6571,-6 780.6571,-12 780.6571,-12 780.6571,-24 780.6571,-24 780.6571,-30 774.6571,-36 768.6571,-36"/>
+<text text-anchor="middle" x="672.6571" y="-14.3" font-family="Menlo" font-size="14.00" fill="#000000">ToolbarContent</text>
+</g>
+<!-- WithViewStore&#45;&gt;ToolbarContent -->
+<g id="edge4" class="edge conformsTo">
+<title>WithViewStore&#45;&gt;ToolbarContent</title>
+<path fill="none" stroke="#000000" d="M673.7693,-123.5075C673.5554,-103.2146 673.2073,-70.1891 672.9575,-46.4906"/>
+<polygon fill="#000000" stroke="#000000" points="676.4557,-46.3002 672.8504,-36.3377 669.4561,-46.374 676.4557,-46.3002"/>
+</g>
+<!-- DynamicViewContent -->
+<g id="node4" class="node unknown">
+<title>DynamicViewContent</title>
+<path fill="none" stroke="#000000" d="M212.1715,-223.4423C212.1715,-223.4423 20.1715,-223.4423 20.1715,-223.4423 14.1715,-223.4423 8.1715,-217.4423 8.1715,-211.4423 8.1715,-211.4423 8.1715,-199.4423 8.1715,-199.4423 8.1715,-193.4423 14.1715,-187.4423 20.1715,-187.4423 20.1715,-187.4423 212.1715,-187.4423 212.1715,-187.4423 218.1715,-187.4423 224.1715,-193.4423 224.1715,-199.4423 224.1715,-199.4423 224.1715,-211.4423 224.1715,-211.4423 224.1715,-217.4423 218.1715,-223.4423 212.1715,-223.4423"/>
+<text text-anchor="middle" x="116.1715" y="-201.7423" font-family="Menlo" font-size="14.00" fill="#000000">DynamicViewContent</text>
+</g>
+<!-- WithViewStore&#45;&gt;DynamicViewContent -->
+<g id="edge1" class="edge conformsTo">
+<title>WithViewStore&#45;&gt;DynamicViewContent</title>
+<path fill="none" stroke="#000000" d="M565.7529,-154.1224C470.6485,-164.9786 332.5178,-180.7462 234.5072,-191.9342"/>
+<polygon fill="#000000" stroke="#000000" points="234.0929,-188.4587 224.5544,-193.0703 234.8869,-195.4135 234.0929,-188.4587"/>
+</g>
+<!-- Commands -->
+<g id="node5" class="node unknown">
+<title>Commands</title>
+<path fill="none" stroke="#000000" d="M1337.4613,-220.5748C1337.4613,-220.5748 1145.4613,-220.5748 1145.4613,-220.5748 1139.4613,-220.5748 1133.4613,-214.5748 1133.4613,-208.5748 1133.4613,-208.5748 1133.4613,-196.5748 1133.4613,-196.5748 1133.4613,-190.5748 1139.4613,-184.5748 1145.4613,-184.5748 1145.4613,-184.5748 1337.4613,-184.5748 1337.4613,-184.5748 1343.4613,-184.5748 1349.4613,-190.5748 1349.4613,-196.5748 1349.4613,-196.5748 1349.4613,-208.5748 1349.4613,-208.5748 1349.4613,-214.5748 1343.4613,-220.5748 1337.4613,-220.5748"/>
+<text text-anchor="middle" x="1241.4613" y="-198.8748" font-family="Menlo" font-size="14.00" fill="#000000">Commands</text>
+</g>
+<!-- WithViewStore&#45;&gt;Commands -->
+<g id="edge2" class="edge conformsTo">
+<title>WithViewStore&#45;&gt;Commands</title>
+<path fill="none" stroke="#000000" d="M782.0399,-153.3502C879.5113,-163.7938 1022.5782,-179.1227 1123.1007,-189.8931"/>
+<polygon fill="#000000" stroke="#000000" points="1122.9874,-193.4009 1133.3034,-190.9863 1123.7332,-186.4408 1122.9874,-193.4009"/>
+</g>
+<!-- AccessibilityRotorContent -->
+<g id="node6" class="node unknown">
+<title>AccessibilityRotorContent</title>
+<path fill="none" stroke="#000000" d="M781.2916,-283.6013C781.2916,-283.6013 589.2916,-283.6013 589.2916,-283.6013 583.2916,-283.6013 577.2916,-277.6013 577.2916,-271.6013 577.2916,-271.6013 577.2916,-259.6013 577.2916,-259.6013 577.2916,-253.6013 583.2916,-247.6013 589.2916,-247.6013 589.2916,-247.6013 781.2916,-247.6013 781.2916,-247.6013 787.2916,-247.6013 793.2916,-253.6013 793.2916,-259.6013 793.2916,-259.6013 793.2916,-271.6013 793.2916,-271.6013 793.2916,-277.6013 787.2916,-283.6013 781.2916,-283.6013"/>
+<text text-anchor="middle" x="685.2916" y="-261.9013" font-family="Menlo" font-size="14.00" fill="#000000">AccessibilityRotorContent</text>
+</g>
+<!-- WithViewStore&#45;&gt;AccessibilityRotorContent -->
+<g id="edge3" class="edge conformsTo">
+<title>WithViewStore&#45;&gt;AccessibilityRotorContent</title>
+<path fill="none" stroke="#000000" d="M675.6093,-159.7764C677.472,-180.1358 680.5288,-213.5456 682.7093,-237.3784"/>
+<polygon fill="#000000" stroke="#000000" points="679.2455,-237.934 683.6421,-247.5735 686.2164,-237.2962 679.2455,-237.934"/>
+</g>
+<!-- View -->
+<g id="node7" class="node unknown">
+<title>View</title>
+<path fill="none" stroke="#000000" d="M204,-98.844C204,-98.844 12,-98.844 12,-98.844 6,-98.844 0,-92.844 0,-86.844 0,-86.844 0,-74.844 0,-74.844 0,-68.844 6,-62.844 12,-62.844 12,-62.844 204,-62.844 204,-62.844 210,-62.844 216,-68.844 216,-74.844 216,-74.844 216,-86.844 216,-86.844 216,-92.844 210,-98.844 204,-98.844"/>
+<text text-anchor="middle" x="108" y="-77.144" font-family="Menlo" font-size="14.00" fill="#000000">View</text>
+</g>
+<!-- WithViewStore&#45;&gt;View -->
+<g id="edge6" class="edge conformsTo">
+<title>WithViewStore&#45;&gt;View</title>
+<path fill="none" stroke="#000000" d="M565.8426,-130.1311C468.7524,-119.6793 326.4966,-104.3654 226.379,-93.5876"/>
+<polygon fill="#000000" stroke="#000000" points="226.5336,-90.0841 216.2164,-92.4936 225.7843,-97.0439 226.5336,-90.0841"/>
+</g>
+</g>
+</svg>
+
+
+    <figcaption hidden>Inheritance graph for WithViewStore.</figcaption>
+</figure>
+        <h3>Conforms To</h3>
+<dl>
+    <dt class="unknown"><code>AccessibilityRotorContent</code></dt>
+<dt class="unknown"><code>Commands</code></dt>
+<dt class="unknown"><code>DynamicViewContent</code></dt>
+<dt class="unknown"><code>Scene</code></dt>
+<dt class="unknown"><code>ToolbarContent</code></dt>
+<dt class="unknown"><code>View</code></dt>
+</dl>
+</section>
+    <section id="nested type aliases">
+        <h2>Nested Type Aliases</h2>
+
+        <div role="article" class="typealias" id="withviewstore.state">
+    <h3>
+        <code><a href="#withviewstore.state">State</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(*, <span class="variable">deprecated</span>, <span class="variable">renamed</span>: <span class="string literal">"ViewState"</span>)
+    <span class="keyword">public</span> <span class="keyword">typealias</span> <span class="variable">State</span> = <span class="type">ViewState</span></body></html></code></pre>
+</div>
+</div>
+<div role="article" class="typealias" id="withviewstore.action">
+    <h3>
+        <code><a href="#withviewstore.action">Action</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(*, <span class="variable">deprecated</span>, <span class="variable">renamed</span>: <span class="string literal">"ViewAction"</span>)
+    <span class="keyword">public</span> <span class="keyword">typealias</span> <span class="variable">Action</span> = <span class="type">ViewAction</span></body></html></code></pre>
+</div>
+</div>
+    </section>
+    <section id="properties">
+        <h2>Properties</h2>
+
+        <div role="article" class="variable" id="withviewstore.body">
+    <h3>
+        <code><a href="#withviewstore.body">body</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">var</span> <span class="variable">body</span>: <span class="type">Content</span>  </body></html></code></pre>
+</div>
+</div>
+    </section>
+    <section id="methods">
+        <h2>Methods</h2>
+
+        <div role="article" class="function" id="withviewstore.debug(_:)">
+    <h3>
+        <code><a href="#withviewstore.debug(_:)">debug(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">debug</span>(<span class="keyword">_</span> <span class="variable">prefix</span>: <span class="type">String</span> = <span class="string literal">"</span><span class="string literal"/><span class="string literal">"</span>) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Prints debug information to the console whenever the view is computed.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>prefix</th>
+    <td><code class="type">String</code></td>
+    <td><p>A string with which to prefix all debug messages.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A structure that prints debug messages for all computations.</p>
+
+</div>
+    </section>
+
+
+
+        </article>
+    </main>
+
+    <footer>
+        <p>
+    Generated on <time datetime="2022-12-31T17:25:39+0000">December 31, 2022</time> using <a href="https://github.com/SwiftDocOrg/swift-doc">swift-doc</a> <span class="version">1.0.0-rc.1</span>.
+</p>
+    </footer>
+</body>
+</html>

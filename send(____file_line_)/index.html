@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComposableArchitecture - send(_:_:file:line:)</title>
+    <link rel="stylesheet" type="text/css" href="/reactiveswift-composable-architecture/all.css" media="all" />
+</head>
+<body>
+    <header>
+        <a href="/reactiveswift-composable-architecture/">
+            <strong>
+                ComposableArchitecture
+            </strong>
+            <span>Documentation</span>
+        </a>
+    </header>
+
+    <!--
+    <form class="search">
+        <input type="search" placeholder="Search" />
+    </form>
+    -->
+
+    <nav>
+        <div class="wrapper">
+            <h2>On This Page</h2>
+            <ol/>
+        </div>
+    </nav>
+
+    <main>
+        <article>
+            <h1>
+<small>Function</small>
+<span class="name">send(_:​_:​file:​line:​)</span>
+</h1>
+
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="type">MainActor</span>
+    <span class="attribute">@</span><span class="attribute">discardableResult</span>
+    <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">send</span>(
+      <span class="keyword">_</span> <span class="variable">action</span>: <span class="type">ScopedAction</span>,
+      <span class="keyword">_</span> <span class="variable">updateExpectingResult</span>: ((<span class="keyword">inout</span> <span class="type">ScopedState</span>) <span class="keyword">throws</span> -&gt; <span class="type">Void</span>)? = <span class="keyword">nil</span>,
+      <span class="variable">file</span>: <span class="type">StaticString</span> = <span class="keyword">#file</span>,
+      <span class="variable">line</span>: <span class="type">UInt</span> = <span class="keyword">#line</span>
+    ) </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Sends an action to the store and asserts when state changes.</p>
+
+</div>
+<div class="discussion">
+    <p>This method suspends in order to allow any effects to start. For example, if you
+track an analytics event in a <code>Effect/fireAndForget(priority:_:)</code> when an action is sent,
+you can assert on that behavior immediately after awaiting <code>store.send</code>:</p>
+
+<html><body><pre class="highlight"><code><span class="attribute">@</span><span class="type">MainActor</span>
+<span class="keyword">func</span> <span class="function">testAnalytics</span>() <span class="variable">async</span> {
+  <span class="keyword">let</span> <span class="variable">events</span> = <span class="variable">ActorIsolated</span>&lt;[<span class="type">String</span>]&gt;([])
+  <span class="keyword">let</span> <span class="variable">analytics</span> = <span class="variable">AnalyticsClient</span>(
+    <span class="variable">track</span>: { <span class="variable">event</span> <span class="keyword">in</span>
+      <span class="variable">await</span> <span class="variable">events</span>.<span class="variable">withValue</span> { <span class="variable">$0</span>.<span class="variable">append</span>(<span class="variable">event</span>) }
+    }
+  )
+
+  <span class="keyword">let</span> <span class="variable">store</span> = <span class="variable">TestStore</span>(
+    <span class="variable">initialState</span>: <span class="type">State</span>(),
+    <span class="variable">reducer</span>: <a href="/reactiveswift-composable-architecture/reducer"><span class="type">reducer</span></a>,
+    <span class="variable">environment</span>: <span class="type">Environment</span>(<span class="variable">analytics</span>: <span class="type">analytics</span>)
+  )
+
+  <span class="variable">await</span> <span class="variable">store</span>.<span class="variable">send</span>(.<span class="variable">buttonTapped</span>)
+
+  <span class="variable">await</span> <span class="variable">events</span>.<span class="variable">withValue</span> { <span class="variable">XCTAssertEqual</span>(<span class="variable">$0</span>, [<span class="string literal">"</span><span class="string literal">Button Tapped</span><span class="string literal">"</span>]) }
+}
+</code></pre></body></html>
+<p>This method suspends only for the duration until the effect <em>starts</em> from sending the
+action. It does <em>not</em> suspend for the duration of the effect.</p>
+
+<p>In order to suspend for the duration of the effect you can use its return value, a
+<code>TestStoreTask</code>, which represents the lifecycle of the effect started from sending an
+action. You can use this value to suspend until the effect finishes, or to force the
+cancellation of the effect, which is helpful for effects that are tied to a view's lifecycle
+and not torn down when an action is sent, such as actions sent in SwiftUI's <code>task</code> view
+modifier.</p>
+
+<p>For example, if your feature kicks off a long-living effect when the view appears by using
+SwiftUI's <code>task</code> view modifier, then you can write a test for such a feature by explicitly
+canceling the effect's task after you make all assertions:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">let</span> <span class="variable">store</span> = <span class="variable">TestStore</span>(...)
+
+<span class="comment">// emulate the view appearing</span>
+<span class="keyword">let</span> <span class="variable">task</span> = <span class="variable">await</span> <span class="variable">store</span>.<span class="variable">send</span>(.<span class="variable">task</span>)
+
+<span class="comment">// assertions</span>
+
+<span class="comment">// emulate the view disappearing</span>
+<span class="variable">await</span> <span class="variable">task</span>.<span class="variable">cancel</span>()
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>action</th>
+    <td><code class="type">Scoped​Action</code></td>
+    <td><p>An action.</p>
+</td>
+</tr>
+<tr>
+    <th>update​Expecting​Result</th>
+    <td><code class="type">((inout Scoped​State) throws -&gt; Void)?</code></td>
+    <td><p>A closure that asserts state changed by sending the action to the store. The mutable state sent to this closure must be modified to match the state of the store after processing the given action. Do not provide a closure if no change is expected.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A <code>TestStoreTask</code> that represents the lifecycle of the effect executed when sending the action.</p>
+
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Call the async-friendly 'send' instead."</span>)
+    <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Call the async-friendly 'send' instead."</span>)
+    <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Call the async-friendly 'send' instead."</span>)
+    <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Call the async-friendly 'send' instead."</span>)
+    <span class="attribute">@</span><span class="attribute">discardableResult</span>
+    <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">send</span>(
+      <span class="keyword">_</span> <span class="variable">action</span>: <span class="type">ScopedAction</span>,
+      <span class="keyword">_</span> <span class="variable">updateExpectingResult</span>: ((<span class="keyword">inout</span> <span class="type">ScopedState</span>) <span class="keyword">throws</span> -&gt; <span class="type">Void</span>)? = <span class="keyword">nil</span>,
+      <span class="variable">file</span>: <span class="type">StaticString</span> = <span class="keyword">#file</span>,
+      <span class="variable">line</span>: <span class="type">UInt</span> = <span class="keyword">#line</span>
+    ) -&gt; <span class="type">TestStoreTask</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Sends an action to the store and asserts when state changes.</p>
+
+</div>
+<div class="discussion">
+    <p>This method returns a <code>TestStoreTask</code>, which represents the lifecycle of the effect
+started from sending an action. You can use this value to force the cancellation of the
+effect, which is helpful for effects that are tied to a view's lifecycle and not torn
+down when an action is sent, such as actions sent in SwiftUI's <code>task</code> view modifier.</p>
+
+<p>For example, if your feature kicks off a long-living effect when the view appears by using
+SwiftUI's <code>task</code> view modifier, then you can write a test for such a feature by explicitly
+canceling the effect's task after you make all assertions:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">let</span> <span class="variable">store</span> = <span class="variable">TestStore</span>(...)
+
+<span class="comment">// emulate the view appearing</span>
+<span class="keyword">let</span> <span class="variable">task</span> = <span class="variable">await</span> <span class="variable">store</span>.<span class="variable">send</span>(.<span class="variable">task</span>)
+
+<span class="comment">// assertions</span>
+
+<span class="comment">// emulate the view disappearing</span>
+<span class="variable">await</span> <span class="variable">task</span>.<span class="variable">cancel</span>()
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>action</th>
+    <td><code class="type">Scoped​Action</code></td>
+    <td><p>An action.</p>
+</td>
+</tr>
+<tr>
+    <th>update​Expecting​Result</th>
+    <td><code class="type">((inout Scoped​State) throws -&gt; Void)?</code></td>
+    <td><p>A closure that asserts state changed by sending the action to the store. The mutable state sent to this closure must be modified to match the state of the store after processing the given action. Do not provide a closure if no change is expected.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A <code>TestStoreTask</code> that represents the lifecycle of the effect executed when sending the action.</p>
+
+        </article>
+    </main>
+
+    <footer>
+        <p>
+    Generated on <time datetime="2022-12-31T17:25:39+0000">December 31, 2022</time> using <a href="https://github.com/SwiftDocOrg/swift-doc">swift-doc</a> <span class="version">1.0.0-rc.1</span>.
+</p>
+    </footer>
+</body>
+</html>

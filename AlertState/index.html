@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComposableArchitecture - AlertState</title>
+    <link rel="stylesheet" type="text/css" href="/reactiveswift-composable-architecture/all.css" media="all" />
+</head>
+<body>
+    <header>
+        <a href="/reactiveswift-composable-architecture/">
+            <strong>
+                ComposableArchitecture
+            </strong>
+            <span>Documentation</span>
+        </a>
+    </header>
+
+    <!--
+    <form class="search">
+        <input type="search" placeholder="Search" />
+    </form>
+    -->
+
+    <nav>
+        <div class="wrapper">
+            <h2>On This Page</h2>
+            <ol><li><a href="#relationships">Relationships</a><ul><li><a href="#relationships">Nested Types</a></li><li><a href="#relationships">Conforms To</a></li></ul></li><li><a href="#initializers">Initializers</a><ul><li class="initializer"><a href="#alertstate.init(title:message:buttons:)">init(title:​message:​buttons:​)</a></li><li class="initializer"><a href="#alertstate.init(title:message:dismissbutton:)">init(title:​message:​dismiss​Button:​)</a></li><li class="initializer"><a href="#alertstate.init(title:message:primarybutton:secondarybutton:)">init(title:​message:​primary​Button:​secondary​Button:​)</a></li></ul></li><li><a href="#properties">Properties</a><ul><li class="variable"><a href="#alertstate.id">id</a></li><li class="variable"><a href="#alertstate.buttons">buttons</a></li><li class="variable"><a href="#alertstate.message">message</a></li><li class="variable"><a href="#alertstate.title">title</a></li><li class="variable"><a href="#alertstate.customdumpmirror">custom​Dump​Mirror</a></li></ul></li></ol>
+        </div>
+    </nav>
+
+    <main>
+        <article>
+            <h1>
+    <small>Structure</small>
+    <code class="name">Alert​State</code>
+</h1>
+
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">struct</span> <span class="type">AlertState</span>&lt;<span class="variable">Action</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>A data type that describes the state of an alert that can be shown to the user. The <code>Action</code>
+generic is the type of actions that can be sent from tapping on a button in the alert.</p>
+
+</div>
+<div class="discussion">
+    <p>This type can be used in your application's state in order to control the presentation or
+dismissal of alerts. It is preferable to use this API instead of the default SwiftUI API
+for alerts because SwiftUI uses 2-way bindings in order to control the showing and dismissal
+of alerts, and that does not play nicely with the Composable Architecture. The library requires
+that all state mutations happen by sending an action so that a reducer can handle that logic,
+which greatly simplifies how data flows through your application, and gives you instant
+testability on all parts of your application.</p>
+
+<p>To use this API, you model all the alert actions in your domain's action enum:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">enum</span> <span class="type">AppAction</span>: <span class="type">Equatable</span> {
+  <span class="keyword">case</span> <span class="variable">cancelTapped</span>
+  <span class="keyword">case</span> <span class="variable">confirmTapped</span>
+  <span class="keyword">case</span> <span class="variable">deleteTapped</span>
+
+  <span class="comment">// Your other actions</span>
+}
+</code></pre></body></html>
+<p>And you model the state for showing the alert in your domain's state, and it can start off
+<code>nil</code>:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">AppState</span>: <span class="type">Equatable</span> {
+  <span class="keyword">var</span> <span class="variable">alert</span>: <span class="type">AlertState</span>&lt;<span class="type">AppAction</span>&gt;?
+
+  <span class="comment">// Your other state</span>
+}
+</code></pre></body></html>
+<p>Then, in the reducer you can construct an <code>AlertState</code> value to represent the alert you want
+to show to the user:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">let</span> <span class="variable">appReducer</span> = <span class="variable">Reducer</span>&lt;<span class="type">AppState</span>, <span class="type">AppAction</span>, <span class="type">AppEnvironment</span>&gt; { <span class="variable">state</span>, <span class="variable">action</span>, <span class="variable">env</span> <span class="keyword">in</span>
+  <span class="keyword">switch</span> <span class="variable">action</span>
+    <span class="keyword">case</span> .<span class="variable">cancelTapped</span>:
+      <a href="/reactiveswift-composable-architecture/state"><span class="type">state</span></a>.<span class="variable">alert</span> = <span class="keyword">nil</span>
+      <span class="keyword">return</span> .<span class="variable">none</span>
+
+    <span class="keyword">case</span> .<span class="variable">confirmTapped</span>:
+      <a href="/reactiveswift-composable-architecture/state"><span class="type">state</span></a>.<span class="variable">alert</span> = <span class="keyword">nil</span>
+      <span class="comment">// Do deletion logic...</span>
+
+    <span class="keyword">case</span> .<span class="variable">deleteTapped</span>:
+      <a href="/reactiveswift-composable-architecture/state"><span class="type">state</span></a>.<span class="variable">alert</span> = <span class="variable">AlertState</span>(
+        <span class="variable">title</span>: <a href="/reactiveswift-composable-architecture/TextState"><span class="type">TextState</span></a>(<span class="string literal">"Delete"</span>),
+        <span class="variable">message</span>: <a href="/reactiveswift-composable-architecture/TextState"><span class="type">TextState</span></a>(<span class="string literal">"Are you sure you want to delete this? It cannot be undone."</span>),
+        <span class="variable">primaryButton</span>: .<span class="keyword">default</span>(<span class="variable">TextState</span>(<span class="string literal">"Confirm"</span>), <span class="variable">action</span>: .<span class="variable">send</span>(.<span class="variable">confirmTapped</span>)),
+        <span class="variable">secondaryButton</span>: .<span class="variable">cancel</span>(<span class="variable">TextState</span>(<span class="string literal">"Cancel"</span>))
+      )
+    <span class="keyword">return</span> .<span class="variable">none</span>
+  }
+}
+</code></pre></body></html>
+<p>And then, in your view you can use the <code>.alert(_:send:dismiss:)</code> method on <code>View</code> in order
+to present the alert in a way that works best with the Composable Architecture:</p>
+
+<html><body><pre class="highlight"><code><span class="variable">Button</span>(<span class="string literal">"</span><span class="string literal">Delete</span><span class="string literal">"</span>) { <span class="variable">viewStore</span>.<span class="variable">send</span>(.<span class="variable">deleteTapped</span>) }
+  .<span class="variable">alert</span>(
+    <span class="keyword">self</span>.<span class="variable">store</span>.<span class="variable">scope</span>(<span class="variable">state</span>: \.<span class="variable">alert</span>),
+    <span class="variable">dismiss</span>: .<span class="variable">cancelTapped</span>
+  )
+</code></pre></body></html>
+<p>This makes your reducer in complete control of when the alert is shown or dismissed, and makes
+it so that any choice made in the alert is automatically fed back into the reducer so that you
+can handle its logic.</p>
+
+<p>Even better, you can instantly write tests that your alert behavior works as expected:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">let</span> <span class="variable">store</span> = <span class="variable">TestStore</span>(
+  <span class="variable">initialState</span>: <span class="type">AppState</span>(),
+  <span class="variable">reducer</span>: <span class="type">appReducer</span>,
+  <span class="variable">environment</span>: .<span class="variable">mock</span>
+)
+
+<span class="variable">store</span>.<span class="variable">send</span>(.<span class="variable">deleteTapped</span>) {
+  <span class="variable">$0</span>.<span class="variable">alert</span> = <span class="variable">AlertState</span>(
+    <span class="variable">title</span>: <a href="/reactiveswift-composable-architecture/TextState"><span class="type">TextState</span></a>(<span class="string literal">"</span><span class="string literal">Delete</span><span class="string literal">"</span>),
+    <span class="variable">message</span>: <a href="/reactiveswift-composable-architecture/TextState"><span class="type">TextState</span></a>(<span class="string literal">"</span><span class="string literal">Are you sure you want to delete this? It cannot be undone.</span><span class="string literal">"</span>),
+    <span class="variable">primaryButton</span>: .<span class="variable">default</span>(<span class="variable">TextState</span>(<span class="string literal">"</span><span class="string literal">Confirm</span><span class="string literal">"</span>), <span class="variable">action</span>: .<span class="variable">send</span>(.<span class="variable">confirmTapped</span>)),
+    <span class="variable">secondaryButton</span>: .<span class="variable">cancel</span>(<span class="variable">TextState</span>(<span class="string literal">"</span><span class="string literal">Cancel</span><span class="string literal">"</span>))
+  )
+}
+<span class="variable">store</span>.<span class="variable">send</span>(.<span class="variable">confirmTapped</span>) {
+  <span class="variable">$0</span>.<span class="variable">alert</span> = <span class="keyword">nil</span>
+  <span class="comment">// Also verify that delete logic executed correctly</span>
+}
+</code></pre></body></html>
+</div>
+<section id="relationships">
+    <h2 hidden>Relationships</h2>
+        <figure>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.40.1 (20161225.0304)
+ -->
+<!-- Title: %31 Pages: 1 -->
+<svg width="1088pt" height="242pt"
+ viewBox="0.00 0.00 1087.98 241.73" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 237.7326)">
+<title>%31</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-237.7326 1083.9813,-237.7326 1083.9813,4 -4,4"/>
+<!-- AlertState -->
+<g id="node1" class="node structure current">
+<title>AlertState</title>
+<g id="a_node1"><a xlink:href="/reactiveswift-composable-architecture/AlertState" xlink:title="AlertState">
+<path fill="none" stroke="#000000" stroke-width="3" d="M537.993,-143.6386C537.993,-143.6386 345.993,-143.6386 345.993,-143.6386 339.993,-143.6386 333.993,-137.6386 333.993,-131.6386 333.993,-131.6386 333.993,-119.6386 333.993,-119.6386 333.993,-113.6386 339.993,-107.6386 345.993,-107.6386 345.993,-107.6386 537.993,-107.6386 537.993,-107.6386 543.993,-107.6386 549.993,-113.6386 549.993,-119.6386 549.993,-119.6386 549.993,-131.6386 549.993,-131.6386 549.993,-137.6386 543.993,-143.6386 537.993,-143.6386"/>
+<text text-anchor="middle" x="441.993" y="-121.9386" font-family="Menlo" font-size="14.00" fill="#000000">AlertState</text>
+</a>
+</g>
+</g>
+<!-- Hashable -->
+<g id="node2" class="node unknown">
+<title>Hashable</title>
+<path fill="none" stroke="#000000" d="M1067.9813,-161.3055C1067.9813,-161.3055 875.9813,-161.3055 875.9813,-161.3055 869.9813,-161.3055 863.9813,-155.3055 863.9813,-149.3055 863.9813,-149.3055 863.9813,-137.3055 863.9813,-137.3055 863.9813,-131.3055 869.9813,-125.3055 875.9813,-125.3055 875.9813,-125.3055 1067.9813,-125.3055 1067.9813,-125.3055 1073.9813,-125.3055 1079.9813,-131.3055 1079.9813,-137.3055 1079.9813,-137.3055 1079.9813,-149.3055 1079.9813,-149.3055 1079.9813,-155.3055 1073.9813,-161.3055 1067.9813,-161.3055"/>
+<text text-anchor="middle" x="971.9813" y="-139.6055" font-family="Menlo" font-size="14.00" fill="#000000">Hashable</text>
+</g>
+<!-- AlertState&#45;&gt;Hashable -->
+<g id="edge1" class="edge conformsTo">
+<title>AlertState&#45;&gt;Hashable</title>
+<path fill="none" stroke="#000000" d="M550.2028,-129.2457C638.4756,-132.1882 762.9928,-136.339 853.8473,-139.3675"/>
+<polygon fill="#000000" stroke="#000000" points="853.8083,-142.8681 863.9194,-139.7033 854.0415,-135.872 853.8083,-142.8681"/>
+</g>
+<!-- Equatable -->
+<g id="node3" class="node unknown">
+<title>Equatable</title>
+<path fill="none" stroke="#000000" d="M347.5678,-36C347.5678,-36 155.5678,-36 155.5678,-36 149.5678,-36 143.5678,-30 143.5678,-24 143.5678,-24 143.5678,-12 143.5678,-12 143.5678,-6 149.5678,0 155.5678,0 155.5678,0 347.5678,0 347.5678,0 353.5678,0 359.5678,-6 359.5678,-12 359.5678,-12 359.5678,-24 359.5678,-24 359.5678,-30 353.5678,-36 347.5678,-36"/>
+<text text-anchor="middle" x="251.5678" y="-14.3" font-family="Menlo" font-size="14.00" fill="#000000">Equatable</text>
+</g>
+<!-- AlertState&#45;&gt;Equatable -->
+<g id="edge2" class="edge conformsTo">
+<title>AlertState&#45;&gt;Equatable</title>
+<path fill="none" stroke="#000000" d="M410.1201,-107.6223C377.8522,-89.3828 327.8211,-61.1025 292.6069,-41.1975"/>
+<polygon fill="#000000" stroke="#000000" points="293.9725,-37.949 283.5447,-36.0751 290.5279,-44.0428 293.9725,-37.949"/>
+</g>
+<!-- CustomDumpReflectable -->
+<g id="node4" class="node unknown">
+<title>CustomDumpReflectable</title>
+<path fill="none" stroke="#000000" d="M204,-233.7326C204,-233.7326 12,-233.7326 12,-233.7326 6,-233.7326 0,-227.7326 0,-221.7326 0,-221.7326 0,-209.7326 0,-209.7326 0,-203.7326 6,-197.7326 12,-197.7326 12,-197.7326 204,-197.7326 204,-197.7326 210,-197.7326 216,-203.7326 216,-209.7326 216,-209.7326 216,-221.7326 216,-221.7326 216,-227.7326 210,-233.7326 204,-233.7326"/>
+<text text-anchor="middle" x="108" y="-212.0326" font-family="Menlo" font-size="14.00" fill="#000000">CustomDumpReflectable</text>
+</g>
+<!-- AlertState&#45;&gt;CustomDumpReflectable -->
+<g id="edge3" class="edge conformsTo">
+<title>AlertState&#45;&gt;CustomDumpReflectable</title>
+<path fill="none" stroke="#000000" d="M375.2073,-143.6539C320.2308,-158.4837 242.2608,-179.516 184.7272,-195.0356"/>
+<polygon fill="#000000" stroke="#000000" points="183.6989,-191.6878 174.9556,-197.6715 185.5221,-198.4462 183.6989,-191.6878"/>
+</g>
+</g>
+</svg>
+
+
+    <figcaption hidden>Inheritance graph for AlertState.</figcaption>
+</figure>
+        <h3>Nested Types</h3>
+<dl>
+    <dt class="structure"><code><a href="/reactiveswift-composable-architecture/AlertState_Button">AlertState.Button</a></code></dt>
+<dd></dd>
+<dt class="structure"><code><a href="/reactiveswift-composable-architecture/AlertState_ButtonAction">AlertState.ButtonAction</a></code></dt>
+<dd></dd>
+<dt class="enumeration"><code><a href="/reactiveswift-composable-architecture/AlertState_ButtonRole">AlertState.ButtonRole</a></code></dt>
+<dd></dd>
+</dl>
+<h3>Conforms To</h3>
+<dl>
+    <dt class="unknown"><code>CustomDumpReflectable</code></dt>
+<dt class="unknown"><code>Equatable</code></dt>
+<dt class="unknown"><code>Hashable</code></dt>
+</dl>
+</section>
+    <section id="initializers">
+        <h2>Initializers</h2>
+
+        <div role="article" class="initializer" id="alertstate.init(title:message:buttons:)">
+    <h3>
+        <code><a href="#alertstate.init(title:message:buttons:)">init(title:​message:​buttons:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(<span class="keyword">iOS</span> <span class="number literal">15</span>, <span class="keyword">macOS</span> <span class="number literal">12</span>, <span class="keyword">tvOS</span> <span class="number literal">15</span>, <span class="keyword">watchOS</span> <span class="number literal">8</span>, *)
+    <span class="keyword">public</span> <span class="keyword">init</span>(
+      <span class="variable">title</span>: <a href="/reactiveswift-composable-architecture/TextState"><span class="type">TextState</span></a>,
+      <span class="variable">message</span>: <a href="/reactiveswift-composable-architecture/TextState"><span class="type">TextState</span></a>? = <span class="keyword">nil</span>,
+      <span class="variable">buttons</span>: [<span class="type">Button</span>]
+    )  </body></html></code></pre>
+</div>
+</div>
+<div role="article" class="initializer" id="alertstate.init(title:message:dismissbutton:)">
+    <h3>
+        <code><a href="#alertstate.init(title:message:dismissbutton:)">init(title:​message:​dismiss​Button:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">init</span>(
+      <span class="variable">title</span>: <a href="/reactiveswift-composable-architecture/TextState"><span class="type">TextState</span></a>,
+      <span class="variable">message</span>: <a href="/reactiveswift-composable-architecture/TextState"><span class="type">TextState</span></a>? = <span class="keyword">nil</span>,
+      <span class="variable">dismissButton</span>: <span class="type">Button</span>? = <span class="keyword">nil</span>
+    )  </body></html></code></pre>
+</div>
+</div>
+<div role="article" class="initializer" id="alertstate.init(title:message:primarybutton:secondarybutton:)">
+    <h3>
+        <code><a href="#alertstate.init(title:message:primarybutton:secondarybutton:)">init(title:​message:​primary​Button:​secondary​Button:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">init</span>(
+      <span class="variable">title</span>: <a href="/reactiveswift-composable-architecture/TextState"><span class="type">TextState</span></a>,
+      <span class="variable">message</span>: <a href="/reactiveswift-composable-architecture/TextState"><span class="type">TextState</span></a>? = <span class="keyword">nil</span>,
+      <span class="variable">primaryButton</span>: <span class="type">Button</span>,
+      <span class="variable">secondaryButton</span>: <span class="type">Button</span>
+    )  </body></html></code></pre>
+</div>
+</div>
+    </section>
+    <section id="properties">
+        <h2>Properties</h2>
+
+        <div role="article" class="variable" id="alertstate.id">
+    <h3>
+        <code><a href="#alertstate.id">id</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">let</span> <span class="variable">id</span>  </body></html></code></pre>
+</div>
+</div>
+<div role="article" class="variable" id="alertstate.buttons">
+    <h3>
+        <code><a href="#alertstate.buttons">buttons</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">var</span> <span class="variable">buttons</span>: [<span class="type">Button</span>] </body></html></code></pre>
+</div>
+</div>
+<div role="article" class="variable" id="alertstate.message">
+    <h3>
+        <code><a href="#alertstate.message">message</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">var</span> <span class="variable">message</span>: <a href="/reactiveswift-composable-architecture/TextState"><span class="type">TextState</span></a>? </body></html></code></pre>
+</div>
+</div>
+<div role="article" class="variable" id="alertstate.title">
+    <h3>
+        <code><a href="#alertstate.title">title</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">var</span> <span class="variable">title</span>: <a href="/reactiveswift-composable-architecture/TextState"><span class="type">TextState</span></a></body></html></code></pre>
+</div>
+</div>
+<div role="article" class="variable" id="alertstate.customdumpmirror">
+    <h3>
+        <code><a href="#alertstate.customdumpmirror">custom​Dump​Mirror</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">var</span> <span class="variable">customDumpMirror</span>: <span class="type">Mirror</span>  </body></html></code></pre>
+</div>
+</div>
+    </section>
+
+
+
+        </article>
+    </main>
+
+    <footer>
+        <p>
+    Generated on <time datetime="2022-12-31T17:25:39+0000">December 31, 2022</time> using <a href="https://github.com/SwiftDocOrg/swift-doc">swift-doc</a> <span class="version">1.0.0-rc.1</span>.
+</p>
+    </footer>
+</body>
+</html>

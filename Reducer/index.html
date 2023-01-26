@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComposableArchitecture - Reducer</title>
+    <link rel="stylesheet" type="text/css" href="/reactiveswift-composable-architecture/all.css" media="all" />
+</head>
+<body>
+    <header>
+        <a href="/reactiveswift-composable-architecture/">
+            <strong>
+                ComposableArchitecture
+            </strong>
+            <span>Documentation</span>
+        </a>
+    </header>
+
+    <!--
+    <form class="search">
+        <input type="search" placeholder="Search" />
+    </form>
+    -->
+
+    <nav>
+        <div class="wrapper">
+            <h2>On This Page</h2>
+            <ol><li><a href="#initializers">Initializers</a><ul><li class="initializer"><a href="#reducer.init(_:)">init(_:​)</a></li></ul></li><li><a href="#properties">Properties</a><ul><li class="variable"><a href="#reducer.empty">empty</a></li></ul></li><li><a href="#methods">Methods</a><ul><li class="function"><a href="#reducer.debug(_:actionformat:environment:)">debug(_:​action​Format:​environment:​)</a></li><li class="function"><a href="#reducer.debugactions(_:actionformat:environment:)">debug​Actions(_:​action​Format:​environment:​)</a></li><li class="function"><a href="#reducer.debug(_:state:action:actionformat:environment:)">debug(_:​state:​action:​action​Format:​environment:​)</a></li><li class="function"><a href="#reducer.signpost(_:log:)">signpost(_:​log:​)</a></li><li class="function"><a href="#reducer.pullback(state:action:environment:breakpointonnil:file:line:)">pullback(state:​action:​environment:​breakpoint​OnNil:​file:​line:​)</a></li><li class="function"><a href="#reducer.optional(breakpointonnil:file:line:)">optional(breakpoint​OnNil:​file:​line:​)</a></li><li class="function"><a href="#reducer.foreach(state:action:environment:breakpointonnil:file:line:)">for​Each(state:​action:​environment:​breakpoint​OnNil:​file:​line:​)</a></li><li class="function"><a href="#reducer.foreach(state:action:environment:breakpointonnil:file:line:)">for​Each(state:​action:​environment:​breakpoint​OnNil:​file:​line:​)</a></li><li class="function"><a href="#reducer.binding(action:)">binding(action:​)</a></li><li class="function"><a href="#reducer.foreach(state:action:environment:breakpointonnil:file:fileid:line:)">for​Each(state:​action:​environment:​breakpoint​OnNil:​file:​file​ID:​line:​)</a></li><li class="function"><a href="#reducer.combine(_:)">combine(_:​)</a></li><li class="function"><a href="#reducer.combine(_:)">combine(_:​)</a></li><li class="function"><a href="#reducer.combined(with:)">combined(with:​)</a></li><li class="function"><a href="#reducer.pullback(state:action:environment:)">pullback(state:​action:​environment:​)</a></li><li class="function"><a href="#reducer.pullback(state:action:environment:file:fileid:line:)">pullback(state:​action:​environment:​file:​file​ID:​line:​)</a></li><li class="function"><a href="#reducer.optional(file:fileid:line:)">optional(file:​file​ID:​line:​)</a></li><li class="function"><a href="#reducer.foreach(state:action:environment:file:fileid:line:)">for​Each(state:​action:​environment:​file:​file​ID:​line:​)</a></li><li class="function"><a href="#reducer.foreach(state:action:environment:file:fileid:line:)">for​Each(state:​action:​environment:​file:​file​ID:​line:​)</a></li><li class="function"><a href="#reducer.run(_:_:_:)">run(_:​_:​_:​)</a></li><li class="function"><a href="#reducer.callasfunction(_:_:_:)">call​AsFunction(_:​_:​_:​)</a></li></ul></li></ol>
+        </div>
+    </nav>
+
+    <main>
+        <article>
+            <h1>
+    <small>Structure</small>
+    <code class="name">Reducer</code>
+</h1>
+
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">struct</span> <span class="type">Reducer</span>&lt;<span class="variable">State</span>, <span class="variable">Action</span>, <span class="variable">Environment</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>A reducer describes how to evolve the current state of an application to the next state, given
+an action, and describes what <code>Effect</code>s should be executed later by the store, if any.</p>
+
+</div>
+<div class="discussion">
+    <p>Reducers have 3 generics:</p>
+
+<ul>
+<li>
+<p><code>State</code>: A type that holds the current state of the application.</p>
+</li>
+<li>
+<p><code>Action</code>: A type that holds all possible actions that cause the state of the application to
+change.</p>
+</li>
+<li>
+<p><code>Environment</code>: A type that holds all dependencies needed in order to produce <code>Effect</code>s,
+such as API clients, analytics clients, random number generators, etc.</p>
+</li>
+</ul>
+
+<blockquote>
+<p>Important: The thread on which effects output is important. An effect's output is immediately
+sent back into the store, and <code>Store</code> is not thread safe. This means all effects must
+receive values on the same thread, <strong>and</strong> if the <code>Store</code> is being used to drive UI then all
+output must be on the main thread. You can use the <code>Publisher</code> method <code>receive(on:)</code> for make
+the effect output its values on the thread of your choice.</p>
+<p>This is only an issue if using the Combine interface of <code>Effect</code> as mentioned above. If you
+you are only using Swift's concurrency tools and the <code>.task</code>, <code>.run</code> and <code>.fireAndForget</code>
+functions on <code>Effect</code>, then the threading is automatically handled for you.</p>
+</blockquote>
+
+</div>
+
+    <section id="initializers">
+        <h2>Initializers</h2>
+
+        <div role="article" class="initializer" id="reducer.init(_:)">
+    <h3>
+        <code><a href="#reducer.init(_:)">init(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">init</span>(<span class="keyword">_</span> <span class="variable">reducer</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="keyword">inout</span> <span class="type">State</span>, <span class="type">Action</span>, <span class="type">Environment</span>) -&gt; <a href="/reactiveswift-composable-architecture/Effect"><span class="type">Effect</span></a>&lt;<span class="type">Action</span>, <span class="type">Never</span>&gt;)  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Initializes a reducer from a simple reducer function signature.</p>
+
+</div>
+<div class="discussion">
+    <p>The reducer takes three arguments: state, action and environment. The state is <code>inout</code> so that
+you can make any changes to it directly inline. The reducer must return an effect, which
+typically would be constructed by using the dependencies inside the <code>environment</code> value. If
+no effect needs to be executed, a <code>Effect/none</code> effect can be returned.</p>
+
+<p>For example:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">MyState</span> { <span class="keyword">var</span> <span class="variable">count</span> = <span class="number literal">0</span>, <span class="variable">text</span> = <span class="string literal">"</span><span class="string literal"/><span class="string literal">"</span> }
+<span class="keyword">enum</span> <span class="type">MyAction</span> { <span class="keyword">case</span> <span class="variable">buttonTapped</span>, <span class="variable">textChanged</span>(<span class="type">String</span>) }
+<span class="keyword">struct</span> <span class="type">MyEnvironment</span> { <span class="keyword">var</span> <span class="variable">analyticsClient</span>: <span class="type">AnalyticsClient</span> }
+
+<span class="keyword">let</span> <span class="variable">myReducer</span> = <span class="variable">Reducer</span>&lt;<span class="type">MyState</span>, <span class="type">MyAction</span>, <span class="type">MyEnvironment</span>&gt; { <span class="variable">state</span>, <span class="variable">action</span>, <span class="variable">environment</span> <span class="keyword">in</span>
+  <span class="keyword">switch</span> <span class="variable">action</span> {
+  <span class="keyword">case</span> .<span class="variable">buttonTapped</span>:
+    <a href="/reactiveswift-composable-architecture/state"><span class="type">state</span></a>.<span class="variable">count</span> += <span class="number literal">1</span>
+    <span class="keyword">return</span> <span class="variable">environment</span>.<span class="variable">analyticsClient</span>.<span class="variable">track</span>(<span class="string literal">"</span><span class="string literal">Button Tapped</span><span class="string literal">"</span>)
+
+  <span class="keyword">case</span> .<span class="variable">textChanged</span>(<span class="keyword">let</span> <span class="variable">text</span>):
+    <a href="/reactiveswift-composable-architecture/state"><span class="type">state</span></a>.<span class="variable">text</span> = <span class="variable">text</span>
+    <span class="keyword">return</span> .<span class="variable">none</span>
+  }
+}
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>reducer</th>
+    <td><code class="type">@escaping (inout State, Action, Environment) -&gt; Effect&lt;Action, Never&gt;</code></td>
+    <td><p>A function signature that takes state, action and environment.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+</div>
+    </section>
+    <section id="properties">
+        <h2>Properties</h2>
+
+        <div role="article" class="variable" id="reducer.empty">
+    <h3>
+        <code><a href="#reducer.empty">empty</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">var</span> <span class="variable">empty</span>: <a href="/reactiveswift-composable-architecture/Reducer"><span class="type">Reducer</span></a>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>A reducer that performs no state mutations and returns no effects.</p>
+
+</div>
+</div>
+    </section>
+    <section id="methods">
+        <h2>Methods</h2>
+
+        <div role="article" class="function" id="reducer.debug(_:actionformat:environment:)">
+    <h3>
+        <code><a href="#reducer.debug(_:actionformat:environment:)">debug(_:​action​Format:​environment:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">debug</span>(
+    <span class="keyword">_</span> <span class="variable">prefix</span>: <span class="type">String</span> = <span class="string literal">"</span><span class="string literal"/><span class="string literal">"</span>,
+    <span class="variable">actionFormat</span>: <a href="/reactiveswift-composable-architecture/ActionFormat"><span class="type">ActionFormat</span></a> = .<span class="variable">prettyPrint</span>,
+    <span class="variable">environment</span> <span class="variable">toDebugEnvironment</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">Environment</span>) -&gt; <a href="/reactiveswift-composable-architecture/DebugEnvironment"><span class="type">DebugEnvironment</span></a> = { <span class="keyword">_</span> <span class="keyword">in</span>
+      <span class="variable">DebugEnvironment</span>()
+    }
+  ) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Prints debug messages describing all received actions and state mutations.</p>
+
+</div>
+<div class="discussion">
+    <p>Printing is only done in debug (<code>#if DEBUG</code>) builds.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>prefix</th>
+    <td><code class="type">String</code></td>
+    <td><p>A string with which to prefix all debug messages.</p>
+</td>
+</tr>
+<tr>
+    <th>to​Debug​Environment</th>
+    <td><code class="type">@escaping (Environment) -&gt; Debug​Environment</code></td>
+    <td><p>A function that transforms an environment into a debug environment by describing a print function and a queue to print from. Defaults to a function that ignores the environment and returns a default <code>DebugEnvironment</code> that uses Swift's <code>print</code> function and a background queue.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A reducer that prints debug messages for all received actions.</p>
+
+</div>
+<div role="article" class="function" id="reducer.debugactions(_:actionformat:environment:)">
+    <h3>
+        <code><a href="#reducer.debugactions(_:actionformat:environment:)">debug​Actions(_:​action​Format:​environment:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">debugActions</span>(
+    <span class="keyword">_</span> <span class="variable">prefix</span>: <span class="type">String</span> = <span class="string literal">"</span><span class="string literal"/><span class="string literal">"</span>,
+    <span class="variable">actionFormat</span>: <a href="/reactiveswift-composable-architecture/ActionFormat"><span class="type">ActionFormat</span></a> = .<span class="variable">prettyPrint</span>,
+    <span class="variable">environment</span> <span class="variable">toDebugEnvironment</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">Environment</span>) -&gt; <a href="/reactiveswift-composable-architecture/DebugEnvironment"><span class="type">DebugEnvironment</span></a> = { <span class="keyword">_</span> <span class="keyword">in</span>
+      <span class="variable">DebugEnvironment</span>()
+    }
+  ) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Prints debug messages describing all received actions.</p>
+
+</div>
+<div class="discussion">
+    <p>Printing is only done in debug (<code>#if DEBUG</code>) builds.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>prefix</th>
+    <td><code class="type">String</code></td>
+    <td><p>A string with which to prefix all debug messages.</p>
+</td>
+</tr>
+<tr>
+    <th>to​Debug​Environment</th>
+    <td><code class="type">@escaping (Environment) -&gt; Debug​Environment</code></td>
+    <td><p>A function that transforms an environment into a debug environment by describing a print function and a queue to print from. Defaults to a function that ignores the environment and returns a default <code>DebugEnvironment</code> that uses Swift's <code>print</code> function and a background queue.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A reducer that prints debug messages for all received actions.</p>
+
+</div>
+<div role="article" class="function" id="reducer.debug(_:state:action:actionformat:environment:)">
+    <h3>
+        <code><a href="#reducer.debug(_:state:action:actionformat:environment:)">debug(_:​state:​action:​action​Format:​environment:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">debug</span>&lt;<span class="variable">DebugState</span>, <span class="variable">DebugAction</span>&gt;(
+    <span class="keyword">_</span> <span class="variable">prefix</span>: <span class="type">String</span> = <span class="string literal">"</span><span class="string literal"/><span class="string literal">"</span>,
+    <span class="variable">state</span> <span class="variable">toDebugState</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">State</span>) -&gt; <span class="type">DebugState</span>,
+    <span class="variable">action</span> <span class="variable">toDebugAction</span>: <span class="type">CasePath</span>&lt;<span class="type">Action</span>, <span class="type">DebugAction</span>&gt;,
+    <span class="variable">actionFormat</span>: <a href="/reactiveswift-composable-architecture/ActionFormat"><span class="type">ActionFormat</span></a> = .<span class="variable">prettyPrint</span>,
+    <span class="variable">environment</span> <span class="variable">toDebugEnvironment</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">Environment</span>) -&gt; <a href="/reactiveswift-composable-architecture/DebugEnvironment"><span class="type">DebugEnvironment</span></a> = { <span class="keyword">_</span> <span class="keyword">in</span>
+      <span class="variable">DebugEnvironment</span>()
+    }
+  ) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Prints debug messages describing all received actions and state mutations.</p>
+
+</div>
+<div class="discussion">
+    <p>Printing is only done in debug (<code>#if DEBUG</code>) builds.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>prefix</th>
+    <td><code class="type">String</code></td>
+    <td><p>A string with which to prefix all debug messages.</p>
+</td>
+</tr>
+<tr>
+    <th>to​Debug​State</th>
+    <td><code class="type">@escaping (State) -&gt; Debug​State</code></td>
+    <td><p>A function that filters state to be printed.</p>
+</td>
+</tr>
+<tr>
+    <th>to​Debug​Action</th>
+    <td><code class="type">Case​Path&lt;Action, Debug​Action&gt;</code></td>
+    <td><p>A case path that filters actions that are printed.</p>
+</td>
+</tr>
+<tr>
+    <th>to​Debug​Environment</th>
+    <td><code class="type">@escaping (Environment) -&gt; Debug​Environment</code></td>
+    <td><p>A function that transforms an environment into a debug environment by describing a print function and a queue to print from. Defaults to a function that ignores the environment and returns a default <code>DebugEnvironment</code> that uses Swift's <code>print</code> function and a background queue.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A reducer that prints debug messages for all received actions.</p>
+
+</div>
+<div role="article" class="function" id="reducer.signpost(_:log:)">
+    <h3>
+        <code><a href="#reducer.signpost(_:log:)">signpost(_:​log:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">signpost</span>(
+      <span class="keyword">_</span> <span class="variable">prefix</span>: <span class="type">String</span> = <span class="string literal">"</span><span class="string literal"/><span class="string literal">"</span>,
+      <span class="variable">log</span>: <span class="type">OSLog</span> = <span class="variable">OSLog</span>(
+        <span class="variable">subsystem</span>: <span class="string literal">"</span><span class="string literal">co.pointfree.composable-architecture</span><span class="string literal">"</span>,
+        <span class="variable">category</span>: <span class="string literal">"</span><span class="string literal">Reducer Instrumentation</span><span class="string literal">"</span>
+      )
+    ) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Instruments the reducer with
+<a href="https://developer.apple.com/documentation/os/logging/recording_performance_data">signposts</a>.
+Each invocation of the reducer will be measured by an interval, and the lifecycle of its
+effects will be measured with interval and event signposts.</p>
+
+</div>
+<div class="discussion">
+    <p>To use, build your app for Instruments (⌘I), create a blank instrument, and then use the &quot;+&quot;
+icon at top right to add the signpost instrument. Start recording your app (red button at top
+left) and then you should see timing information for every action sent to the store and every
+effect executed.</p>
+
+<p>Effect instrumentation can be particularly useful for inspecting the lifecycle of long-living
+effects. For example, if you start an effect (e.g. a location manager) in <code>onAppear</code> and
+forget to tear down the effect in <code>onDisappear</code>, it will clearly show in Instruments that the
+effect never completed.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>prefix</th>
+    <td><code class="type">String</code></td>
+    <td><p>A string to print at the beginning of the formatted message for the signpost.</p>
+</td>
+</tr>
+<tr>
+    <th>log</th>
+    <td><code class="type">OSLog</code></td>
+    <td><p>An <code>OSLog</code> to use for signposts.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A reducer that has been enhanced with instrumentation.</p>
+
+</div>
+<div role="article" class="function" id="reducer.pullback(state:action:environment:breakpointonnil:file:line:)">
+    <h3>
+        <code><a href="#reducer.pullback(state:action:environment:breakpointonnil:file:line:)">pullback(state:​action:​environment:​breakpoint​OnNil:​file:​line:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+    *,
+    <span class="variable">deprecated</span>,
+    <span class="variable">message</span>: <span class="string literal">"'pullback' no longer takes a 'breakpointOnNil' argument"</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">pullback</span>&lt;<span class="variable">ParentState</span>, <span class="variable">ParentAction</span>, <span class="variable">ParentEnvironment</span>&gt;(
+    <span class="variable">state</span> <span class="variable">toChildState</span>: <span class="type">CasePath</span>&lt;<span class="type">ParentState</span>, <span class="type">State</span>&gt;,
+    <span class="variable">action</span> <span class="variable">toChildAction</span>: <span class="type">CasePath</span>&lt;<span class="type">ParentAction</span>, <span class="type">Action</span>&gt;,
+    <span class="variable">environment</span> <span class="variable">toChildEnvironment</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">ParentEnvironment</span>) -&gt; <span class="type">Environment</span>,
+    <span class="variable">breakpointOnNil</span>: <span class="type">Bool</span>,
+    <span class="variable">file</span>: <span class="type">StaticString</span> = <span class="keyword">#fileID</span>,
+    <span class="variable">line</span>: <span class="type">UInt</span> = <span class="keyword">#line</span>
+  ) -&gt; <a href="/reactiveswift-composable-architecture/Reducer"><span class="type">Reducer</span></a>&lt;<span class="type">ParentState</span>, <span class="type">ParentAction</span>, <span class="type">ParentEnvironment</span>&gt;  </body></html></code></pre>
+</div>
+</div>
+<div role="article" class="function" id="reducer.optional(breakpointonnil:file:line:)">
+    <h3>
+        <code><a href="#reducer.optional(breakpointonnil:file:line:)">optional(breakpoint​OnNil:​file:​line:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+    *,
+    <span class="variable">deprecated</span>,
+    <span class="variable">message</span>: <span class="string literal">"'optional' no longer takes a 'breakpointOnNil' argument"</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">optional</span>(
+    <span class="variable">breakpointOnNil</span>: <span class="type">Bool</span>,
+    <span class="variable">file</span>: <span class="type">StaticString</span> = <span class="keyword">#fileID</span>,
+    <span class="variable">line</span>: <span class="type">UInt</span> = <span class="keyword">#line</span>
+  ) -&gt; <a href="/reactiveswift-composable-architecture/Reducer"><span class="type">Reducer</span></a>&lt;
+    <span class="type">State</span>?, <span class="type">Action</span>, <span class="type">Environment</span>
+  &gt;  </body></html></code></pre>
+</div>
+</div>
+<div role="article" class="function" id="reducer.foreach(state:action:environment:breakpointonnil:file:line:)">
+    <h3>
+        <code><a href="#reducer.foreach(state:action:environment:breakpointonnil:file:line:)">for​Each(state:​action:​environment:​breakpoint​OnNil:​file:​line:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+    *,
+    <span class="variable">deprecated</span>,
+    <span class="variable">message</span>: <span class="string literal">"'forEach' no longer takes a 'breakpointOnNil' argument"</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">forEach</span>&lt;<span class="variable">ParentState</span>, <span class="variable">ParentAction</span>, <span class="variable">ParentEnvironment</span>, <span class="variable">ID</span>&gt;(
+    <span class="variable">state</span> <span class="variable">toElementsState</span>: <span class="type">WritableKeyPath</span>&lt;<span class="type">ParentState</span>, <span class="type">IdentifiedArray</span>&lt;<span class="type">ID</span>, <span class="type">State</span>&gt;&gt;,
+    <span class="variable">action</span> <span class="variable">toElementAction</span>: <span class="type">CasePath</span>&lt;<span class="type">ParentAction</span>, (<span class="type">ID</span>, <span class="type">Action</span>)&gt;,
+    <span class="variable">environment</span> <span class="variable">toElementEnvironment</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">ParentEnvironment</span>) -&gt; <span class="type">Environment</span>,
+    <span class="variable">breakpointOnNil</span>: <span class="type">Bool</span>,
+    <span class="variable">file</span>: <span class="type">StaticString</span> = <span class="keyword">#fileID</span>,
+    <span class="variable">line</span>: <span class="type">UInt</span> = <span class="keyword">#line</span>
+  ) -&gt; <a href="/reactiveswift-composable-architecture/Reducer"><span class="type">Reducer</span></a>&lt;<span class="type">ParentState</span>, <span class="type">ParentAction</span>, <span class="type">ParentEnvironment</span>&gt;  </body></html></code></pre>
+</div>
+</div>
+<div role="article" class="function" id="reducer.foreach(state:action:environment:breakpointonnil:file:line:)">
+    <h3>
+        <code><a href="#reducer.foreach(state:action:environment:breakpointonnil:file:line:)">for​Each(state:​action:​environment:​breakpoint​OnNil:​file:​line:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+    *,
+    <span class="variable">deprecated</span>,
+    <span class="variable">message</span>: <span class="string literal">"'forEach' no longer takes a 'breakpointOnNil' argument"</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">forEach</span>&lt;<span class="variable">ParentState</span>, <span class="variable">ParentAction</span>, <span class="variable">ParentEnvironment</span>, <span class="variable">Key</span>&gt;(
+    <span class="variable">state</span> <span class="variable">toElementsState</span>: <span class="type">WritableKeyPath</span>&lt;<span class="type">ParentState</span>, [<span class="type">Key</span>: <span class="type">State</span>]&gt;,
+    <span class="variable">action</span> <span class="variable">toElementAction</span>: <span class="type">CasePath</span>&lt;<span class="type">ParentAction</span>, (<span class="type">Key</span>, <span class="type">Action</span>)&gt;,
+    <span class="variable">environment</span> <span class="variable">toElementEnvironment</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">ParentEnvironment</span>) -&gt; <span class="type">Environment</span>,
+    <span class="variable">breakpointOnNil</span>: <span class="type">Bool</span>,
+    <span class="variable">file</span>: <span class="type">StaticString</span> = <span class="keyword">#fileID</span>,
+    <span class="variable">line</span>: <span class="type">UInt</span> = <span class="keyword">#line</span>
+  ) -&gt; <a href="/reactiveswift-composable-architecture/Reducer"><span class="type">Reducer</span></a>&lt;<span class="type">ParentState</span>, <span class="type">ParentAction</span>, <span class="type">ParentEnvironment</span>&gt;  </body></html></code></pre>
+</div>
+</div>
+<div role="article" class="function" id="reducer.binding(action:)">
+    <h3>
+        <code><a href="#reducer.binding(action:)">binding(action:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+      *, <span class="variable">deprecated</span>,
+      <span class="variable">message</span>:
+        <span class="string literal">"""
+      'Reducer.binding()' no longer takes an explicit extract function and instead the reducer's \
+      'Action' type must conform to 'BindableAction'
+      """</span>
+    )
+    <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">binding</span>(<span class="variable">action</span> <span class="variable">toBindingAction</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">Action</span>) -&gt; <a href="/reactiveswift-composable-architecture/BindingAction"><span class="type">BindingAction</span></a>&lt;<span class="type">State</span>&gt;?)
+      -&gt; <span class="keyword">Self</span></body></html></code></pre>
+</div>
+</div>
+<div role="article" class="function" id="reducer.foreach(state:action:environment:breakpointonnil:file:fileid:line:)">
+    <h3>
+        <code><a href="#reducer.foreach(state:action:environment:breakpointonnil:file:fileid:line:)">for​Each(state:​action:​environment:​breakpoint​OnNil:​file:​file​ID:​line:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(*, <span class="variable">deprecated</span>, <span class="variable">message</span>: <span class="string literal">"Use the 'IdentifiedArray'-based version, instead."</span>)
+    <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">forEach</span>&lt;<span class="variable">ParentState</span>, <span class="variable">ParentAction</span>, <span class="variable">ParentEnvironment</span>&gt;(
+      <span class="variable">state</span> <span class="variable">toElementsState</span>: <span class="type">WritableKeyPath</span>&lt;<span class="type">ParentState</span>, [<span class="type">State</span>]&gt;,
+      <span class="variable">action</span> <span class="variable">toElementAction</span>: <span class="type">CasePath</span>&lt;<span class="type">ParentAction</span>, (<span class="type">Int</span>, <span class="type">Action</span>)&gt;,
+      <span class="variable">environment</span> <span class="variable">toElementEnvironment</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">ParentEnvironment</span>) -&gt; <span class="type">Environment</span>,
+      <span class="variable">breakpointOnNil</span>: <span class="type">Bool</span> = <span class="keyword">true</span>,
+      <span class="variable">file</span>: <span class="type">StaticString</span> = <span class="keyword">#file</span>,
+      <span class="variable">fileID</span>: <span class="type">StaticString</span> = <span class="keyword">#fileID</span>,
+      <span class="variable">line</span>: <span class="type">UInt</span> = <span class="keyword">#line</span>
+    ) -&gt; <a href="/reactiveswift-composable-architecture/Reducer"><span class="type">Reducer</span></a>&lt;<span class="type">ParentState</span>, <span class="type">ParentAction</span>, <span class="type">ParentEnvironment</span>&gt;  </body></html></code></pre>
+</div>
+</div>
+<div role="article" class="function" id="reducer.combine(_:)">
+    <h3>
+        <code><a href="#reducer.combine(_:)">combine(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">combine</span>(<span class="keyword">_</span> <span class="variable">reducers</span>: <span class="keyword">Self</span>...) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Combines many reducers into a single one by running each one on state in order, and merging
+all of the effects.</p>
+
+</div>
+<div class="discussion">
+    <p>It is important to note that the order of combining reducers matter. Combining <code>reducerA</code> with
+<code>reducerB</code> is not necessarily the same as combining <code>reducerB</code> with <code>reducerA</code>.</p>
+
+<p>This can become an issue when working with reducers that have overlapping domains. For
+example, if <code>reducerA</code> embeds the domain of <code>reducerB</code> and reacts to its actions or modifies
+its state, it can make a difference if <code>reducerA</code> chooses to modify <code>reducerB</code>'s state
+<em>before</em> or <em>after</em> <code>reducerB</code> runs.</p>
+
+<p>This is perhaps most easily seen when working with <code>optional(file:fileID:line:)</code> reducers,
+where the parent domain may listen to the child domain and <code>nil</code> out its state. If the parent
+reducer runs before the child reducer, then the child reducer will not be able to react to its
+own action.</p>
+
+<p>Similar can be said for a <code>forEach(state:action:environment:file:fileID:line:)-n7qj</code>
+reducer. If the parent domain modifies the child collection by moving, removing, or modifying
+an element before the <code>forEach</code> reducer runs, the <code>forEach</code> reducer may perform its action
+against the wrong element, an element that no longer exists, or an element in an unexpected
+state.</p>
+
+<p>Running a parent reducer before a child reducer can be considered an application logic
+error, and can produce assertion failures. So you should almost always combine reducers in
+order from child to parent domain.</p>
+
+<p>Here is an example of how you should combine an <code>optional(file:fileID:line:)</code> reducer with a
+parent domain:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">let</span> <span class="variable">parentReducer</span> = <span class="variable">Reducer</span>&lt;<span class="type">ParentState</span>, <span class="type">ParentAction</span>, <span class="type">ParentEnvironment</span>&gt;.<span class="variable">combine</span>(
+  <span class="comment">// Combined before parent so that it can react to `.dismiss` while state is non-`nil`.</span>
+  <span class="variable">childReducer</span>.<span class="variable">optional</span>().<span class="variable">pullback</span>(
+    <span class="variable">state</span>: \.<span class="variable">child</span>,
+    <span class="variable">action</span>: /<span class="variable">ParentAction</span>.<span class="variable">child</span>,
+    <span class="variable">environment</span>: { <span class="variable">$0</span>.<span class="variable">child</span> }
+  ),
+  <span class="comment">// Combined after child so that it can `nil` out child state upon `.child(.dismiss)`.</span>
+  <span class="variable">Reducer</span> { <span class="variable">state</span>, <span class="variable">action</span>, <span class="variable">environment</span> <span class="keyword">in</span>
+    <span class="keyword">switch</span> <span class="variable">action</span>
+    <span class="keyword">case</span> .<span class="variable">child</span>(.<span class="variable">dismiss</span>):
+      <a href="/reactiveswift-composable-architecture/state"><span class="type">state</span></a>.<span class="variable">child</span> = <span class="keyword">nil</span>
+      <span class="keyword">return</span> .<span class="variable">none</span>
+    ...
+    }
+  },
+)
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>reducers</th>
+    <td><code class="type">Self</code></td>
+    <td><p>A list of reducers.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A single reducer.</p>
+
+</div>
+<div role="article" class="function" id="reducer.combine(_:)">
+    <h3>
+        <code><a href="#reducer.combine(_:)">combine(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">combine</span>(<span class="keyword">_</span> <span class="variable">reducers</span>: [<span class="keyword">Self</span>]) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Combines many reducers into a single one by running each one on state in order, and merging
+all of the effects.</p>
+
+</div>
+<div class="discussion">
+    <p>This method is identical to <code>Reducer/combine(_:)-994ak</code> except that it takes an array
+of reducers instead of a variadic list. See the documentation on
+<code>Reducer/combine(_:)-994ak</code> for more information about what this method does.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>reducers</th>
+    <td><code class="type">[Self]</code></td>
+    <td><p>An array of reducers.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A single reducer.</p>
+
+</div>
+<div role="article" class="function" id="reducer.combined(with:)">
+    <h3>
+        <code><a href="#reducer.combined(with:)">combined(with:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">combined</span>(<span class="variable">with</span> <span class="variable">other</span>: <span class="keyword">Self</span>) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Combines the receiving reducer with one other reducer, running the second after the first and
+merging all of the effects.</p>
+
+</div>
+<div class="discussion">
+    <p>This method is identical to <code>Reducer/combine(_:)-994ak</code> except that it combines the
+receiver with a single other reducer rather than combining a whole list of reducers. See the
+documentation on <code>Reducer/combine(_:)-994ak</code> for more information about what this method
+does.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>other</th>
+    <td><code class="type">Self</code></td>
+    <td><p>Another reducer.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A single reducer.</p>
+
+</div>
+<div role="article" class="function" id="reducer.pullback(state:action:environment:)">
+    <h3>
+        <code><a href="#reducer.pullback(state:action:environment:)">pullback(state:​action:​environment:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">pullback</span>&lt;<span class="variable">ParentState</span>, <span class="variable">ParentAction</span>, <span class="variable">ParentEnvironment</span>&gt;(
+    <span class="variable">state</span> <span class="variable">toChildState</span>: <span class="type">WritableKeyPath</span>&lt;<span class="type">ParentState</span>, <span class="type">State</span>&gt;,
+    <span class="variable">action</span> <span class="variable">toChildAction</span>: <span class="type">CasePath</span>&lt;<span class="type">ParentAction</span>, <span class="type">Action</span>&gt;,
+    <span class="variable">environment</span> <span class="variable">toChildEnvironment</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">ParentEnvironment</span>) -&gt; <span class="type">Environment</span>
+  ) -&gt; <a href="/reactiveswift-composable-architecture/Reducer"><span class="type">Reducer</span></a>&lt;<span class="type">ParentState</span>, <span class="type">ParentAction</span>, <span class="type">ParentEnvironment</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Transforms a reducer that works on child state, action, and environment into one that works on
+parent state, action and environment. It accomplishes this by providing 3 transformations to
+the method:</p>
+
+</div>
+<div class="discussion">
+    <ul>
+<li>
+<p>A writable key path that can get/set a piece of child state from the parent state.</p>
+</li>
+<li>
+<p>A case path that can extract/embed a child action into a parent action.</p>
+</li>
+<li>
+<p>A function that can transform the parent environment into a child environment.</p>
+</li>
+</ul>
+
+<p>This operation is important for breaking down large reducers into small ones. When used with
+the <code>combine(_:)-1ern2</code> operator you can define many reducers that work on small pieces of
+domain, and then <em>pull them back</em> and <em>combine</em> them into one big reducer that works on a
+large domain.</p>
+
+<html><body><pre class="highlight"><code> <span class="comment">// Parent domain that holds a child domain:</span>
+ <span class="keyword">struct</span> <span class="type">AppState</span> { <span class="keyword">var</span> <span class="variable">settings</span>: <span class="type">SettingsState</span>, <span class="comment">/* rest of state */</span> }
+ <span class="keyword">enum</span> <span class="type">AppAction</span> { <span class="keyword">case</span> <span class="variable">settings</span>(<span class="type">SettingsAction</span>), <span class="comment">/* other actions */</span> }
+ <span class="keyword">struct</span> <span class="type">AppEnvironment</span> { <span class="keyword">var</span> <span class="variable">settings</span>: <span class="type">SettingsEnvironment</span>, <span class="comment">/* rest of dependencies */</span> }
+
+ <span class="comment">// A reducer that works on the child domain:</span>
+ <span class="keyword">let</span> <span class="variable">settingsReducer</span> = <span class="variable">Reducer</span>&lt;<span class="type">SettingsState</span>, <span class="type">SettingsAction</span>, <span class="type">SettingsEnvironment</span>&gt; { ... }
+
+ <span class="comment">// Pullback the settings reducer so that it works on all of the app domain:</span>
+ <span class="keyword">let</span> <span class="variable">appReducer</span>: <a href="/reactiveswift-composable-architecture/Reducer"><span class="type">Reducer</span></a>&lt;<span class="type">AppState</span>, <span class="type">AppAction</span>, <span class="type">AppEnvironment</span>&gt; = .<span class="variable">combine</span>(
+   <span class="variable">settingsReducer</span>.<span class="variable">pullback</span>(
+     <span class="variable">state</span>: \.<span class="variable">settings</span>,
+     <span class="variable">action</span>: /<span class="variable">AppAction</span>.<span class="variable">settings</span>,
+     <span class="variable">environment</span>: { <span class="variable">$0</span>.<span class="variable">settings</span> }
+   ),
+
+   <span class="comment">/* other reducers */</span>
+ )
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>to​Child​State</th>
+    <td><code class="type">Writable​Key​Path&lt;Parent​State, State&gt;</code></td>
+    <td><p>A key path that can get/set <code>State</code> inside <code>ParentState</code>.</p>
+</td>
+</tr>
+<tr>
+    <th>to​Child​Action</th>
+    <td><code class="type">Case​Path&lt;Parent​Action, Action&gt;</code></td>
+    <td><p>A case path that can extract/embed <code>Action</code> from <code>ParentAction</code>.</p>
+</td>
+</tr>
+<tr>
+    <th>to​Child​Environment</th>
+    <td><code class="type">@escaping (Parent​Environment) -&gt; Environment</code></td>
+    <td><p>A function that transforms <code>ParentEnvironment</code> into <code>Environment</code>.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A reducer that works on <code>ParentState</code>, <code>ParentAction</code>, <code>ParentEnvironment</code>.</p>
+
+</div>
+<div role="article" class="function" id="reducer.pullback(state:action:environment:file:fileid:line:)">
+    <h3>
+        <code><a href="#reducer.pullback(state:action:environment:file:fileid:line:)">pullback(state:​action:​environment:​file:​file​ID:​line:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">pullback</span>&lt;<span class="variable">ParentState</span>, <span class="variable">ParentAction</span>, <span class="variable">ParentEnvironment</span>&gt;(
+    <span class="variable">state</span> <span class="variable">toChildState</span>: <span class="type">CasePath</span>&lt;<span class="type">ParentState</span>, <span class="type">State</span>&gt;,
+    <span class="variable">action</span> <span class="variable">toChildAction</span>: <span class="type">CasePath</span>&lt;<span class="type">ParentAction</span>, <span class="type">Action</span>&gt;,
+    <span class="variable">environment</span> <span class="variable">toChildEnvironment</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">ParentEnvironment</span>) -&gt; <span class="type">Environment</span>,
+    <span class="variable">file</span>: <span class="type">StaticString</span> = <span class="keyword">#file</span>,
+    <span class="variable">fileID</span>: <span class="type">StaticString</span> = <span class="keyword">#fileID</span>,
+    <span class="variable">line</span>: <span class="type">UInt</span> = <span class="keyword">#line</span>
+  ) -&gt; <a href="/reactiveswift-composable-architecture/Reducer"><span class="type">Reducer</span></a>&lt;<span class="type">ParentState</span>, <span class="type">ParentAction</span>, <span class="type">ParentEnvironment</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Transforms a reducer that works on child state, action, and environment into one that works on
+parent state, action and environment.</p>
+
+</div>
+<div class="discussion">
+    <p>It accomplishes this by providing 3 transformations to the method:</p>
+
+<ul>
+<li>
+<p>A case path that can extract/embed a piece of child state from the parent state, which is
+typically an enum.</p>
+</li>
+<li>
+<p>A case path that can extract/embed a child action into a parent action.</p>
+</li>
+<li>
+<p>A function that can transform the parent environment into a child environment.</p>
+</li>
+</ul>
+
+<p>This overload of <code>pullback(state:action:environment:)</code> differs from the other in that it
+takes a <code>CasePath</code> transformation for the state instead of a <code>WritableKeyPath</code>. This makes it
+perfect for working on enum state as opposed to struct state. In particular, you can use this
+operator to pullback a reducer that operates on a single case of some state enum to work on
+the entire state enum.</p>
+
+<p>When used with the <code>combine(_:)-994ak</code> operator you can define many reducers that work each
+case of the state enum, and then <em>pull them back</em> and <em>combine</em> them into one big reducer that
+works on a large domain.</p>
+
+<html><body><pre class="highlight"><code><span class="comment">// Parent domain that holds a child domain:</span>
+<span class="keyword">enum</span> <span class="type">AppState</span> { <span class="keyword">case</span> <span class="variable">loggedIn</span>(<span class="type">LoggedInState</span>), <span class="comment">/* rest of state */</span> }
+<span class="keyword">enum</span> <span class="type">AppAction</span> { <span class="keyword">case</span> <span class="variable">loggedIn</span>(<span class="type">LoggedInAction</span>), <span class="comment">/* other actions */</span> }
+<span class="keyword">struct</span> <span class="type">AppEnvironment</span> { <span class="keyword">var</span> <span class="variable">loggedIn</span>: <span class="type">LoggedInEnvironment</span>, <span class="comment">/* rest of dependencies */</span> }
+
+<span class="comment">// A reducer that works on the child domain:</span>
+<span class="keyword">let</span> <span class="variable">loggedInReducer</span> = <span class="variable">Reducer</span>&lt;<span class="type">LoggedInState</span>, <span class="type">LoggedInAction</span>, <span class="type">LoggedInEnvironment</span>&gt; { ... }
+
+<span class="comment">// Pullback the logged-in reducer so that it works on all of the app domain:</span>
+<span class="keyword">let</span> <span class="variable">appReducer</span>: <a href="/reactiveswift-composable-architecture/Reducer"><span class="type">Reducer</span></a>&lt;<span class="type">AppState</span>, <span class="type">AppAction</span>, <span class="type">AppEnvironment</span>&gt; = .<span class="variable">combine</span>(
+  <span class="variable">loggedInReducer</span>.<span class="variable">pullback</span>(
+    <span class="variable">state</span>: /<span class="variable">AppState</span>.<span class="variable">loggedIn</span>,
+    <span class="variable">action</span>: /<span class="variable">AppAction</span>.<span class="variable">loggedIn</span>,
+    <span class="variable">environment</span>: { <span class="variable">$0</span>.<span class="variable">loggedIn</span> }
+  ),
+
+  <span class="comment">/* other reducers */</span>
+)
+</code></pre></body></html>
+<p>Take care when combining a child reducer for a particular case of enum state into its parent
+domain. A child reducer cannot process actions in its domain if it fails to extract its
+corresponding state. If a child action is sent to a reducer when its state is unavailable, it
+is generally considered a logic error, and a runtime warning will be logged. There are a few
+ways in which these errors can sneak into a code base:</p>
+
+<ul>
+<li>
+<p>A parent reducer sets child state to a different case when processing a child action and
+runs <em>before</em> the child reducer:</p>
+<pre><code class="language-swift">let parentReducer = Reducer&lt;ParentState, ParentAction, ParentEnvironment&gt;.combine(
+  // When combining reducers, the parent reducer runs first
+  Reducer { state, action, environment in
+    switch action {
+    case .child(.didDisappear):
+      // And `nil`s out child state when processing a child action
+      state.child = .anotherChild(AnotherChildState())
+      return .none
+    ...
+    }
+  },
+  // Before the child reducer runs
+  childReducer.pullback(state: /ParentState.child, ...)
+)
+
+let childReducer = Reducer&lt;
+  ChildState, ChildAction, ChildEnvironment
+&gt; { state, action environment in
+  case .didDisappear:
+    // This action is never received here because child state cannot be extracted
+  ...
+}
+</code></pre>
+<p>To ensure that a child reducer can process any action that a parent may use to change its
+state, combine it <em>before</em> the parent:</p>
+<pre><code class="language-swift">let parentReducer = Reducer&lt;ParentState, ParentAction, ParentEnvironment&gt;.combine(
+  // The child runs first
+  childReducer.pullback(state: /ParentState.child, ...),
+  // The parent runs after
+  Reducer { state, action, environment in
+    ...
+  }
+)
+</code></pre>
+</li>
+<li>
+<p>A child effect feeds a child action back into the store when child state is unavailable:</p>
+<pre><code class="language-swift">let childReducer = Reducer&lt;
+  ChildState, ChildAction, ChildEnvironment
+&gt; { state, action environment in
+  switch action {
+  case .onAppear:
+    // An effect may want to later feed a result back to the child domain in an action
+    return environment.apiClient
+      .request()
+      .map(ChildAction.response)
+
+  case let .response(response):
+    // But the child cannot process this action if its state is unavailable
+  ...
+  }
+}
+</code></pre>
+<p>It is perfectly reasonable to ignore the result of an effect when child state is <code>nil</code>,
+for example one-off effects that you don't want to cancel. However, many long-living
+effects <em>should</em> be explicitly canceled when tearing down a child domain:</p>
+<pre><code class="language-swift">let childReducer = Reducer&lt;
+  ChildState, ChildAction, ChildEnvironment
+&gt; { state, action environment in
+  enum MotionID {}
+
+  switch action {
+  case .onAppear:
+    // Mark long-living effects that shouldn't outlive their domain cancellable
+    return environment.motionClient
+      .start()
+      .map(ChildAction.motion)
+      .cancellable(id: MotionID.self)
+
+  case .onDisappear:
+    // And explicitly cancel them when the domain is torn down
+    return .cancel(id: MotionID.self)
+  ...
+  }
+}
+</code></pre>
+</li>
+<li>
+<p>A view store sends a child action when child state is <code>nil</code>:</p>
+<pre><code class="language-swift">WithViewStore(self.parentStore) { parentViewStore in
+  // If child state is `nil`, it cannot process this action.
+  Button(&quot;Child Action&quot;) { parentViewStore.send(.child(.action)) }
+  ...
+}
+</code></pre>
+<p>Use <code>Store/scope(state:action:)</code> with <code>SwitchStore</code> to ensure that views can only send
+child actions when the child domain is available.</p>
+<pre><code class="language-swift">SwitchStore(self.parentStore) {
+  CaseLet(state: /ParentState.child, action: ParentAction.child) { childStore in
+    // This destination only appears when child state matches
+    WithViewStore(childStore) { childViewStore in
+      // So this action can only be sent when child state is available
+      Button(&quot;Child Action&quot;) { childViewStore.send(.action) }
+    }
+  }
+  ...
+}
+</code></pre>
+</li>
+</ul>
+
+<aside class="see also" title="See Also">
+    <p><code>SwitchStore</code>, a SwiftUI helper for transforming a store on enum state into stores on each case of the enum.</p>
+
+</aside>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>to​Child​State</th>
+    <td><code class="type">Case​Path&lt;Parent​State, State&gt;</code></td>
+    <td><p>A case path that can extract/embed <code>State</code> from <code>ParentState</code>.</p>
+</td>
+</tr>
+<tr>
+    <th>to​Child​Action</th>
+    <td><code class="type">Case​Path&lt;Parent​Action, Action&gt;</code></td>
+    <td><p>A case path that can extract/embed <code>Action</code> from <code>ParentAction</code>.</p>
+</td>
+</tr>
+<tr>
+    <th>to​Child​Environment</th>
+    <td><code class="type">@escaping (Parent​Environment) -&gt; Environment</code></td>
+    <td><p>A function that transforms <code>ParentEnvironment</code> into <code>Environment</code>.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A reducer that works on <code>ParentState</code>, <code>ParentAction</code>, <code>ParentEnvironment</code>.</p>
+
+</div>
+<div role="article" class="function" id="reducer.optional(file:fileid:line:)">
+    <h3>
+        <code><a href="#reducer.optional(file:fileid:line:)">optional(file:​file​ID:​line:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">optional</span>(
+    <span class="variable">file</span>: <span class="type">StaticString</span> = <span class="keyword">#file</span>,
+    <span class="variable">fileID</span>: <span class="type">StaticString</span> = <span class="keyword">#fileID</span>,
+    <span class="variable">line</span>: <span class="type">UInt</span> = <span class="keyword">#line</span>
+  ) -&gt; <a href="/reactiveswift-composable-architecture/Reducer"><span class="type">Reducer</span></a>&lt;
+    <span class="type">State</span>?, <span class="type">Action</span>, <span class="type">Environment</span>
+  &gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Transforms a reducer that works on non-optional state into one that works on optional state by
+only running the non-optional reducer when state is non-nil.</p>
+
+</div>
+<div class="discussion">
+    <p>Often used in tandem with <code>pullback(state:action:environment:)</code> to transform a reducer on a
+non-optional child domain into a reducer that can be combined with a reducer on a parent
+domain that contains some optional child domain:</p>
+
+<html><body><pre class="highlight"><code><span class="comment">// Parent domain that holds an optional child domain:</span>
+<span class="keyword">struct</span> <span class="type">AppState</span> { <span class="keyword">var</span> <span class="variable">modal</span>: <span class="type">ModalState</span>? }
+<span class="keyword">enum</span> <span class="type">AppAction</span> { <span class="keyword">case</span> <span class="variable">modal</span>(<span class="type">ModalAction</span>) }
+<span class="keyword">struct</span> <span class="type">AppEnvironment</span> { <span class="keyword">var</span> <span class="variable">mainQueue</span>: <span class="type">AnySchedulerOf</span>&lt;<span class="type">DispatchQueue</span>&gt; }
+
+<span class="comment">// A reducer that works on the non-optional child domain:</span>
+<span class="keyword">let</span> <span class="variable">modalReducer</span> = <span class="variable">Reducer</span>&lt;<span class="variable">ModalState</span>, <span class="variable">ModalAction</span>, <span class="variable">ModalEnvironment</span> { ... }
+
+<span class="comment">// Pullback the modal reducer so that it works on all of the app domain:</span>
+<span class="keyword">let</span> <span class="variable">appReducer</span> = <span class="variable">Reducer</span>&lt;<span class="type">AppState</span>, <span class="type">AppAction</span>, <span class="type">AppEnvironment</span>&gt;.<span class="variable">combine</span>(
+  <span class="variable">modalReducer</span>.<span class="variable">optional</span>().<span class="variable">pullback</span>(
+    <span class="variable">state</span>: \.<span class="variable">modal</span>,
+    <span class="variable">action</span>: /<span class="variable">AppAction</span>.<span class="variable">modal</span>,
+    <span class="variable">environment</span>: { <span class="variable">ModalEnvironment</span>(<span class="variable">mainQueue</span>: <span class="variable">$0</span>.<span class="variable">mainQueue</span>) }
+  ),
+  <span class="variable">Reducer</span> { <span class="variable">state</span>, <span class="variable">action</span>, <span class="variable">environment</span> <span class="keyword">in</span>
+    ...
+  }
+)
+</code></pre></body></html>
+<p>Take care when combining optional reducers into parent domains. An optional reducer cannot
+process actions in its domain when its state is <code>nil</code>. If a child action is sent to an
+optional reducer when child state is <code>nil</code>, it is generally considered a logic error. There
+are a few ways in which these errors can sneak into a code base:</p>
+
+<ul>
+<li>
+<p>A parent reducer sets child state to <code>nil</code> when processing a child action and runs
+<em>before</em> the child reducer:</p>
+<pre><code class="language-swift">let parentReducer = Reducer&lt;ParentState, ParentAction, ParentEnvironment&gt;.combine(
+  // When combining reducers, the parent reducer runs first
+  Reducer { state, action, environment in
+    switch action {
+    case .child(.didDisappear):
+      // And `nil`s out child state when processing a child action
+      state.child = nil
+      return .none
+    ...
+    }
+  },
+  // Before the child reducer runs
+  childReducer.optional().pullback(...)
+)
+
+let childReducer = Reducer&lt;
+  ChildState, ChildAction, ChildEnvironment
+&gt; { state, action environment in
+  case .didDisappear:
+    // This action is never received here because child state is `nil` in the parent
+  ...
+}
+</code></pre>
+<p>To ensure that a child reducer can process any action that a parent may use to <code>nil</code> out
+its state, combine it <em>before</em> the parent:</p>
+<pre><code class="language-swift">let parentReducer = Reducer&lt;ParentState, ParentAction, ParentEnvironment&gt;.combine(
+  // The child runs first
+  childReducer.optional().pullback(...),
+  // The parent runs after
+  Reducer { state, action, environment in
+    ...
+  }
+)
+</code></pre>
+</li>
+<li>
+<p>A child effect feeds a child action back into the store when child state is <code>nil</code>:</p>
+<pre><code class="language-swift">let childReducer = Reducer&lt;
+  ChildState, ChildAction, ChildEnvironment
+&gt; { state, action environment in
+  switch action {
+  case .onAppear:
+    // An effect may want to feed its result back to the child domain in an action
+    return environment.apiClient
+      .request()
+      .map(ChildAction.response)
+
+  case let .response(response):
+    // But the child cannot process this action if its state is `nil` in the parent
+  ...
+  }
+}
+</code></pre>
+<p>It is perfectly reasonable to ignore the result of an effect when child state is <code>nil</code>,
+for example one-off effects that you don't want to cancel. However, many long-living
+effects <em>should</em> be explicitly canceled when tearing down a child domain:</p>
+<pre><code class="language-swift">let childReducer = Reducer&lt;
+  ChildState, ChildAction, ChildEnvironment
+&gt; { state, action environment in
+  enum MotionID {}
+
+  switch action {
+  case .onAppear:
+    // Mark long-living effects that shouldn't outlive their domain cancellable
+    return environment.motionClient
+      .start()
+      .map(ChildAction.motion)
+      .cancellable(id: MotionID.self)
+
+  case .onDisappear:
+    // And explicitly cancel them when the domain is torn down
+    return .cancel(id: MotionID.self)
+  ...
+  }
+}
+</code></pre>
+</li>
+<li>
+<p>A view store sends a child action when child state is <code>nil</code>:</p>
+<pre><code class="language-swift">WithViewStore(self.parentStore) { parentViewStore in
+  // If child state is `nil`, it cannot process this action.
+  Button(&quot;Child Action&quot;) { parentViewStore.send(.child(.action)) }
+  ...
+}
+</code></pre>
+<p>Use <code>Store/scope(state:action:)</code> with <code>IfLetStore</code> or <code>Store/ifLet(then:else:)</code> to
+ensure that views can only send child actions when the child domain is non-<code>nil</code>.</p>
+<pre><code class="language-swift">IfLetStore(
+  self.parentStore.scope(state: { $0.child }, action: { .child($0) }
+) { childStore in
+  // This destination only appears when child state is non-`nil`
+  WithViewStore(childStore) { childViewStore in
+    // So this action can only be sent when child state is non-`nil`
+    Button(&quot;Child Action&quot;) { childViewStore.send(.action) }
+  }
+  ...
+}
+</code></pre>
+</li>
+</ul>
+
+<aside class="see also" title="See Also">
+    <p><code>IfLetStore</code>, a SwiftUI helper for transforming a store on optional state into a store on non-optional state.</p>
+
+</aside>
+<aside class="see also" title="See Also">
+    <p><code>Store/ifLet(then:else:)</code>, a UIKit helper for doing imperative work with a store on optional state.</p>
+
+</aside>
+</div>
+  <h4>Returns</h4>
+  <p>A reducer that works on optional state.</p>
+
+</div>
+<div role="article" class="function" id="reducer.foreach(state:action:environment:file:fileid:line:)">
+    <h3>
+        <code><a href="#reducer.foreach(state:action:environment:file:fileid:line:)">for​Each(state:​action:​environment:​file:​file​ID:​line:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">forEach</span>&lt;<span class="variable">ParentState</span>, <span class="variable">ParentAction</span>, <span class="variable">ParentEnvironment</span>, <span class="variable">ID</span>&gt;(
+    <span class="variable">state</span> <span class="variable">toElementsState</span>: <span class="type">WritableKeyPath</span>&lt;<span class="type">ParentState</span>, <span class="type">IdentifiedArray</span>&lt;<span class="type">ID</span>, <span class="type">State</span>&gt;&gt;,
+    <span class="variable">action</span> <span class="variable">toElementAction</span>: <span class="type">CasePath</span>&lt;<span class="type">ParentAction</span>, (<span class="type">ID</span>, <span class="type">Action</span>)&gt;,
+    <span class="variable">environment</span> <span class="variable">toElementEnvironment</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">ParentEnvironment</span>) -&gt; <span class="type">Environment</span>,
+    <span class="variable">file</span>: <span class="type">StaticString</span> = <span class="keyword">#file</span>,
+    <span class="variable">fileID</span>: <span class="type">StaticString</span> = <span class="keyword">#fileID</span>,
+    <span class="variable">line</span>: <span class="type">UInt</span> = <span class="keyword">#line</span>
+  ) -&gt; <a href="/reactiveswift-composable-architecture/Reducer"><span class="type">Reducer</span></a>&lt;<span class="type">ParentState</span>, <span class="type">ParentAction</span>, <span class="type">ParentEnvironment</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>A version of <code>pullback(state:action:environment:)</code> that transforms a reducer that works on
+an element into one that works on an identified array of elements.</p>
+
+</div>
+<div class="discussion">
+    <html><body><pre class="highlight"><code><span class="comment">// Parent domain that holds a collection of child domains:</span>
+<span class="keyword">struct</span> <span class="type">AppState</span> { <span class="keyword">var</span> <span class="variable">todos</span>: <span class="type">IdentifiedArrayOf</span>&lt;<span class="type">Todo</span>&gt; }
+<span class="keyword">enum</span> <span class="type">AppAction</span> { <span class="keyword">case</span> <span class="variable">todo</span>(<span class="variable">id</span>: <span class="type">Todo</span>.<span class="type">ID</span>, <span class="variable">action</span>: <span class="type">TodoAction</span>) }
+<span class="keyword">struct</span> <span class="type">AppEnvironment</span> { <span class="keyword">var</span> <span class="variable">mainQueue</span>: <span class="type">AnySchedulerOf</span>&lt;<span class="type">DispatchQueue</span>&gt; }
+
+<span class="comment">// A reducer that works on an element's domain:</span>
+<span class="keyword">let</span> <span class="variable">todoReducer</span> = <span class="variable">Reducer</span>&lt;<span class="type">Todo</span>, <span class="type">TodoAction</span>, <span class="type">TodoEnvironment</span>&gt; { ... }
+
+<span class="comment">// Pullback the todo reducer so that it works on all of the app domain:</span>
+<span class="keyword">let</span> <span class="variable">appReducer</span> = <span class="variable">Reducer</span>&lt;<span class="type">AppState</span>, <span class="type">AppAction</span>, <span class="type">AppEnvironment</span>&gt;.<span class="variable">combine</span>(
+  <span class="variable">todoReducer</span>.<span class="variable">forEach</span>(
+    <span class="variable">state</span>: \.<span class="variable">todos</span>,
+    <span class="variable">action</span>: /<span class="variable">AppAction</span>.<span class="variable">todo</span>(<span class="variable">id</span>:<span class="type">action</span>:),
+    <span class="variable">environment</span>: { <span class="keyword">_</span> <span class="keyword">in</span> <span class="variable">TodoEnvironment</span>() }
+  ),
+  <span class="variable">Reducer</span> { <span class="variable">state</span>, <span class="variable">action</span>, <span class="variable">environment</span> <span class="keyword">in</span>
+    ...
+  }
+)
+</code></pre></body></html>
+<p>Take care when combining <code>forEach</code> reducers into parent domains, as order matters. Always
+combine <code>forEach</code> reducers <em>before</em> parent reducers that can modify the collection.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>to​Elements​State</th>
+    <td><code class="type">Writable​Key​Path&lt;Parent​State, Identified​Array&lt;ID, State&gt;&gt;</code></td>
+    <td><p>A key path that can get/set a collection of <code>State</code> elements inside <code>ParentState</code>.</p>
+</td>
+</tr>
+<tr>
+    <th>to​Element​Action</th>
+    <td><code class="type">Case​Path&lt;Parent​Action, (ID, Action)&gt;</code></td>
+    <td><p>A case path that can extract/embed <code>(ID, Action)</code> from <code>ParentAction</code>.</p>
+</td>
+</tr>
+<tr>
+    <th>to​Element​Environment</th>
+    <td><code class="type">@escaping (Parent​Environment) -&gt; Environment</code></td>
+    <td><p>A function that transforms <code>ParentEnvironment</code> into <code>Environment</code>.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A reducer that works on <code>ParentState</code>, <code>ParentAction</code>, <code>ParentEnvironment</code>.</p>
+
+</div>
+<div role="article" class="function" id="reducer.foreach(state:action:environment:file:fileid:line:)">
+    <h3>
+        <code><a href="#reducer.foreach(state:action:environment:file:fileid:line:)">for​Each(state:​action:​environment:​file:​file​ID:​line:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">forEach</span>&lt;<span class="variable">ParentState</span>, <span class="variable">ParentAction</span>, <span class="variable">ParentEnvironment</span>, <span class="variable">Key</span>&gt;(
+    <span class="variable">state</span> <span class="variable">toDictionaryState</span>: <span class="type">WritableKeyPath</span>&lt;<span class="type">ParentState</span>, [<span class="type">Key</span>: <span class="type">State</span>]&gt;,
+    <span class="variable">action</span> <span class="variable">toKeyedAction</span>: <span class="type">CasePath</span>&lt;<span class="type">ParentAction</span>, (<span class="type">Key</span>, <span class="type">Action</span>)&gt;,
+    <span class="variable">environment</span> <span class="variable">toValueEnvironment</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">ParentEnvironment</span>) -&gt; <span class="type">Environment</span>,
+    <span class="variable">file</span>: <span class="type">StaticString</span> = <span class="keyword">#file</span>,
+    <span class="variable">fileID</span>: <span class="type">StaticString</span> = <span class="keyword">#fileID</span>,
+    <span class="variable">line</span>: <span class="type">UInt</span> = <span class="keyword">#line</span>
+  ) -&gt; <a href="/reactiveswift-composable-architecture/Reducer"><span class="type">Reducer</span></a>&lt;<span class="type">ParentState</span>, <span class="type">ParentAction</span>, <span class="type">ParentEnvironment</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>A version of <code>pullback(state:action:environment:)</code> that transforms a reducer that works on
+an element into one that works on a dictionary of element values.</p>
+
+</div>
+<div class="discussion">
+    <p>Take care when combining <code>forEach</code> reducers into parent domains, as order matters. Always
+combine `forEach`` reducers <em>before</em> parent reducers that can modify the dictionary.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>to​Dictionary​State</th>
+    <td><code class="type">Writable​Key​Path&lt;Parent​State, [Key:​ State]&gt;</code></td>
+    <td><p>A key path that can get/set a dictionary of <code>State</code> values inside <code>ParentState</code>.</p>
+</td>
+</tr>
+<tr>
+    <th>to​Keyed​Action</th>
+    <td><code class="type">Case​Path&lt;Parent​Action, (Key, Action)&gt;</code></td>
+    <td><p>A case path that can extract/embed <code>(Key, Action)</code> from <code>ParentAction</code>.</p>
+</td>
+</tr>
+<tr>
+    <th>to​Value​Environment</th>
+    <td><code class="type">@escaping (Parent​Environment) -&gt; Environment</code></td>
+    <td><p>A function that transforms <code>ParentEnvironment</code> into <code>Environment</code>.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A reducer that works on <code>ParentState</code>, <code>ParentAction</code>, <code>ParentEnvironment</code>.</p>
+
+</div>
+<div role="article" class="function" id="reducer.run(_:_:_:)">
+    <h3>
+        <code><a href="#reducer.run(_:_:_:)">run(_:​_:​_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">run</span>(
+    <span class="keyword">_</span> <span class="variable">state</span>: <span class="keyword">inout</span> <span class="type">State</span>,
+    <span class="keyword">_</span> <span class="variable">action</span>: <span class="type">Action</span>,
+    <span class="keyword">_</span> <span class="variable">environment</span>: <span class="type">Environment</span>
+  ) -&gt; <a href="/reactiveswift-composable-architecture/Effect"><span class="type">Effect</span></a>&lt;<span class="type">Action</span>, <span class="type">Never</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Runs the reducer.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>state</th>
+    <td><code class="type">inout State</code></td>
+    <td><p>Mutable state.</p>
+</td>
+</tr>
+<tr>
+    <th>action</th>
+    <td><code class="type">Action</code></td>
+    <td><p>An action.</p>
+</td>
+</tr>
+<tr>
+    <th>environment</th>
+    <td><code class="type">Environment</code></td>
+    <td><p>An environment.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect that can emit zero or more actions.</p>
+
+</div>
+<div role="article" class="function" id="reducer.callasfunction(_:_:_:)">
+    <h3>
+        <code><a href="#reducer.callasfunction(_:_:_:)">call​AsFunction(_:​_:​_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">callAsFunction</span>(
+    <span class="keyword">_</span> <span class="variable">state</span>: <span class="keyword">inout</span> <span class="type">State</span>,
+    <span class="keyword">_</span> <span class="variable">action</span>: <span class="type">Action</span>,
+    <span class="keyword">_</span> <span class="variable">environment</span>: <span class="type">Environment</span>
+  ) -&gt; <a href="/reactiveswift-composable-architecture/Effect"><span class="type">Effect</span></a>&lt;<span class="type">Action</span>, <span class="type">Never</span>&gt;  </body></html></code></pre>
+</div>
+</div>
+    </section>
+
+
+
+        </article>
+    </main>
+
+    <footer>
+        <p>
+    Generated on <time datetime="2022-12-31T17:25:39+0000">December 31, 2022</time> using <a href="https://github.com/SwiftDocOrg/swift-doc">swift-doc</a> <span class="version">1.0.0-rc.1</span>.
+</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComposableArchitecture - environment</title>
+    <link rel="stylesheet" type="text/css" href="/reactiveswift-composable-architecture/all.css" media="all" />
+</head>
+<body>
+    <header>
+        <a href="/reactiveswift-composable-architecture/">
+            <strong>
+                ComposableArchitecture
+            </strong>
+            <span>Documentation</span>
+        </a>
+    </header>
+
+    <!--
+    <form class="search">
+        <input type="search" placeholder="Search" />
+    </form>
+    -->
+
+    <nav>
+        <div class="wrapper">
+            <h2>On This Page</h2>
+            <ol/>
+        </div>
+    </nav>
+
+    <main>
+        <article>
+            <h1>
+<small>Variable</small>
+<span class="name">environment</span>
+</h1>
+
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">var</span> <span class="variable">environment</span>: <span class="type">Environment</span></body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>The current environment.</p>
+
+</div>
+<div class="discussion">
+    <p>The environment can be modified throughout a test store's lifecycle in order to influence
+how it produces effects. This can be handy for testing flows that require a dependency
+to start in a failing state and then later change into a succeeding state:</p>
+
+<html><body><pre class="highlight"><code><span class="comment">// Start dependency endpoint in a failing state</span>
+<span class="variable">store</span>.<span class="variable">environment</span>.<span class="variable">client</span>.<span class="variable">fetch</span> = { <span class="keyword">_</span> <span class="keyword">in</span> <span class="keyword">throw</span> <span class="variable">FetchError</span>() }
+<span class="variable">await</span> <span class="variable">store</span>.<span class="variable">send</span>(.<span class="variable">buttonTapped</span>)
+<span class="variable">await</span> <span class="variable">store</span>.<span class="variable">receive</span>(.<span class="variable">response</span>(.<span class="variable">failure</span>(<span class="variable">FetchError</span>())) {
+  …
+}
+
+<span class="comment">// Change dependency endpoint into a succeeding state</span>
+<span class="variable">await</span> <span class="variable">store</span>.<span class="variable">environment</span>.<span class="variable">client</span>.<span class="variable">fetch</span> = { <span class="string literal">"Hello \($0)!"</span> }
+<span class="variable">await</span> <span class="variable">store</span>.<span class="variable">send</span>(.<span class="variable">buttonTapped</span>)
+<span class="variable">await</span> <span class="variable">store</span>.<span class="variable">receive</span>(.<span class="variable">response</span>(.<span class="variable">success</span>(<span class="string literal">"Hello Blob!"</span>))) {
+  …
+}
+</code></pre></body></html>
+</div>
+        </article>
+    </main>
+
+    <footer>
+        <p>
+    Generated on <time datetime="2022-12-31T17:25:39+0000">December 31, 2022</time> using <a href="https://github.com/SwiftDocOrg/swift-doc">swift-doc</a> <span class="version">1.0.0-rc.1</span>.
+</p>
+    </footer>
+</body>
+</html>

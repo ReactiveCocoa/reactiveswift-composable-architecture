@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComposableArchitecture - Effect</title>
+    <link rel="stylesheet" type="text/css" href="/reactiveswift-composable-architecture/all.css" media="all" />
+</head>
+<body>
+    <header>
+        <a href="/reactiveswift-composable-architecture/">
+            <strong>
+                ComposableArchitecture
+            </strong>
+            <span>Documentation</span>
+        </a>
+    </header>
+
+    <!--
+    <form class="search">
+        <input type="search" placeholder="Search" />
+    </form>
+    -->
+
+    <nav>
+        <div class="wrapper">
+            <h2>On This Page</h2>
+            <ol><li><a href="#relationships">Relationships</a><ul><li><a href="#relationships">Conforms To</a></li></ul></li><li><a href="#initializers">Initializers</a><ul><li class="initializer"><a href="#effect.init(_:)">init(_:​)</a></li><li class="initializer"><a href="#effect.init(value:)">init(value:​)</a></li><li class="initializer"><a href="#effect.init(error:)">init(error:​)</a></li></ul></li><li><a href="#properties">Properties</a><ul><li class="variable"><a href="#effect.none">none</a></li><li class="variable"><a href="#effect.producer">producer</a></li></ul></li><li><a href="#methods">Methods</a><ul><li class="function"><a href="#effect.merge(_:)">merge(_:​)</a></li><li class="function"><a href="#effect.merge(_:)">merge(_:​)</a></li><li class="function"><a href="#effect.merge(with:)">merge(with:​)</a></li><li class="function"><a href="#effect.concatenate(_:)">concatenate(_:​)</a></li><li class="function"><a href="#effect.concatenate(_:)">concatenate(_:​)</a></li><li class="function"><a href="#effect.concatenate(with:)">concatenate(with:​)</a></li><li class="function"><a href="#effect.map(_:)">map(_:​)</a></li><li class="function"><a href="#effect.unimplemented(_:)">unimplemented(_:​)</a></li><li class="function"><a href="#effect.animation(_:)">animation(_:​)</a></li><li class="function"><a href="#effect.cancellable(id:cancelinflight:)">cancellable(id:​cancel​InFlight:​)</a></li><li class="function"><a href="#effect.cancellable(id:cancelinflight:)">cancellable(id:​cancel​InFlight:​)</a></li><li class="function"><a href="#effect.cancel(id:)">cancel(id:​)</a></li><li class="function"><a href="#effect.cancel(id:)">cancel(id:​)</a></li><li class="function"><a href="#effect.cancel(ids:)">cancel(ids:​)</a></li><li class="function"><a href="#effect.cancel(ids:)">cancel(ids:​)</a></li><li class="function"><a href="#effect.debounce(id:for:scheduler:)">debounce(id:​for:​scheduler:​)</a></li><li class="function"><a href="#effect.debounce(id:for:scheduler:)">debounce(id:​for:​scheduler:​)</a></li><li class="function"><a href="#effect.deferred(for:scheduler:)">deferred(for:​scheduler:​)</a></li><li class="function"><a href="#effect.future(_:)">future(_:​)</a></li><li class="function"><a href="#effect.result(_:)">result(_:​)</a></li><li class="function"><a href="#effect.run(_:)">run(_:​)</a></li><li class="function"><a href="#effect.fireandforget(_:)">fire​And​Forget(_:​)</a></li><li class="function"><a href="#effect.fireandforget(outputtype:failuretype:)">fire​And​Forget(output​Type:​failure​Type:​)</a></li><li class="function"><a href="#effect.throttle(id:for:scheduler:latest:)">throttle(id:​for:​scheduler:​latest:​)</a></li><li class="function"><a href="#effect.throttle(id:for:scheduler:latest:)">throttle(id:​for:​scheduler:​latest:​)</a></li><li class="function"><a href="#effect.failing(_:)">failing(_:​)</a></li><li class="function"><a href="#effect.cancel(ids:)">cancel(ids:​)</a></li></ul></li></ol>
+        </div>
+    </nav>
+
+    <main>
+        <article>
+            <h1>
+    <small>Structure</small>
+    <code class="name">Effect</code>
+</h1>
+
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">struct</span> <span class="type">Effect</span>&lt;<span class="variable">Action</span>, <span class="variable">Failure</span>: <span class="type">Error</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>The <code>Effect</code> type encapsulates a unit of work that can be run in the outside world, and can
+feed actions back to the <code>Store</code>. It is the perfect place to do side effects, such as network
+requests, saving/loading from disk, creating timers, interacting with dependencies, and more.</p>
+
+</div>
+<div class="discussion">
+    <p>Effects are returned from reducers so that the <code>Store</code> can perform the effects after the
+reducer is done running.</p>
+
+<p>There are 2 distinct ways to create an <code>Effect</code>: one using Swift's native concurrency tools, and
+the other using ReactiveSwift framework:</p>
+
+<ul>
+<li>
+<p>If using Swift's native structured concurrency tools then there are 3 main ways to create an
+effect, depending on if you want to emit one single action back into the system, or any number
+of actions, or just execute some work without emitting any actions:</p>
+<ul>
+<li><code>Effect/task(priority:operation:catch:file:fileID:line:)</code></li>
+<li><code>Effect/run(priority:operation:catch:file:fileID:line:)</code></li>
+<li><code>Effect/fireAndForget(priority:_:)</code></li>
+</ul>
+</li>
+<li>
+<p>If using ReactiveSwift in your application, in particular the dependencies of your feature's
+environment, then you can create effects by making use of ReactiveSwift's <code>SignalProducer</code>s.
+Note that the ReactiveSwift interface to <code>Effect</code> is considered soft deprecated, and you
+should eventually port to Swift's native concurrency tools.</p>
+</li>
+</ul>
+
+<blockquote>
+<p>Important: <code>Store</code> is not thread safe, and so all effects must receive values on the same
+thread. This is typically the main thread,  <strong>and</strong> if the store is being used to drive UI
+then it must receive values on the main thread.</p>
+<p>This is only an issue if using the ReactiveSwift interface of <code>Effect</code> as mentioned above.
+If you you are using Swift's concurrency tools and the <code>.task</code>, <code>.run</code> and <code>.fireAndForget</code>
+functions on <code>Effect</code>, then threading is automatically handled for you.</p>
+</blockquote>
+
+</div>
+<section id="relationships">
+    <h2 hidden>Relationships</h2>
+        <figure>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.40.1 (20161225.0304)
+ -->
+<!-- Title: %19 Pages: 1 -->
+<svg width="872pt" height="116pt"
+ viewBox="0.00 0.00 872.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>%19</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-112 868,-112 868,4 -4,4"/>
+<!-- Effect -->
+<g id="node1" class="node structure current">
+<title>Effect</title>
+<g id="a_node1"><a xlink:href="/reactiveswift-composable-architecture/Effect" xlink:title="Effect">
+<path fill="none" stroke="#000000" stroke-width="3" d="M528,-108C528,-108 336,-108 336,-108 330,-108 324,-102 324,-96 324,-96 324,-84 324,-84 324,-78 330,-72 336,-72 336,-72 528,-72 528,-72 534,-72 540,-78 540,-84 540,-84 540,-96 540,-96 540,-102 534,-108 528,-108"/>
+<text text-anchor="middle" x="432" y="-86.3" font-family="Menlo" font-size="14.00" fill="#000000">Effect</text>
+</a>
+</g>
+</g>
+<!-- SignalProducerConvertible -->
+<g id="node2" class="node unknown">
+<title>SignalProducerConvertible</title>
+<path fill="none" stroke="#000000" d="M528,-36C528,-36 336,-36 336,-36 330,-36 324,-30 324,-24 324,-24 324,-12 324,-12 324,-6 330,0 336,0 336,0 528,0 528,0 534,0 540,-6 540,-12 540,-12 540,-24 540,-24 540,-30 534,-36 528,-36"/>
+<text text-anchor="middle" x="432" y="-14.3" font-family="Menlo" font-size="14.00" fill="#000000">SignalProducerConvertible</text>
+</g>
+<!-- Effect&#45;&gt;SignalProducerConvertible -->
+<g id="edge1" class="edge conformsTo">
+<title>Effect&#45;&gt;SignalProducerConvertible</title>
+<path fill="none" stroke="#000000" d="M432,-71.8314C432,-64.131 432,-54.9743 432,-46.4166"/>
+<polygon fill="#000000" stroke="#000000" points="435.5001,-46.4132 432,-36.4133 428.5001,-46.4133 435.5001,-46.4132"/>
+</g>
+</g>
+</svg>
+
+
+    <figcaption hidden>Inheritance graph for Effect.</figcaption>
+</figure>
+        <h3>Conforms To</h3>
+<dl>
+    <dt class="unknown"><code>SignalProducerConvertible</code></dt>
+</dl>
+</section>
+    <section id="initializers">
+        <h2>Initializers</h2>
+
+        <div role="article" class="initializer" id="effect.init(_:)">
+    <h3>
+        <code><a href="#effect.init(_:)">init(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">init</span>&lt;<span class="variable">P</span>: <span class="type">SignalProducerConvertible</span>&gt;(<span class="keyword">_</span> <span class="variable">producer</span>: <span class="type">P</span>)
+  <span class="keyword">where</span> <span class="type">P</span>.<span class="type">Value</span> == <span class="type">Action</span>, <span class="type">P</span>.<span class="type">Error</span> == <span class="type">Failure</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Initializes an effect that wraps a producer.</p>
+
+</div>
+<div class="discussion">
+    <blockquote>
+<p>Important: This ReactiveSwift interface has been soft-deprecated in favor of Swift concurrency.
+Prefer performing asynchronous work directly in
+<code>Effect/run(priority:operation:catch:file:fileID:line:)</code> by adopting a non-ReactiveSwift
+interface, or by iterating over the producer's asynchronous sequence of <code>values</code>:</p>
+<pre><code class="language-swift">return .run { send in
+  for await value in producer.values {
+    send(.response(value))
+  }
+}
+</code></pre>
+</blockquote>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>producer</th>
+    <td><code class="type">P</code></td>
+    <td><p>A <code>SignalProducer</code>.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+</div>
+<div role="article" class="initializer" id="effect.init(value:)">
+    <h3>
+        <code><a href="#effect.init(value:)">init(value:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Wrap the value in 'Effect.task', instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Wrap the value in 'Effect.task', instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Wrap the value in 'Effect.task', instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Wrap the value in 'Effect.task', instead."</span>)
+  <span class="keyword">public</span> <span class="keyword">init</span>(<span class="variable">value</span>: <span class="type">Action</span>)  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Initializes an effect that immediately emits the value passed in.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>value</th>
+    <td><code class="type">Action</code></td>
+    <td><p>The value that is immediately emitted by the effect.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+</div>
+<div role="article" class="initializer" id="effect.init(error:)">
+    <h3>
+        <code><a href="#effect.init(error:)">init(error:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Throw and catch errors directly in 'Effect.task' and 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Throw and catch errors directly in 'Effect.task' and 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Throw and catch errors directly in 'Effect.task' and 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Throw and catch errors directly in 'Effect.task' and 'Effect.run', instead."</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">init</span>(<span class="variable">error</span>: <span class="type">Failure</span>)  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Initializes an effect that immediately fails with the error passed in.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>error</th>
+    <td><code class="type">Failure</code></td>
+    <td><p>The error that is immediately emitted by the effect.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+</div>
+    </section>
+    <section id="properties">
+        <h2>Properties</h2>
+
+        <div role="article" class="variable" id="effect.none">
+    <h3>
+        <code><a href="#effect.none">none</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">inlinable</span>
+  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">var</span> <span class="variable">none</span>: <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>An effect that does nothing and completes immediately. Useful for situations where you must
+return an effect, but you don't need to do anything.</p>
+
+</div>
+</div>
+<div role="article" class="variable" id="effect.producer">
+    <h3>
+        <code><a href="#effect.producer">producer</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">inlinable</span>
+  <span class="keyword">public</span> <span class="keyword">var</span> <span class="variable">producer</span>: <span class="type">SignalProducer</span>&lt;<span class="type">Action</span>, <span class="type">Failure</span>&gt;  </body></html></code></pre>
+</div>
+</div>
+    </section>
+    <section id="methods">
+        <h2>Methods</h2>
+
+        <div role="article" class="function" id="effect.merge(_:)">
+    <h3>
+        <code><a href="#effect.merge(_:)">merge(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">inlinable</span>
+  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">merge</span>(<span class="keyword">_</span> <span class="variable">effects</span>: <span class="keyword">Self</span>...) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Merges a variadic list of effects together into a single effect, which runs the effects at the
+same time.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>effects</th>
+    <td><code class="type">Self</code></td>
+    <td><p>A list of effects.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A new effect</p>
+
+</div>
+<div role="article" class="function" id="effect.merge(_:)">
+    <h3>
+        <code><a href="#effect.merge(_:)">merge(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">inlinable</span>
+  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">merge</span>&lt;<span class="variable">S</span>: <span class="type">Sequence</span>&gt;(<span class="keyword">_</span> <span class="variable">effects</span>: <span class="type">S</span>) -&gt; <span class="keyword">Self</span> <span class="keyword">where</span> <span class="type">S</span>.<span class="type">Element</span> == <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Merges a sequence of effects together into a single effect, which runs the effects at the same
+time.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>effects</th>
+    <td><code class="type">S</code></td>
+    <td><p>A sequence of effects.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A new effect</p>
+
+</div>
+<div role="article" class="function" id="effect.merge(with:)">
+    <h3>
+        <code><a href="#effect.merge(with:)">merge(with:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">inlinable</span>
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">merge</span>(<span class="variable">with</span> <span class="variable">other</span>: <span class="keyword">Self</span>) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Merges this effect and another into a single effect that runs both at the same time.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>other</th>
+    <td><code class="type">Self</code></td>
+    <td><p>Another effect.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect that runs this effect and the other at the same time.</p>
+
+</div>
+<div role="article" class="function" id="effect.concatenate(_:)">
+    <h3>
+        <code><a href="#effect.concatenate(_:)">concatenate(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">inlinable</span>
+  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">concatenate</span>(<span class="keyword">_</span> <span class="variable">effects</span>: <span class="keyword">Self</span>...) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Concatenates a variadic list of effects together into a single effect, which runs the effects
+one after the other.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>effects</th>
+    <td><code class="type">Self</code></td>
+    <td><p>A variadic list of effects.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A new effect</p>
+
+</div>
+<div role="article" class="function" id="effect.concatenate(_:)">
+    <h3>
+        <code><a href="#effect.concatenate(_:)">concatenate(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">inlinable</span>
+  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">concatenate</span>&lt;<span class="variable">C</span>: <span class="type">Collection</span>&gt;(<span class="keyword">_</span> <span class="variable">effects</span>: <span class="type">C</span>) -&gt; <span class="keyword">Self</span> <span class="keyword">where</span> <span class="type">C</span>.<span class="type">Element</span> == <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Concatenates a collection of effects together into a single effect, which runs the effects one
+after the other.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>effects</th>
+    <td><code class="type">C</code></td>
+    <td><p>A collection of effects.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A new effect</p>
+
+</div>
+<div role="article" class="function" id="effect.concatenate(with:)">
+    <h3>
+        <code><a href="#effect.concatenate(with:)">concatenate(with:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">inlinable</span>
+  <span class="attribute">@</span><span class="attribute">_disfavoredOverload</span>
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">concatenate</span>(<span class="variable">with</span> <span class="variable">other</span>: <span class="keyword">Self</span>) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Concatenates this effect and another into a single effect that first runs this effect, and
+after it completes or is cancelled, runs the other.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>other</th>
+    <td><code class="type">Self</code></td>
+    <td><p>Another effect.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect that runs this effect, and after it completes or is cancelled, runs the other.</p>
+
+</div>
+<div role="article" class="function" id="effect.map(_:)">
+    <h3>
+        <code><a href="#effect.map(_:)">map(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">inlinable</span>
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">map</span>&lt;<span class="variable">T</span>&gt;(<span class="keyword">_</span> <span class="variable">transform</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">Action</span>) -&gt; <span class="type">T</span>) -&gt; <a href="/reactiveswift-composable-architecture/Effect"><span class="type">Effect</span></a>&lt;<span class="type">T</span>, <span class="type">Failure</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Transforms all elements from the upstream effect with a provided closure.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>transform</th>
+    <td><code class="type">@escaping (Action) -&gt; T</code></td>
+    <td><p>A closure that transforms the upstream effect's action to a new action.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect that uses the provided closure to map elements from the upstream effect to new elements that it then publishes.</p>
+
+</div>
+<div role="article" class="function" id="effect.unimplemented(_:)">
+    <h3>
+        <code><a href="#effect.unimplemented(_:)">unimplemented(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Call 'XCTUnimplemented' from your dependencies, instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Call 'XCTUnimplemented' from your dependencies, instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Call 'XCTUnimplemented' from your dependencies, instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Call 'XCTUnimplemented' from your dependencies, instead."</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">unimplemented</span>(<span class="keyword">_</span> <span class="variable">prefix</span>: <span class="type">String</span>) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>An effect that causes a test to fail if it runs.</p>
+
+</div>
+<div class="discussion">
+    <blockquote>
+<p>Important: This Combine-based interface has been soft-deprecated in favor of Swift
+concurrency. Prefer using async functions and <code>AsyncStream</code>s directly in your dependencies,
+and using <code>XCTUnimplemented</code> from the <a href="gh-xctest-dynamic-overlay">XCTest Dynamic Overlay</a>
+library to stub in a function that fails when invoked:</p>
+<pre><code class="language-swift">struct NumberFactClient {
+  var fetch: (Int) async throws -&gt; String
+}
+
+extension NumberFactClient {
+  static let unimplemented = Self(
+    fetch: XCTUnimplemented(
+      &quot;\(Self.self).fetch&quot;,
+      placeholder: &quot;Not an interesting number.&quot;
+    )
+  }
+}
+</code></pre>
+</blockquote>
+
+<p>This effect can provide an additional layer of certainty that a tested code path does not
+execute a particular effect.</p>
+
+<p>For example, let's say we have a very simple counter application, where a user can increment
+and decrement a number. The state and actions are simple enough:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">CounterState</span>: <span class="type">Equatable</span> {
+  <span class="keyword">var</span> <span class="variable">count</span> = <span class="number literal">0</span>
+}
+
+<span class="keyword">enum</span> <span class="type">CounterAction</span>: <span class="type">Equatable</span> {
+  <span class="keyword">case</span> <span class="variable">decrementButtonTapped</span>
+  <span class="keyword">case</span> <span class="variable">incrementButtonTapped</span>
+}
+</code></pre></body></html>
+<p>Let's throw in a side effect. If the user attempts to decrement the counter below zero, the
+application should refuse and play an alert sound instead.</p>
+
+<p>We can model playing a sound in the environment with an effect:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">CounterEnvironment</span> {
+  <span class="keyword">let</span> <span class="variable">playAlertSound</span>: () -&gt; <a href="/reactiveswift-composable-architecture/Effect"><span class="type">Effect</span></a>&lt;<span class="type">Never</span>, <span class="type">Never</span>&gt;
+}
+</code></pre></body></html>
+<p>Now that we've defined the domain, we can describe the logic in a reducer:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">let</span> <span class="variable">counterReducer</span> = <span class="variable">Reducer</span>&lt;
+  <span class="type">CounterState</span>, <span class="type">CounterAction</span>, <span class="type">CounterEnvironment</span>
+&gt; { <span class="variable">state</span>, <span class="variable">action</span>, <span class="variable">environment</span> <span class="keyword">in</span>
+  <span class="keyword">switch</span> <span class="variable">action</span> {
+  <span class="keyword">case</span> .<span class="variable">decrementButtonTapped</span>:
+    <span class="keyword">if</span> <span class="variable">state</span> &gt; <span class="number literal">0</span> {
+      <span class="variable">state</span>.<span class="variable">count</span> -= <span class="number literal">0</span>
+      <span class="keyword">return</span> .<span class="variable">none</span>
+    } <span class="keyword">else</span> {
+      <span class="keyword">return</span> <span class="variable">environment</span>.<span class="variable">playAlertSound</span>()
+        .<span class="variable">fireAndForget</span>()
+    }
+
+  <span class="keyword">case</span> .<span class="variable">incrementButtonTapped</span>:
+    <a href="/reactiveswift-composable-architecture/state"><span class="type">state</span></a>.<span class="variable">count</span> += <span class="number literal">1</span>
+    <span class="keyword">return</span> .<span class="variable">none</span>
+  }
+}
+</code></pre></body></html>
+<p>Let's say we want to write a test for the increment path. We can see in the reducer that it
+should never play an alert, so we can configure the environment with an effect that will
+fail if it ever executes:</p>
+
+<html><body><pre class="highlight"><code><span class="attribute">@</span><span class="type">MainActor</span>
+<span class="keyword">func</span> <span class="function">testIncrement</span>() <span class="variable">async</span> {
+  <span class="keyword">let</span> <span class="variable">store</span> = <span class="variable">TestStore</span>(
+    <span class="variable">initialState</span>: <span class="type">CounterState</span>(<span class="variable">count</span>: <span class="number literal">0</span>)
+    <span class="variable">reducer</span>: <span class="type">counterReducer</span>,
+    <span class="variable">environment</span>: <span class="type">CounterEnvironment</span>(
+      <span class="variable">playSound</span>: .<span class="variable">unimplemented</span>(<span class="string literal">"</span><span class="string literal">playSound</span><span class="string literal">"</span>)
+    )
+  )
+
+  <span class="variable">await</span> <span class="variable">store</span>.<span class="variable">send</span>(.<span class="variable">increment</span>) {
+    <span class="variable">$0</span>.<span class="variable">count</span> = <span class="number literal">1</span>
+  }
+}
+</code></pre></body></html>
+<p>By using an <code>.unimplemented</code> effect in our environment we have strengthened the assertion and
+made the test easier to understand at the same time. We can see, without consulting the
+reducer itself, that this particular action should not access this effect.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>prefix</th>
+    <td><code class="type">String</code></td>
+    <td><p>A string that identifies this scheduler and will prefix all failure messages.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect that causes a test to fail if it runs.</p>
+
+</div>
+<div role="article" class="function" id="effect.animation(_:)">
+    <h3>
+        <code><a href="#effect.animation(_:)">animation(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">animation</span>(<span class="keyword">_</span> <span class="variable">animation</span>: <span class="type">Animation</span>? = .<span class="variable">default</span>) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Wraps the emission of each element with SwiftUI's <code>withAnimation</code>.</p>
+
+</div>
+<div class="discussion">
+    <html><body><pre class="highlight"><code><span class="keyword">case</span> .<span class="variable">buttonTapped</span>:
+  <span class="keyword">return</span> .<span class="variable">task</span> {
+    .<span class="variable">activityResponse</span>(<span class="variable">await</span> <span class="variable">environment</span>.<span class="variable">apiClient</span>.<span class="variable">fetchActivity</span>())
+  }
+  .<span class="variable">animation</span>()
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>animation</th>
+    <td><code class="type">Animation?</code></td>
+    <td><p>An animation.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect.</p>
+
+</div>
+<div role="article" class="function" id="effect.cancellable(id:cancelinflight:)">
+    <h3>
+        <code><a href="#effect.cancellable(id:cancelinflight:)">cancellable(id:​cancel​InFlight:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">cancellable</span>(<span class="variable">id</span>: <span class="type">AnyHashable</span>, <span class="variable">cancelInFlight</span>: <span class="type">Bool</span> = <span class="keyword">false</span>) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Turns an effect into one that is capable of being canceled.</p>
+
+</div>
+<div class="discussion">
+    <p>To turn an effect into a cancellable one you must provide an identifier, which is used in
+<code>Effect/cancel(id:)-iun1</code> to identify which in-flight effect should be canceled. Any
+hashable value can be used for the identifier, such as a string, but you can add a bit of
+protection against typos by defining a new type for the identifier:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">LoadUserID</span> {}
+
+<span class="keyword">case</span> .<span class="variable">reloadButtonTapped</span>:
+  <span class="comment">// Start a new effect to load the user</span>
+  <span class="keyword">return</span> <span class="variable">environment</span>.<span class="variable">loadUser</span>
+    .<span class="variable">map</span>(<span class="variable">Action</span>.<span class="variable">userResponse</span>)
+    .<span class="variable">cancellable</span>(<span class="variable">id</span>: <span class="type">LoadUserID</span>.<span class="keyword">self</span>, <span class="variable">cancelInFlight</span>: <span class="keyword">true</span>)
+
+<span class="keyword">case</span> .<span class="variable">cancelButtonTapped</span>:
+  <span class="comment">// Cancel any in-flight requests to load the user</span>
+  <span class="keyword">return</span> .<span class="variable">cancel</span>(<span class="variable">id</span>: <span class="type">LoadUserID</span>.<span class="keyword">self</span>)
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>id</th>
+    <td><code class="type">Any​Hashable</code></td>
+    <td><p>The effect's identifier.</p>
+</td>
+</tr>
+<tr>
+    <th>cancel​InFlight</th>
+    <td><code class="type">Bool</code></td>
+    <td><p>Determines if any in-flight effect with the same identifier should be canceled before starting this new one.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A new effect that is capable of being canceled by an identifier.</p>
+
+</div>
+<div role="article" class="function" id="effect.cancellable(id:cancelinflight:)">
+    <h3>
+        <code><a href="#effect.cancellable(id:cancelinflight:)">cancellable(id:​cancel​InFlight:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">cancellable</span>(<span class="variable">id</span>: <span class="keyword">Any</span>.<span class="type">Type</span>, <span class="variable">cancelInFlight</span>: <span class="type">Bool</span> = <span class="keyword">false</span>) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Turns an effect into one that is capable of being canceled.</p>
+
+</div>
+<div class="discussion">
+    <p>A convenience for calling <code>Effect/cancellable(id:cancelInFlight:)-17skv</code> with a static type
+as the effect's unique identifier.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>id</th>
+    <td><code class="type">Any.​Type</code></td>
+    <td><p>A unique type identifying the effect.</p>
+</td>
+</tr>
+<tr>
+    <th>cancel​InFlight</th>
+    <td><code class="type">Bool</code></td>
+    <td><p>Determines if any in-flight effect with the same identifier should be canceled before starting this new one.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A new effect that is capable of being canceled by an identifier.</p>
+
+</div>
+<div role="article" class="function" id="effect.cancel(id:)">
+    <h3>
+        <code><a href="#effect.cancel(id:)">cancel(id:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">cancel</span>(<span class="variable">id</span>: <span class="type">AnyHashable</span>) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>An effect that will cancel any currently in-flight effect with the given identifier.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>id</th>
+    <td><code class="type">Any​Hashable</code></td>
+    <td><p>An effect identifier.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A new effect that will cancel any currently in-flight effect with the given identifier.</p>
+
+</div>
+<div role="article" class="function" id="effect.cancel(id:)">
+    <h3>
+        <code><a href="#effect.cancel(id:)">cancel(id:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">cancel</span>(<span class="variable">id</span>: <span class="keyword">Any</span>.<span class="type">Type</span>) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>An effect that will cancel any currently in-flight effect with the given identifier.</p>
+
+</div>
+<div class="discussion">
+    <p>A convenience for calling <code>Effect/cancel(id:)-iun1</code> with a static type as the effect's
+unique identifier.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>id</th>
+    <td><code class="type">Any.​Type</code></td>
+    <td><p>A unique type identifying the effect.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A new effect that will cancel any currently in-flight effect with the given identifier.</p>
+
+</div>
+<div role="article" class="function" id="effect.cancel(ids:)">
+    <h3>
+        <code><a href="#effect.cancel(ids:)">cancel(ids:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">cancel</span>(<span class="variable">ids</span>: [<span class="type">AnyHashable</span>]) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>An effect that will cancel multiple currently in-flight effects with the given identifiers.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>ids</th>
+    <td><code class="type">[Any​Hashable]</code></td>
+    <td><p>An array of effect identifiers.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A new effect that will cancel any currently in-flight effects with the given identifiers.</p>
+
+</div>
+<div role="article" class="function" id="effect.cancel(ids:)">
+    <h3>
+        <code><a href="#effect.cancel(ids:)">cancel(ids:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">cancel</span>(<span class="variable">ids</span>: [<span class="keyword">Any</span>.<span class="type">Type</span>]) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>An effect that will cancel multiple currently in-flight effects with the given identifiers.</p>
+
+</div>
+<div class="discussion">
+    <p>A convenience for calling <code>Effect/cancel(ids:)-dmwy</code> with a static type as the effect's
+unique identifier.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>ids</th>
+    <td><code class="type">[Any.​Type]</code></td>
+    <td><p>An array of unique types identifying the effects.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A new effect that will cancel any currently in-flight effects with the given identifiers.</p>
+
+</div>
+<div role="article" class="function" id="effect.debounce(id:for:scheduler:)">
+    <h3>
+        <code><a href="#effect.debounce(id:for:scheduler:)">debounce(id:​for:​scheduler:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">iOS</span>,
+    <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Use 'withTaskCancellation(id: _, cancelInFlight: true)' in 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">macOS</span>,
+    <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Use 'withTaskCancellation(id: _, cancelInFlight: true)' in 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">tvOS</span>,
+    <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Use 'withTaskCancellation(id: _, cancelInFlight: true)' in 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">watchOS</span>,
+    <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Use 'withTaskCancellation(id: _, cancelInFlight: true)' in 'Effect.run', instead."</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">debounce</span>(
+    <span class="variable">id</span>: <span class="type">AnyHashable</span>,
+    <span class="variable">for</span> <span class="variable">dueTime</span>: <span class="type">TimeInterval</span>,
+    <span class="variable">scheduler</span>: <span class="type">DateScheduler</span>
+  ) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Turns an effect into one that can be debounced.</p>
+
+</div>
+<div class="discussion">
+    <p>To turn an effect into a debounce-able one you must provide an identifier, which is used to
+determine which in-flight effect should be canceled in order to start a new effect. Any
+hashable value can be used for the identifier, such as a string, but you can add a bit of
+protection against typos by defining a new type that conforms to <code>Hashable</code>, such as an empty
+struct:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">case</span> <span class="keyword">let</span> .<span class="variable">textChanged</span>(<span class="variable">text</span>):
+  <span class="keyword">enum</span> <span class="type">SearchID</span> {}
+
+  <span class="keyword">return</span> <span class="variable">environment</span>.<span class="variable">search</span>(<span class="variable">text</span>)
+    .<span class="variable">debounce</span>(<span class="variable">id</span>: <span class="type">SearchID</span>.<span class="keyword">self</span>, <span class="variable">for</span>: <span class="number literal">0.5</span>, <span class="variable">scheduler</span>: <a href="/reactiveswift-composable-architecture/environment"><span class="type">environment</span></a>.<span class="variable">mainQueue</span>)
+    .<span class="variable">map</span>(<span class="variable">Action</span>.<span class="variable">searchResponse</span>)
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>id</th>
+    <td><code class="type">Any​Hashable</code></td>
+    <td><p>The effect's identifier.</p>
+</td>
+</tr>
+<tr>
+    <th>due​Time</th>
+    <td><code class="type">Time​Interval</code></td>
+    <td><p>The duration you want to debounce for.</p>
+</td>
+</tr>
+<tr>
+    <th>scheduler</th>
+    <td><code class="type">Date​Scheduler</code></td>
+    <td><p>The scheduler you want to deliver the debounced output to.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect that publishes events only after a specified time elapses.</p>
+
+</div>
+<div role="article" class="function" id="effect.debounce(id:for:scheduler:)">
+    <h3>
+        <code><a href="#effect.debounce(id:for:scheduler:)">debounce(id:​for:​scheduler:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">debounce</span>(
+    <span class="variable">id</span>: <span class="keyword">Any</span>.<span class="type">Type</span>,
+    <span class="variable">for</span> <span class="variable">dueTime</span>: <span class="type">TimeInterval</span>,
+    <span class="variable">scheduler</span>: <span class="type">DateScheduler</span>
+  ) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Turns an effect into one that can be debounced.</p>
+
+</div>
+<div class="discussion">
+    <p>A convenience for calling <code>Effect/debounce(id:for:scheduler:options:)-76yye</code> with a static
+type as the effect's unique identifier.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>id</th>
+    <td><code class="type">Any.​Type</code></td>
+    <td><p>A unique type identifying the effect.</p>
+</td>
+</tr>
+<tr>
+    <th>due​Time</th>
+    <td><code class="type">Time​Interval</code></td>
+    <td><p>The duration you want to debounce for.</p>
+</td>
+</tr>
+<tr>
+    <th>scheduler</th>
+    <td><code class="type">Date​Scheduler</code></td>
+    <td><p>The scheduler you want to deliver the debounced output to.</p>
+</td>
+</tr>
+<tr>
+    <th>options</th>
+    <td></td>
+    <td><p>Scheduler options that customize the effect's delivery of elements.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect that publishes events only after a specified time elapses.</p>
+
+</div>
+<div role="article" class="function" id="effect.deferred(for:scheduler:)">
+    <h3>
+        <code><a href="#effect.deferred(for:scheduler:)">deferred(for:​scheduler:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use 'scheduler.sleep' in 'Effect.run', instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use 'scheduler.sleep' in 'Effect.run', instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use 'scheduler.sleep' in 'Effect.run', instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use 'scheduler.sleep' in 'Effect.run', instead."</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">deferred</span>(
+    <span class="variable">for</span> <span class="variable">dueTime</span>: <span class="type">TimeInterval</span>,
+    <span class="variable">scheduler</span>: <span class="type">DateScheduler</span>
+  ) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Returns an effect that will be executed after given <code>dueTime</code>.</p>
+
+</div>
+<div class="discussion">
+    <html><body><pre class="highlight"><code><span class="keyword">case</span> <span class="keyword">let</span> .<span class="variable">textChanged</span>(<span class="variable">text</span>):
+  <span class="keyword">return</span> <span class="variable">environment</span>.<span class="variable">search</span>(<span class="variable">text</span>)
+    .<span class="variable">deferred</span>(<span class="variable">for</span>: <span class="number literal">0.5</span>, <span class="variable">scheduler</span>: <a href="/reactiveswift-composable-architecture/environment"><span class="type">environment</span></a>.<span class="variable">mainQueue</span>)
+    .<span class="variable">map</span>(<span class="variable">Action</span>.<span class="variable">searchResponse</span>)
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>due​Time</th>
+    <td><code class="type">Time​Interval</code></td>
+    <td><p>The duration you want to defer for.</p>
+</td>
+</tr>
+<tr>
+    <th>scheduler</th>
+    <td><code class="type">Date​Scheduler</code></td>
+    <td><p>The scheduler you want to deliver the defer output to.</p>
+</td>
+</tr>
+<tr>
+    <th>options</th>
+    <td></td>
+    <td><p>Scheduler options that customize the effect's delivery of elements.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect that will be executed after <code>dueTime</code></p>
+
+</div>
+<div role="article" class="function" id="effect.future(_:)">
+    <h3>
+        <code><a href="#effect.future(_:)">future(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use 'Effect.task', instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use 'Effect.task', instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use 'Effect.task', instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use 'Effect.task', instead."</span>)
+  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">future</span>(
+    <span class="keyword">_</span> <span class="variable">attemptToFulfill</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">Result</span>&lt;<span class="type">Action</span>, <span class="type">Failure</span>&gt;) -&gt; <span class="type">Void</span>) -&gt; <span class="type">Void</span>
+  ) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Creates an effect that can supply a single value asynchronously in the future.</p>
+
+</div>
+<div class="discussion">
+    <p>This can be helpful for converting APIs that are callback-based into ones that deal with
+<code>Effect</code>s.</p>
+
+<p>For example, to create an effect that delivers an integer after waiting a second:</p>
+
+<html><body><pre class="highlight"><code><span class="variable">Effect</span>&lt;<span class="type">Int</span>, <span class="type">Never</span>&gt;.<span class="variable">future</span> { <span class="variable">callback</span> <span class="keyword">in</span>
+  <span class="variable">DispatchQueue</span>.<span class="variable">main</span>.<span class="variable">asyncAfter</span>(<span class="variable">deadline</span>: .<span class="variable">now</span>() + <span class="number literal">1</span>) {
+    <span class="variable">callback</span>(.<span class="variable">success</span>(<span class="number literal">42</span>))
+  }
+}
+</code></pre></body></html>
+<p>Note that you can only deliver a single value to the <code>callback</code>. If you send more they will be
+discarded:</p>
+
+<html><body><pre class="highlight"><code><span class="variable">Effect</span>&lt;<span class="type">Int</span>, <span class="type">Never</span>&gt;.<span class="variable">future</span> { <span class="variable">callback</span> <span class="keyword">in</span>
+  <span class="variable">DispatchQueue</span>.<span class="variable">main</span>.<span class="variable">asyncAfter</span>(<span class="variable">deadline</span>: .<span class="variable">now</span>() + <span class="number literal">1</span>) {
+    <span class="variable">callback</span>(.<span class="variable">success</span>(<span class="number literal">42</span>))
+    <span class="variable">callback</span>(.<span class="variable">success</span>(<span class="number literal">1729</span>)) <span class="comment">// Will not be emitted by the effect</span>
+  }
+}
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>attempt​ToFulfill</th>
+    <td><code class="type">@escaping (@escaping (Result&lt;Action, Failure&gt;) -&gt; Void) -&gt; Void</code></td>
+    <td><p>A closure that takes a <code>callback</code> as an argument which can be used to feed it <code>Result&lt;Action, Failure&gt;</code> values.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+</div>
+<div role="article" class="function" id="effect.result(_:)">
+    <h3>
+        <code><a href="#effect.result(_:)">result(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use 'Effect.task', instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use 'Effect.task', instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use 'Effect.task', instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use 'Effect.task', instead."</span>)
+  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">result</span>(<span class="keyword">_</span> <span class="variable">attemptToFulfill</span>: <span class="attribute">@</span><span class="attribute">escaping</span> () -&gt; <span class="type">Result</span>&lt;<span class="type">Action</span>, <span class="type">Failure</span>&gt;) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Initializes an effect that lazily executes some work in the real world and synchronously sends
+that data back into the store.</p>
+
+</div>
+<div class="discussion">
+    <p>For example, to load a user from some JSON on the disk, one can wrap that work in an effect:</p>
+
+<html><body><pre class="highlight"><code><span class="variable">Effect</span>&lt;<span class="type">User</span>, <span class="type">Error</span>&gt;.<span class="variable">result</span> {
+  <span class="keyword">let</span> <span class="variable">fileUrl</span> = <span class="variable">URL</span>(
+    <span class="variable">fileURLWithPath</span>: <span class="type">NSSearchPathForDirectoriesInDomains</span>(
+      .<span class="variable">documentDirectory</span>, .<span class="variable">userDomainMask</span>, <span class="keyword">true</span>
+    )[<span class="number literal">0</span>]
+  )
+  .<span class="variable">appendingPathComponent</span>(<span class="string literal">"</span><span class="string literal">user.json</span><span class="string literal">"</span>)
+
+  <span class="keyword">let</span> <span class="variable">result</span> = <span class="variable">Result</span>&lt;<span class="type">User</span>, <span class="type">Error</span>&gt; {
+    <span class="keyword">let</span> <span class="variable">data</span> = <span class="keyword">try</span> <span class="variable">Data</span>(<span class="variable">contentsOf</span>: <span class="type">fileUrl</span>)
+    <span class="keyword">return</span> <span class="keyword">try</span> <span class="variable">JSONDecoder</span>().<span class="variable">decode</span>(<span class="variable">User</span>.<span class="keyword">self</span>, <span class="variable">from</span>: <span class="variable">$0</span>)
+  }
+
+  <span class="keyword">return</span> <span class="variable">result</span>
+}
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>attempt​ToFulfill</th>
+    <td><code class="type">@escaping () -&gt; Result&lt;Action, Failure&gt;</code></td>
+    <td><p>A closure encapsulating some work to execute in the real world.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect.</p>
+
+</div>
+<div role="article" class="function" id="effect.run(_:)">
+    <h3>
+        <code><a href="#effect.run(_:)">run(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use the async version of 'Effect.run', instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use the async version of 'Effect.run', instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use the async version of 'Effect.run', instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use the async version of 'Effect.run', instead."</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">run</span>(
+    <span class="keyword">_</span> <span class="variable">work</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">Signal</span>&lt;<span class="type">Action</span>, <span class="type">Failure</span>&gt;.<span class="type">Observer</span>) -&gt; <span class="type">Disposable</span>
+  ) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Initializes an effect from a callback that can send as many values as it wants, and can send
+a completion.</p>
+
+</div>
+<div class="discussion">
+    <p>This initializer is useful for bridging callback APIs, delegate APIs, and manager APIs to the
+<code>Effect</code> type. One can wrap those APIs in an Effect so that its events are sent through the
+effect, which allows the reducer to handle them.</p>
+
+<p>For example, one can create an effect to ask for access to <code>MPMediaLibrary</code>. It can start by
+sending the current status immediately, and then if the current status is <code>notDetermined</code> it
+can request authorization, and once a status is received it can send that back to the effect:</p>
+
+<html><body><pre class="highlight"><code><span class="variable">Effect</span>.<span class="variable">run</span> { <span class="variable">observer</span> <span class="keyword">in</span>
+  <span class="variable">observer</span>.<span class="variable">send</span>(<span class="variable">value</span>: <span class="type">MPMediaLibrary</span>.<span class="variable">authorizationStatus</span>())
+
+  <span class="keyword">guard</span> <span class="variable">MPMediaLibrary</span>.<span class="variable">authorizationStatus</span>() == .<span class="variable">notDetermined</span> <span class="keyword">else</span> {
+    <span class="variable">observer</span>.<span class="variable">sendCompleted</span>()
+    <span class="keyword">return</span> <span class="variable">AnyDisposable</span> {}
+  }
+
+  <span class="variable">MPMediaLibrary</span>.<span class="variable">requestAuthorization</span> { <span class="variable">status</span> <span class="keyword">in</span>
+    <span class="variable">observer</span>.<span class="variable">send</span>(<span class="variable">value</span>: <span class="type">status</span>)
+    <span class="variable">observer</span>.<span class="variable">sendCompleted</span>()
+  }
+  <span class="keyword">return</span> <span class="variable">AnyDisposable</span> {
+    <span class="comment">// Typically clean up resources that were created here, but this effect doesn't</span>
+    <span class="comment">// have any.</span>
+  }
+}
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>work</th>
+    <td><code class="type">@escaping (Signal&lt;Action, Failure&gt;.​Observer) -&gt; Disposable</code></td>
+    <td><p>A closure that accepts a <code>Signal.Observer</code> value and returns a disposable. When the <code>Effect</code> is completed, the disposable will be used to clean up any resources created when the effect was started.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+</div>
+<div role="article" class="function" id="effect.fireandforget(_:)">
+    <h3>
+        <code><a href="#effect.fireandforget(_:)">fire​And​Forget(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use the async version, instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use the async version, instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use the async version, instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use the async version, instead."</span>)
+  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">fireAndForget</span>(<span class="keyword">_</span> <span class="variable">work</span>: <span class="attribute">@</span><span class="attribute">escaping</span> () <span class="keyword">throws</span> -&gt; <span class="type">Void</span>) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Creates an effect that executes some work in the real world that doesn't need to feed data
+back into the store. If an error is thrown, the effect will complete and the error will be
+ignored.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>work</th>
+    <td><code class="type">@escaping () throws -&gt; Void</code></td>
+    <td><p>A closure encapsulating some work to execute in the real world.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect.</p>
+
+</div>
+<div role="article" class="function" id="effect.fireandforget(outputtype:failuretype:)">
+    <h3>
+        <code><a href="#effect.fireandforget(outputtype:failuretype:)">fire​And​Forget(output​Type:​failure​Type:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use the static async version, instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use the static async version, instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use the static async version, instead."</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">message</span>: <span class="string literal">"Use the static async version, instead."</span>)
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">fireAndForget</span>&lt;<span class="variable">NewValue</span>, <span class="variable">NewError</span>&gt;(
+    <span class="variable">outputType</span>: <span class="type">NewValue</span>.<span class="type">Type</span> = <span class="variable">NewValue</span>.<span class="keyword">self</span>,
+    <span class="variable">failureType</span>: <span class="type">NewError</span>.<span class="type">Type</span> = <span class="variable">NewError</span>.<span class="keyword">self</span>
+  ) -&gt; <a href="/reactiveswift-composable-architecture/Effect"><span class="type">Effect</span></a>&lt;<span class="type">NewValue</span>, <span class="type">NewError</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Turns any effect into an <code>Effect</code> for any output and failure type by ignoring all output
+and any failure.</p>
+
+</div>
+<div class="discussion">
+    <p>This is useful for times you want to fire off an effect but don't want to feed any data back
+into the system. It can automatically promote an effect to your reducer's domain.</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">case</span> .<span class="variable">buttonTapped</span>:
+  <span class="keyword">return</span> <span class="variable">analyticsClient</span>.<span class="variable">track</span>(<span class="string literal">"Button Tapped"</span>)
+    .<span class="variable">fireAndForget</span>()
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>output​Type</th>
+    <td><code class="type">New​Value.​Type</code></td>
+    <td><p>An output type.</p>
+</td>
+</tr>
+<tr>
+    <th>failure​Type</th>
+    <td><code class="type">New​Error.​Type</code></td>
+    <td><p>A failure type.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect that never produces output or errors.</p>
+
+</div>
+<div role="article" class="function" id="effect.throttle(id:for:scheduler:latest:)">
+    <h3>
+        <code><a href="#effect.throttle(id:for:scheduler:latest:)">throttle(id:​for:​scheduler:​latest:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">throttle</span>(
+    <span class="variable">id</span>: <span class="type">AnyHashable</span>,
+    <span class="variable">for</span> <span class="variable">interval</span>: <span class="type">TimeInterval</span>,
+    <span class="variable">scheduler</span>: <span class="type">DateScheduler</span>,
+    <span class="variable">latest</span>: <span class="type">Bool</span>
+  ) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Throttles an effect so that it only publishes one output per given interval.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>id</th>
+    <td><code class="type">Any​Hashable</code></td>
+    <td><p>The effect's identifier.</p>
+</td>
+</tr>
+<tr>
+    <th>for</th>
+    <td><code class="type">Time​Interval</code></td>
+    <td><p>The interval at which to find and emit the most recent element, expressed in the time system of the scheduler.</p>
+</td>
+</tr>
+<tr>
+    <th>scheduler</th>
+    <td><code class="type">Date​Scheduler</code></td>
+    <td><p>The scheduler you want to deliver the throttled output to.</p>
+</td>
+</tr>
+<tr>
+    <th>latest</th>
+    <td><code class="type">Bool</code></td>
+    <td><p>A boolean value that indicates whether to publish the most recent element. If <code>false</code>, the producer emits the first element received during the interval.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect that emits either the most-recent or first element received during the specified interval.</p>
+
+</div>
+<div role="article" class="function" id="effect.throttle(id:for:scheduler:latest:)">
+    <h3>
+        <code><a href="#effect.throttle(id:for:scheduler:latest:)">throttle(id:​for:​scheduler:​latest:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">throttle</span>(
+    <span class="variable">id</span>: <span class="keyword">Any</span>.<span class="type">Type</span>,
+    <span class="variable">for</span> <span class="variable">interval</span>: <span class="type">TimeInterval</span>,
+    <span class="variable">scheduler</span>: <span class="type">DateScheduler</span>,
+    <span class="variable">latest</span>: <span class="type">Bool</span>
+  ) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Throttles an effect so that it only publishes one output per given interval.</p>
+
+</div>
+<div class="discussion">
+    <p>A convenience for calling <code>Effect/throttle(id:for:scheduler:latest:)-5jfpx</code> with a static
+type as the effect's unique identifier.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>id</th>
+    <td><code class="type">Any.​Type</code></td>
+    <td><p>The effect's identifier.</p>
+</td>
+</tr>
+<tr>
+    <th>interval</th>
+    <td><code class="type">Time​Interval</code></td>
+    <td><p>The interval at which to find and emit the most recent element, expressed in the time system of the scheduler.</p>
+</td>
+</tr>
+<tr>
+    <th>scheduler</th>
+    <td><code class="type">Date​Scheduler</code></td>
+    <td><p>The scheduler you want to deliver the throttled output to.</p>
+</td>
+</tr>
+<tr>
+    <th>latest</th>
+    <td><code class="type">Bool</code></td>
+    <td><p>A boolean value that indicates whether to publish the most recent element. If <code>false</code>, the producer emits the first element received during the interval.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect that emits either the most-recent or first element received during the specified interval.</p>
+
+</div>
+<div role="article" class="function" id="effect.failing(_:)">
+    <h3>
+        <code><a href="#effect.failing(_:)">failing(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">renamed</span>: <span class="string literal">"unimplemented"</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">renamed</span>: <span class="string literal">"unimplemented"</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">renamed</span>: <span class="string literal">"unimplemented"</span>)
+  <span class="attribute">@</span><span class="attribute">available</span>(<span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>, <span class="variable">renamed</span>: <span class="string literal">"unimplemented"</span>)
+  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">failing</span>(<span class="keyword">_</span> <span class="variable">prefix</span>: <span class="type">String</span>) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+</div>
+<div role="article" class="function" id="effect.cancel(ids:)">
+    <h3>
+        <code><a href="#effect.cancel(ids:)">cancel(ids:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+    *,
+    <span class="variable">deprecated</span>,
+    <span class="variable">message</span>:
+      <span class="string literal">"""
+      Using a variadic list is no longer supported. Use an array of identifiers instead. For more \
+      on this change, see: https://github.com/pointfreeco/swift-composable-architecture/pull/1041
+      """</span>
+  )
+  <span class="attribute">@</span><span class="attribute">_disfavoredOverload</span>
+  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">cancel</span>(<span class="variable">ids</span>: <span class="type">AnyHashable</span>...) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+</div>
+    </section>
+
+
+
+        </article>
+    </main>
+
+    <footer>
+        <p>
+    Generated on <time datetime="2022-12-31T17:25:39+0000">December 31, 2022</time> using <a href="https://github.com/SwiftDocOrg/swift-doc">swift-doc</a> <span class="version">1.0.0-rc.1</span>.
+</p>
+    </footer>
+</body>
+</html>

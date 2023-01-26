@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComposableArchitecture - BindableAction</title>
+    <link rel="stylesheet" type="text/css" href="/reactiveswift-composable-architecture/all.css" media="all" />
+</head>
+<body>
+    <header>
+        <a href="/reactiveswift-composable-architecture/">
+            <strong>
+                ComposableArchitecture
+            </strong>
+            <span>Documentation</span>
+        </a>
+    </header>
+
+    <!--
+    <form class="search">
+        <input type="search" placeholder="Search" />
+    </form>
+    -->
+
+    <nav>
+        <div class="wrapper">
+            <h2>On This Page</h2>
+            <ol><li><a href="#default implementations">Default Implementations</a><ul><li class="function"><a href="#bindableaction.set(_:_:)">set(_:​_:​)</a></li></ul></li><li><a href="#requirements">Requirements</a><ul><li class="associatedtype"><a href="#bindableaction.state">State</a></li><li class="function"><a href="#bindableaction.binding(_:)">binding(_:​)</a></li></ul></li></ol>
+        </div>
+    </nav>
+
+    <main>
+        <article>
+            <h1>
+    <small>Protocol</small>
+    <code class="name">Bindable​Action</code>
+</h1>
+
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">protocol</span> <span class="type">BindableAction</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>An action type that exposes a <code>binding</code> case that holds a <code>BindingAction</code>.</p>
+
+</div>
+<div class="discussion">
+    <p>Used in conjunction with <code>BindableState</code> to safely eliminate the boilerplate typically
+associated with mutating multiple fields in state.</p>
+
+<p>See the documentation for <code>BindableState</code> for more details.</p>
+
+</div>
+
+    <section id="default implementations">
+        <h2>Default Implementations</h2>
+
+        <div role="article" class="function" id="bindableaction.set(_:_:)">
+    <h3>
+        <code><a href="#bindableaction.set(_:_:)">set(_:​_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">set</span>&lt;<span class="variable">Value</span>: <span class="type">Equatable</span>&gt;(
+    <span class="keyword">_</span> <span class="variable">keyPath</span>: <span class="type">WritableKeyPath</span>&lt;<span class="type">State</span>, <a href="/reactiveswift-composable-architecture/BindableState"><span class="type">BindableState</span></a>&lt;<span class="type">Value</span>&gt;&gt;,
+    <span class="keyword">_</span> <span class="variable">value</span>: <span class="type">Value</span>
+  ) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Constructs a binding action for the given key path and bindable value.</p>
+
+</div>
+<div class="discussion">
+    <p>Shorthand for <code>.binding(.set(\.$keyPath, value))</code>.</p>
+
+</div>
+  <h4>Returns</h4>
+  <p>A binding action.</p>
+
+</div>
+    </section>
+
+
+    <section id="requirements">
+        <h2>Requirements</h2>
+
+        <div role="article" class="associatedtype" id="bindableaction.state">
+    <h3>
+        <code>State</code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">associatedtype</span> <span class="variable">State</span></body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>The root state type that contains bindable fields.</p>
+
+</div>
+</div>
+<div role="article" class="function" id="bindableaction.binding(_:)">
+    <h3>
+        <code>binding(_:​)</code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">static</span> <span class="keyword">func</span> <span class="function">binding</span>(<span class="keyword">_</span> <span class="variable">action</span>: <a href="/reactiveswift-composable-architecture/BindingAction"><span class="type">BindingAction</span></a>&lt;<span class="type">State</span>&gt;) -&gt; <span class="keyword">Self</span></body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Embeds a binding action in this action type.</p>
+
+</div>
+  <h4>Returns</h4>
+  <p>A binding action.</p>
+
+</div>
+    </section>
+        </article>
+    </main>
+
+    <footer>
+        <p>
+    Generated on <time datetime="2022-12-31T17:25:39+0000">December 31, 2022</time> using <a href="https://github.com/SwiftDocOrg/swift-doc">swift-doc</a> <span class="version">1.0.0-rc.1</span>.
+</p>
+    </footer>
+</body>
+</html>

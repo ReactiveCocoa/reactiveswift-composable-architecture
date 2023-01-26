@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComposableArchitecture - ComposableArchitecture</title>
+    <link rel="stylesheet" type="text/css" href="/reactiveswift-composable-architecture/all.css" media="all" />
+</head>
+<body>
+    <header>
+        <a href="/reactiveswift-composable-architecture/">
+            <strong>
+                ComposableArchitecture
+            </strong>
+            <span>Documentation</span>
+        </a>
+    </header>
+
+    <!--
+    <form class="search">
+        <input type="search" placeholder="Search" />
+    </form>
+    -->
+
+    <nav>
+        <div class="wrapper">
+            <h2>On This Page</h2>
+            <ol><li><a href="#classes">Classes</a></li><li><a href="#structures">Structures</a></li><li><a href="#enumerations">Enumerations</a></li><li><a href="#protocols">Protocols</a></li><li><a href="#typealiases">Typealiases</a></li><li><a href="#functions">Functions</a></li><li><a href="#variables">Variables</a></li><li><a href="#extensions">Extensions</a></li></ol>
+        </div>
+    </nav>
+
+    <main>
+        <article>
+                <section id="classes">
+        <h2>Classes</h2>
+        <dl>
+            <dt class="class">
+    <a href="/reactiveswift-composable-architecture/UnimplementedScheduler" title="class - UnimplementedScheduler">
+        Unimplemented​Scheduler
+    </a>
+</dt>
+<dd>
+    
+</dd>
+<dt class="class">
+    <a href="/reactiveswift-composable-architecture/Store" title="class - Store">
+        Store
+    </a>
+</dt>
+<dd>
+    <p>A store represents the runtime that powers the application. It is the object that you will pass
+around to views that need to interact with the application.</p>
+
+</dd>
+<dt class="class">
+    <a href="/reactiveswift-composable-architecture/ActionWrappingScheduler" title="class - ActionWrappingScheduler">
+        Action​Wrapping​Scheduler
+    </a>
+</dt>
+<dd>
+    
+</dd>
+<dt class="class">
+    <a href="/reactiveswift-composable-architecture/ActionWrappingDateScheduler" title="class - ActionWrappingDateScheduler">
+        Action​Wrapping​Date​Scheduler
+    </a>
+</dt>
+<dd>
+    
+</dd>
+<dt class="class">
+    <a href="/reactiveswift-composable-architecture/UIKitAnimationScheduler" title="class - UIKitAnimationScheduler">
+        UIKit​Animation​Scheduler
+    </a>
+</dt>
+<dd>
+    
+</dd>
+<dt class="class">
+    <a href="/reactiveswift-composable-architecture/UIKitAnimationDateScheduler" title="class - UIKitAnimationDateScheduler">
+        UIKit​Animation​Date​Scheduler
+    </a>
+</dt>
+<dd>
+    
+</dd>
+<dt class="class">
+    <a href="/reactiveswift-composable-architecture/ViewStore" title="class - ViewStore">
+        View​Store
+    </a>
+</dt>
+<dd>
+    <p>A <code>ViewStore</code> is an object that can observe state changes and send actions. They are most
+commonly used in views, such as SwiftUI views, UIView or UIViewController, but they can be used
+anywhere it makes sense to observe state or send actions.</p>
+
+</dd>
+<dt class="class">
+    <a href="/reactiveswift-composable-architecture/ViewStore_ObservableObjectPublisher" title="class - ViewStore.ObservableObjectPublisher">
+        View​Store.​Observable​Object​Publisher
+    </a>
+</dt>
+<dd>
+    
+</dd>
+        </dl>
+    </section>
+    <section id="structures">
+        <h2>Structures</h2>
+        <dl>
+            <dt class="structure">
+    <a href="/reactiveswift-composable-architecture/DebugEnvironment" title="structure - DebugEnvironment">
+        Debug​Environment
+    </a>
+</dt>
+<dd>
+    <p>An environment for debug-printing reducers.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/Effect" title="structure - Effect">
+        Effect
+    </a>
+</dt>
+<dd>
+    <p>The <code>Effect</code> type encapsulates a unit of work that can be run in the outside world, and can
+feed actions back to the <code>Store</code>. It is the perfect place to do side effects, such as network
+requests, saving/loading from disk, creating timers, interacting with dependencies, and more.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/Send" title="structure - Send">
+        Send
+    </a>
+</dt>
+<dd>
+    <p>A type that can send actions back into the system when used from
+<code>Effect/run(priority:operation:catch:file:fileID:line:)</code>.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/UncheckedSendable" title="structure - UncheckedSendable">
+        Unchecked​Sendable
+    </a>
+</dt>
+<dd>
+    <p>A generic wrapper for turning any non-<code>Sendable</code> type into a <code>Sendable</code> one, in an unchecked
+manner.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/TestStore_Step" title="structure - TestStore.Step">
+        Test​Store.​Step
+    </a>
+</dt>
+<dd>
+    
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/Reducer" title="structure - Reducer">
+        Reducer
+    </a>
+</dt>
+<dd>
+    <p>A reducer describes how to evolve the current state of an application to the next state, given
+an action, and describes what <code>Effect</code>s should be executed later by the store, if any.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/AlertState" title="structure - AlertState">
+        Alert​State
+    </a>
+</dt>
+<dd>
+    <p>A data type that describes the state of an alert that can be shown to the user. The <code>Action</code>
+generic is the type of actions that can be sent from tapping on a button in the alert.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/AlertState_Button" title="structure - AlertState.Button">
+        Alert​State.​Button
+    </a>
+</dt>
+<dd>
+    
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/AlertState_ButtonAction" title="structure - AlertState.ButtonAction">
+        Alert​State.​Button​Action
+    </a>
+</dt>
+<dd>
+    
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/BindableState" title="structure - BindableState">
+        Bindable​State
+    </a>
+</dt>
+<dd>
+    <p>A property wrapper type that can designate properties of app state that can be directly
+bindable in SwiftUI views.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/BindingAction" title="structure - BindingAction">
+        Binding​Action
+    </a>
+</dt>
+<dd>
+    <p>An action that describes simple mutations to some root state at a writable key path.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/ConfirmationDialogState" title="structure - ConfirmationDialogState">
+        Confirmation​Dialog​State
+    </a>
+</dt>
+<dd>
+    <p>A data type that describes the state of a confirmation dialog that can be shown to the user. The
+<code>Action</code> generic is the type of actions that can be sent from tapping on a button in the sheet.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/ForEachStore" title="structure - ForEachStore">
+        For​Each​Store
+    </a>
+</dt>
+<dd>
+    <p>A Composable Architecture-friendly wrapper around <code>ForEach</code> that simplifies working with
+collections of state.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/Identified" title="structure - Identified">
+        Identified
+    </a>
+</dt>
+<dd>
+    <p>A wrapper around a value and a hashable identifier that conforms to identifiable.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/IfLetStore" title="structure - IfLetStore">
+        IfLet​Store
+    </a>
+</dt>
+<dd>
+    <p>A view that safely unwraps a store of optional state in order to show one of two views.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/SwitchStore" title="structure - SwitchStore">
+        Switch​Store
+    </a>
+</dt>
+<dd>
+    <p>A view that can switch over a store of enum state and handle each case.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/CaseLet" title="structure - CaseLet">
+        Case​Let
+    </a>
+</dt>
+<dd>
+    <p>A view that handles a specific case of enum state in a <code>SwitchStore</code>.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/Default" title="structure - Default">
+        Default
+    </a>
+</dt>
+<dd>
+    <p>A view that covers any cases that aren't addressed in a <code>SwitchStore</code>.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/_ExhaustivityCheckView" title="structure - _ExhaustivityCheckView">
+        _Exhaustivity​Check​View
+    </a>
+</dt>
+<dd>
+    
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/TextState" title="structure - TextState">
+        Text​State
+    </a>
+</dt>
+<dd>
+    <p>An equatable description of SwiftUI <code>Text</code>. Useful for storing rich text in state for the
+purpose of rendering in a view hierarchy.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/WithViewStore" title="structure - WithViewStore">
+        With​View​Store
+    </a>
+</dt>
+<dd>
+    <p>A view helper that transforms a <code>Store</code> into a <code>ViewStore</code> so that its state can be observed
+by a view builder.</p>
+
+</dd>
+<dt class="structure">
+    <a href="/reactiveswift-composable-architecture/StoreProducer" title="structure - StoreProducer">
+        Store​Producer
+    </a>
+</dt>
+<dd>
+    <p>A producer of store state.</p>
+
+</dd>
+        </dl>
+    </section>
+    <section id="enumerations">
+        <h2>Enumerations</h2>
+        <dl>
+            <dt class="enumeration">
+    <a href="/reactiveswift-composable-architecture/ActionFormat" title="enumeration - ActionFormat">
+        Action​Format
+    </a>
+</dt>
+<dd>
+    <p>Determines how the string description of an action should be printed when using the
+<code>Reducer/debug(_:state:action:actionFormat:environment:)</code> higher-order reducer.</p>
+
+</dd>
+<dt class="enumeration">
+    <a href="/reactiveswift-composable-architecture/AlertState_ButtonAction_ActionType" title="enumeration - AlertState.ButtonAction.ActionType">
+        Alert​State.​Button​Action.​Action​Type
+    </a>
+</dt>
+<dd>
+    
+</dd>
+<dt class="enumeration">
+    <a href="/reactiveswift-composable-architecture/AlertState_ButtonRole" title="enumeration - AlertState.ButtonRole">
+        Alert​State.​Button​Role
+    </a>
+</dt>
+<dd>
+    
+</dd>
+<dt class="enumeration">
+    <a href="/reactiveswift-composable-architecture/ConfirmationDialogState_Visibility" title="enumeration - ConfirmationDialogState.Visibility">
+        Confirmation​Dialog​State.​Visibility
+    </a>
+</dt>
+<dd>
+    
+</dd>
+<dt class="enumeration">
+    <a href="/reactiveswift-composable-architecture/TextState_AccessibilityTextContentType" title="enumeration - TextState.AccessibilityTextContentType">
+        Text​State.​Accessibility​Text​Content​Type
+    </a>
+</dt>
+<dd>
+    
+</dd>
+<dt class="enumeration">
+    <a href="/reactiveswift-composable-architecture/TextState_AccessibilityHeadingLevel" title="enumeration - TextState.AccessibilityHeadingLevel">
+        Text​State.​Accessibility​Heading​Level
+    </a>
+</dt>
+<dd>
+    
+</dd>
+        </dl>
+    </section>
+    <section id="protocols">
+        <h2>Protocols</h2>
+        <dl>
+            <dt class="protocol">
+    <a href="/reactiveswift-composable-architecture/BindableAction" title="protocol - BindableAction">
+        Bindable​Action
+    </a>
+</dt>
+<dd>
+    <p>An action type that exposes a <code>binding</code> case that holds a <code>BindingAction</code>.</p>
+
+</dd>
+        </dl>
+    </section>
+    <section id="typealiases">
+        <h2>Typealiases</h2>
+        <dl>
+            <dt class="typealias">
+    <a href="/reactiveswift-composable-architecture/ActionSheetState" title="typealias - ActionSheetState">
+        Action​Sheet​State
+    </a>
+</dt>
+<dd>
+    
+</dd>
+        </dl>
+    </section>
+    <section id="functions">
+        <h2>Functions</h2>
+        <dl>
+            <dt class="function">
+    <a href="/reactiveswift-composable-architecture/cancel(id_)" title="function - cancel(id:)">
+        cancel(id:​)
+    </a>
+</dt>
+<dd>
+    <p>Cancel any currently in-flight operation with the given identifier.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/cancel(id_)" title="function - cancel(id:)">
+        cancel(id:​)
+    </a>
+</dt>
+<dd>
+    <p>Cancel any currently in-flight operation with the given identifier.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/never()" title="function - never()">
+        never()
+    </a>
+</dt>
+<dd>
+    <p>An async function that never returns.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/never()" title="function - never()">
+        never()
+    </a>
+</dt>
+<dd>
+    <p>An async function that never returns.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/setValue(__)" title="function - setValue(_:)">
+        set​Value(_:​)
+    </a>
+</dt>
+<dd>
+    <p>Overwrite the isolated value with a new value.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/map(__)" title="function - map(_:)">
+        map(_:​)
+    </a>
+</dt>
+<dd>
+    <p>Returns a new task result, mapping any success value using the given transformation.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/flatMap(__)" title="function - flatMap(_:)">
+        flat​Map(_:​)
+    </a>
+</dt>
+<dd>
+    <p>Returns a new task result, mapping any success value using the given transformation and
+unwrapping the produced result.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/suspend(while_)" title="function - suspend(while:)">
+        suspend(while:​)
+    </a>
+</dt>
+<dd>
+    
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/finish(timeout_file_line_)" title="function - finish(timeout:file:line:)">
+        finish(timeout:​file:​line:​)
+    </a>
+</dt>
+<dd>
+    <p>Suspends until all in-flight effects have finished, or until it times out.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/finish(timeout_file_line_)" title="function - finish(timeout:file:line:)">
+        finish(timeout:​file:​line:​)
+    </a>
+</dt>
+<dd>
+    <p>Suspends until all in-flight effects have finished, or until it times out.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/send(____file_line_)" title="function - send(_:_:file:line:)">
+        send(_:​_:​file:​line:​)
+    </a>
+</dt>
+<dd>
+    <p>Sends an action to the store and asserts when state changes.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/send(____file_line_)" title="function - send(_:_:file:line:)">
+        send(_:​_:​file:​line:​)
+    </a>
+</dt>
+<dd>
+    <p>Sends an action to the store and asserts when state changes.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/receive(____file_line_)" title="function - receive(_:_:file:line:)">
+        receive(_:​_:​file:​line:​)
+    </a>
+</dt>
+<dd>
+    <p>Asserts an action was received from an effect and asserts when state changes.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/receive(__timeout___file_line_)" title="function - receive(_:timeout:_:file:line:)">
+        receive(_:​timeout:​_:​file:​line:​)
+    </a>
+</dt>
+<dd>
+    <p>Asserts an action was received from an effect and asserts how the state changes.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/receive(__timeout___file_line_)" title="function - receive(_:timeout:_:file:line:)">
+        receive(_:​timeout:​_:​file:​line:​)
+    </a>
+</dt>
+<dd>
+    <p>Asserts an action was received from an effect and asserts how the state changes.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/cancel()" title="function - cancel()">
+        cancel()
+    </a>
+</dt>
+<dd>
+    <p>Cancels the underlying task and waits for it to finish.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/finish(timeout_file_line_)" title="function - finish(timeout:file:line:)">
+        finish(timeout:​file:​line:​)
+    </a>
+</dt>
+<dd>
+    <p>Asserts the underlying task finished.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/finish(timeout_file_line_)" title="function - finish(timeout:file:line:)">
+        finish(timeout:​file:​line:​)
+    </a>
+</dt>
+<dd>
+    <p>Asserts the underlying task finished.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/cancel()" title="function - cancel()">
+        cancel()
+    </a>
+</dt>
+<dd>
+    <p>Cancels the underlying task and waits for it to finish.</p>
+
+</dd>
+<dt class="function">
+    <a href="/reactiveswift-composable-architecture/finish()" title="function - finish()">
+        finish()
+    </a>
+</dt>
+<dd>
+    <p>Waits for the task to finish.</p>
+
+</dd>
+        </dl>
+    </section>
+    <section id="variables">
+        <h2>Variables</h2>
+        <dl>
+            <dt class="variable">
+    <a href="/reactiveswift-composable-architecture/value" title="variable - value">
+        value
+    </a>
+</dt>
+<dd>
+    
+</dd>
+<dt class="variable">
+    <a href="/reactiveswift-composable-architecture/environment" title="variable - environment">
+        environment
+    </a>
+</dt>
+<dd>
+    <p>The current environment.</p>
+
+</dd>
+<dt class="variable">
+    <a href="/reactiveswift-composable-architecture/state" title="variable - state">
+        state
+    </a>
+</dt>
+<dd>
+    <p>The current state.</p>
+
+</dd>
+<dt class="variable">
+    <a href="/reactiveswift-composable-architecture/timeout" title="variable - timeout">
+        timeout
+    </a>
+</dt>
+<dd>
+    <p>The timeout to await for in-flight effects.</p>
+
+</dd>
+<dt class="variable">
+    <a href="/reactiveswift-composable-architecture/isCancelled" title="variable - isCancelled">
+        is​Cancelled
+    </a>
+</dt>
+<dd>
+    <p>A Boolean value that indicates whether the task should stop executing.</p>
+
+</dd>
+<dt class="variable">
+    <a href="/reactiveswift-composable-architecture/isCancelled" title="variable - isCancelled">
+        is​Cancelled
+    </a>
+</dt>
+<dd>
+    <p>A Boolean value that indicates whether the task should stop executing.</p>
+
+</dd>
+        </dl>
+    </section>
+<section id="extensions">
+    <h2>Extensions</h2>
+    <dl>
+    <dt class="extension">
+    <a href="/reactiveswift-composable-architecture/AnyDisposable">AnyDisposable</a>
+</dt>
+<dd></dd>
+<dt class="extension">
+    <a href="/reactiveswift-composable-architecture/ImmediateScheduler">ImmediateScheduler</a>
+</dt>
+<dd></dd>
+<dt class="extension">
+    <a href="/reactiveswift-composable-architecture/SignalProducer">SignalProducer</a>
+</dt>
+<dd></dd>
+    </dl>
+<section>
+        </article>
+    </main>
+
+    <footer>
+        <p>
+    Generated on <time datetime="2022-12-31T17:25:39+0000">December 31, 2022</time> using <a href="https://github.com/SwiftDocOrg/swift-doc">swift-doc</a> <span class="version">1.0.0-rc.1</span>.
+</p>
+    </footer>
+</body>
+</html>

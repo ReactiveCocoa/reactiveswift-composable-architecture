@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComposableArchitecture - finish(timeout:file:line:)</title>
+    <link rel="stylesheet" type="text/css" href="/reactiveswift-composable-architecture/all.css" media="all" />
+</head>
+<body>
+    <header>
+        <a href="/reactiveswift-composable-architecture/">
+            <strong>
+                ComposableArchitecture
+            </strong>
+            <span>Documentation</span>
+        </a>
+    </header>
+
+    <!--
+    <form class="search">
+        <input type="search" placeholder="Search" />
+    </form>
+    -->
+
+    <nav>
+        <div class="wrapper">
+            <h2>On This Page</h2>
+            <ol/>
+        </div>
+    </nav>
+
+    <main>
+        <article>
+            <h1>
+<small>Function</small>
+<span class="name">finish(timeout:​file:​line:​)</span>
+</h1>
+
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(<span class="keyword">iOS</span> <span class="number literal">16</span>, <span class="keyword">macOS</span> <span class="number literal">13</span>, <span class="keyword">tvOS</span> <span class="number literal">16</span>, <span class="keyword">watchOS</span> <span class="number literal">9</span>, *)
+      <span class="attribute">@</span><span class="type">MainActor</span>
+      <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">finish</span>(
+        <span class="variable">timeout</span> <span class="variable">duration</span>: <span class="type">Duration</span>? = <span class="keyword">nil</span>,
+        <span class="variable">file</span>: <span class="type">StaticString</span> = <span class="keyword">#file</span>,
+        <span class="variable">line</span>: <span class="type">UInt</span> = <span class="keyword">#line</span>
+      ) </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Suspends until all in-flight effects have finished, or until it times out.</p>
+
+</div>
+<div class="discussion">
+    <p>Can be used to assert that all effects have finished.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>duration</th>
+    <td><code class="type">Duration?</code></td>
+    <td><p>The amount of time to wait before asserting.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">_disfavoredOverload</span>
+    <span class="attribute">@</span><span class="type">MainActor</span>
+    <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">finish</span>(
+      <span class="variable">timeout</span> <span class="variable">nanoseconds</span>: <span class="type">UInt64</span>? = <span class="keyword">nil</span>,
+      <span class="variable">file</span>: <span class="type">StaticString</span> = <span class="keyword">#file</span>,
+      <span class="variable">line</span>: <span class="type">UInt</span> = <span class="keyword">#line</span>
+    ) </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Suspends until all in-flight effects have finished, or until it times out.</p>
+
+</div>
+<div class="discussion">
+    <p>Can be used to assert that all effects have finished.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>nanoseconds</th>
+    <td><code class="type">UInt64?</code></td>
+    <td><p>The amount of time to wait before asserting.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(<span class="keyword">iOS</span> <span class="number literal">16</span>, <span class="keyword">macOS</span> <span class="number literal">13</span>, <span class="keyword">tvOS</span> <span class="number literal">16</span>, <span class="keyword">watchOS</span> <span class="number literal">9</span>, *)
+      <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">finish</span>(
+        <span class="variable">timeout</span> <span class="variable">duration</span>: <span class="type">Duration</span>? = <span class="keyword">nil</span>,
+        <span class="variable">file</span>: <span class="type">StaticString</span> = <span class="keyword">#file</span>,
+        <span class="variable">line</span>: <span class="type">UInt</span> = <span class="keyword">#line</span>
+      ) </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Asserts the underlying task finished.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>duration</th>
+    <td><code class="type">Duration?</code></td>
+    <td><p>The amount of time to wait before asserting.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">_disfavoredOverload</span>
+    <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">finish</span>(
+      <span class="variable">timeout</span> <span class="variable">nanoseconds</span>: <span class="type">UInt64</span>? = <span class="keyword">nil</span>,
+      <span class="variable">file</span>: <span class="type">StaticString</span> = <span class="keyword">#file</span>,
+      <span class="variable">line</span>: <span class="type">UInt</span> = <span class="keyword">#line</span>
+    ) </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Asserts the underlying task finished.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>nanoseconds</th>
+    <td><code class="type">UInt64?</code></td>
+    <td><p>The amount of time to wait before asserting.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+        </article>
+    </main>
+
+    <footer>
+        <p>
+    Generated on <time datetime="2022-12-31T17:25:39+0000">December 31, 2022</time> using <a href="https://github.com/SwiftDocOrg/swift-doc">swift-doc</a> <span class="version">1.0.0-rc.1</span>.
+</p>
+    </footer>
+</body>
+</html>

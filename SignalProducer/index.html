@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComposableArchitecture - SignalProducer</title>
+    <link rel="stylesheet" type="text/css" href="/reactiveswift-composable-architecture/all.css" media="all" />
+</head>
+<body>
+    <header>
+        <a href="/reactiveswift-composable-architecture/">
+            <strong>
+                ComposableArchitecture
+            </strong>
+            <span>Documentation</span>
+        </a>
+    </header>
+
+    <!--
+    <form class="search">
+        <input type="search" placeholder="Search" />
+    </form>
+    -->
+
+    <nav>
+        <div class="wrapper">
+            <h2>On This Page</h2>
+            <ol><li><a href="#methods">Methods</a><ul><li class="function"><a href="#signalproducer.erasetoeffect()">erase​ToEffect()</a></li><li class="function"><a href="#signalproducer.erasetoeffect(_:)">erase​ToEffect(_:​)</a></li><li class="function"><a href="#signalproducer.catchtoeffect()">catch​ToEffect()</a></li><li class="function"><a href="#signalproducer.catchtoeffect(_:)">catch​ToEffect(_:​)</a></li><li class="function"><a href="#signalproducer.fireandforget(outputtype:failuretype:)">fire​And​Forget(output​Type:​failure​Type:​)</a></li><li class="function"><a href="#signalproducer.assign(to:on:)">assign(to:​on:​)</a></li><li class="function"><a href="#signalproducer.deferred(_:)">deferred(_:​)</a></li><li class="function"><a href="#signalproducer.concatenate(_:)">concatenate(_:​)</a></li><li class="function"><a href="#signalproducer.concatenate(_:)">concatenate(_:​)</a></li><li class="function"><a href="#signalproducer.fireandforget(_:)">fire​And​Forget(_:​)</a></li></ul></li></ol>
+        </div>
+    </nav>
+
+    <main>
+        <article>
+            <h1>
+    <small>Extensions on</small>
+    <code class="name">SignalProducer</code>
+</h1>
+    <section id="methods">
+        <h2>Methods</h2>
+
+        <div role="article" class="function" id="signalproducer.erasetoeffect()">
+    <h3>
+        <code><a href="#signalproducer.erasetoeffect()">erase​ToEffect()</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">eraseToEffect</span>() -&gt; <a href="/reactiveswift-composable-architecture/Effect"><span class="type">Effect</span></a>&lt;<span class="type">Value</span>, <span class="type">Error</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Turns any producer into an <code>Effect</code>.</p>
+
+</div>
+<div class="discussion">
+    <p>This can be useful for when you perform a chain of producer transformations in a reducer, and
+you need to convert that producer to an effect so that you can return it from the reducer:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">case</span> .<span class="variable">buttonTapped</span>:
+  <span class="keyword">return</span> <span class="variable">fetchUser</span>(<span class="variable">id</span>: <span class="number literal">1</span>)
+    .<span class="variable">filter</span>(\.<span class="variable">isAdmin</span>)
+    .<span class="variable">eraseToEffect</span>()
+</code></pre></body></html>
+</div>
+  <h4>Returns</h4>
+  <p>An effect that wraps <code>self</code>.</p>
+
+</div>
+<div role="article" class="function" id="signalproducer.erasetoeffect(_:)">
+    <h3>
+        <code><a href="#signalproducer.erasetoeffect(_:)">erase​ToEffect(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">eraseToEffect</span>&lt;<span class="variable">T</span>&gt;(
+    <span class="keyword">_</span> <span class="variable">transform</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">Value</span>) -&gt; <span class="type">T</span>
+  ) -&gt; <a href="/reactiveswift-composable-architecture/Effect"><span class="type">Effect</span></a>&lt;<span class="type">T</span>, <span class="type">Error</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Turns any producer into an <code>Effect</code>.</p>
+
+</div>
+<div class="discussion">
+    <p>This is a convenience operator for writing <code>Effect/eraseToEffect()</code> followed by
+``Effect/map(_:)-28ghh`.</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">case</span> .<span class="variable">buttonTapped</span>:
+  <span class="keyword">return</span> <span class="variable">fetchUser</span>(<span class="variable">id</span>: <span class="number literal">1</span>)
+    .<span class="variable">filter</span>(\.<span class="variable">isAdmin</span>)
+    .<span class="variable">eraseToEffect</span>(<span class="variable">ProfileAction</span>.<span class="variable">adminUserFetched</span>)
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>transform</th>
+    <td><code class="type">@escaping (Value) -&gt; T</code></td>
+    <td><p>A mapping function that converts <code>Value</code> to another type.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect that wraps <code>self</code> after mapping <code>Value</code> values.</p>
+
+</div>
+<div role="article" class="function" id="signalproducer.catchtoeffect()">
+    <h3>
+        <code><a href="#signalproducer.catchtoeffect()">catch​ToEffect()</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">catchToEffect</span>() -&gt; <a href="/reactiveswift-composable-architecture/Effect"><span class="type">Effect</span></a>&lt;<span class="type">Result</span>&lt;<span class="type">Value</span>, <span class="type">Error</span>&gt;, <span class="type">Never</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Turns any producer into an <code>Effect</code> that cannot fail by wrapping its output and failure in
+a result.</p>
+
+</div>
+<div class="discussion">
+    <p>This can be useful when you are working with a failing API but want to deliver its data to an
+action that handles both success and failure.</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">case</span> .<span class="variable">buttonTapped</span>:
+  <span class="keyword">return</span> <span class="variable">environment</span>.<span class="variable">fetchUser</span>(<span class="variable">id</span>: <span class="number literal">1</span>)
+    .<span class="variable">catchToEffect</span>()
+    .<span class="variable">map</span>(<span class="variable">ProfileAction</span>.<span class="variable">userResponse</span>)
+</code></pre></body></html>
+</div>
+  <h4>Returns</h4>
+  <p>An effect that wraps <code>self</code>.</p>
+
+</div>
+<div role="article" class="function" id="signalproducer.catchtoeffect(_:)">
+    <h3>
+        <code><a href="#signalproducer.catchtoeffect(_:)">catch​ToEffect(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Iterate over 'SignalProducer.values' in an 'Effect.run', instead."</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">catchToEffect</span>&lt;<span class="variable">T</span>&gt;(
+    <span class="keyword">_</span> <span class="variable">transform</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">Result</span>&lt;<span class="type">Value</span>, <span class="type">Error</span>&gt;) -&gt; <span class="type">T</span>
+  ) -&gt; <a href="/reactiveswift-composable-architecture/Effect"><span class="type">Effect</span></a>&lt;<span class="type">T</span>, <span class="type">Never</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Turns any producer into an <code>Effect</code> that cannot fail by wrapping its output and failure
+into a result and then applying passed in function to it.</p>
+
+</div>
+<div class="discussion">
+    <p>This is a convenience operator for writing <code>Effect/eraseToEffect()</code> followed by
+``Effect/map(_:)-28ghh`.</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">case</span> .<span class="variable">buttonTapped</span>:
+  <span class="keyword">return</span> <span class="variable">environment</span>.<span class="variable">fetchUser</span>(<span class="variable">id</span>: <span class="number literal">1</span>)
+    .<span class="variable">catchToEffect</span>(<span class="variable">ProfileAction</span>.<span class="variable">userResponse</span>)
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>transform</th>
+    <td><code class="type">@escaping (Result&lt;Value, Error&gt;) -&gt; T</code></td>
+    <td><p>A mapping function that converts <code>Result&lt;Value,Error&gt;</code> to another type.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect that wraps <code>self</code>.</p>
+
+</div>
+<div role="article" class="function" id="signalproducer.fireandforget(outputtype:failuretype:)">
+    <h3>
+        <code><a href="#signalproducer.fireandforget(outputtype:failuretype:)">fire​And​Forget(output​Type:​failure​Type:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>:
+      <span class="string literal">"Iterate over 'SignalProducer.values' in the static version of 'Effect.fireAndForget', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>:
+      <span class="string literal">"Iterate over 'SignalProducer.values' in the static version of 'Effect.fireAndForget', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>:
+      <span class="string literal">"Iterate over 'SignalProducer.values' in the static version of 'Effect.fireAndForget', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>:
+      <span class="string literal">"Iterate over 'SignalProducer.values' in the static version of 'Effect.fireAndForget', instead."</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">fireAndForget</span>&lt;<span class="variable">NewValue</span>, <span class="variable">NewError</span>&gt;(
+    <span class="variable">outputType</span>: <span class="type">NewValue</span>.<span class="type">Type</span> = <span class="variable">NewValue</span>.<span class="keyword">self</span>,
+    <span class="variable">failureType</span>: <span class="type">NewError</span>.<span class="type">Type</span> = <span class="variable">NewError</span>.<span class="keyword">self</span>
+  ) -&gt; <a href="/reactiveswift-composable-architecture/Effect"><span class="type">Effect</span></a>&lt;<span class="type">NewValue</span>, <span class="type">NewError</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Turns any producer into an <code>Effect</code> for any output and failure type by ignoring all output
+and any failure.</p>
+
+</div>
+<div class="discussion">
+    <p>This is useful for times you want to fire off an effect but don't want to feed any data back
+into the system. It can automatically promote an effect to your reducer's domain.</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">case</span> .<span class="variable">buttonTapped</span>:
+  <span class="keyword">return</span> <span class="variable">analyticsClient</span>.<span class="variable">track</span>(<span class="string literal">"Button Tapped"</span>)
+    .<span class="variable">fireAndForget</span>()
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>output​Type</th>
+    <td><code class="type">New​Value.​Type</code></td>
+    <td><p>An output type.</p>
+</td>
+</tr>
+<tr>
+    <th>failure​Type</th>
+    <td><code class="type">New​Error.​Type</code></td>
+    <td><p>A failure type.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect that never produces output or errors.</p>
+
+</div>
+<div role="article" class="function" id="signalproducer.assign(to:on:)">
+    <h3>
+        <code><a href="#signalproducer.assign(to:on:)">assign(to:​on:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">discardableResult</span>
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">assign</span>&lt;<span class="variable">Root</span>&gt;(<span class="variable">to</span> <span class="variable">keyPath</span>: <span class="type">ReferenceWritableKeyPath</span>&lt;<span class="type">Root</span>, <span class="keyword">Self</span>.<span class="type">Value</span>&gt;, <span class="variable">on</span> <span class="variable">object</span>: <span class="type">Root</span>)
+    -&gt; <span class="type">Disposable</span></body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Assigns each element from a <code>SignalProducer</code> to a property on an object.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>key​Path</th>
+    <td><code class="type">Reference​Writable​Key​Path&lt;Root, Self.​Value&gt;</code></td>
+    <td><p>The key path of the property to assign.</p>
+</td>
+</tr>
+<tr>
+    <th>object</th>
+    <td><code class="type">Root</code></td>
+    <td><p>The object on which to assign the value.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>Disposable instance</p>
+
+</div>
+<div role="article" class="function" id="signalproducer.deferred(_:)">
+    <h3>
+        <code><a href="#signalproducer.deferred(_:)">deferred(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">deferred</span>(<span class="keyword">_</span> <span class="variable">createProducer</span>: <span class="attribute">@</span><span class="attribute">escaping</span> () -&gt; <span class="keyword">Self</span>) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>A <code>SignalProducer</code> that waits until it is started before running
+the supplied closure to create a new <code>SignalProducer</code>, whose values
+are then sent to the subscriber of this effect.</p>
+
+</div>
+</div>
+<div role="article" class="function" id="signalproducer.concatenate(_:)">
+    <h3>
+        <code><a href="#signalproducer.concatenate(_:)">concatenate(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">concatenate</span>(<span class="keyword">_</span> <span class="variable">producers</span>: <span class="keyword">Self</span>...) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Concatenates a variadic list of producers together into a single producer, which runs the producers
+one after the other.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>effects</th>
+    <td></td>
+    <td><p>A variadic list of producers.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A new producer</p>
+
+</div>
+<div role="article" class="function" id="signalproducer.concatenate(_:)">
+    <h3>
+        <code><a href="#signalproducer.concatenate(_:)">concatenate(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">concatenate</span>&lt;<span class="variable">C</span>: <span class="type">Collection</span>&gt;(<span class="keyword">_</span> <span class="variable">producers</span>: <span class="type">C</span>) -&gt; <span class="keyword">Self</span> <span class="keyword">where</span> <span class="type">C</span>.<span class="type">Element</span> == <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Concatenates a collection of producers together into a single effect, which runs the producers one
+after the other.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>effects</th>
+    <td></td>
+    <td><p>A collection of producers.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A new producer</p>
+
+</div>
+<div role="article" class="function" id="signalproducer.fireandforget(_:)">
+    <h3>
+        <code><a href="#signalproducer.fireandforget(_:)">fire​And​Forget(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">iOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Use the static async version of 'Effect.fireAndForget', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">macOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Use the static async version of 'Effect.fireAndForget', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">tvOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Use the static async version of 'Effect.fireAndForget', instead."</span>
+  )
+  <span class="attribute">@</span><span class="attribute">available</span>(
+    <span class="variable">watchOS</span>, <span class="variable">deprecated</span>: <span class="number literal">9999.0</span>,
+    <span class="variable">message</span>: <span class="string literal">"Use the static async version of 'Effect.fireAndForget', instead."</span>
+  )
+  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">func</span> <span class="function">fireAndForget</span>(<span class="keyword">_</span> <span class="variable">work</span>: <span class="attribute">@</span><span class="attribute">escaping</span> () <span class="keyword">throws</span> -&gt; <span class="type">Void</span>) -&gt; <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Creates a producer that executes some work in the real world that doesn't need to feed data
+back into the store. If an error is thrown, the producer will complete and the error will be
+ignored.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>work</th>
+    <td><code class="type">@escaping () throws -&gt; Void</code></td>
+    <td><p>A closure encapsulating some work to execute in the real world.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>An effect.</p>
+
+</div>
+    </section>
+        </article>
+    </main>
+
+    <footer>
+        <p>
+    Generated on <time datetime="2022-12-31T17:25:39+0000">December 31, 2022</time> using <a href="https://github.com/SwiftDocOrg/swift-doc">swift-doc</a> <span class="version">1.0.0-rc.1</span>.
+</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComposableArchitecture - ViewStore</title>
+    <link rel="stylesheet" type="text/css" href="/reactiveswift-composable-architecture/all.css" media="all" />
+</head>
+<body>
+    <header>
+        <a href="/reactiveswift-composable-architecture/">
+            <strong>
+                ComposableArchitecture
+            </strong>
+            <span>Documentation</span>
+        </a>
+    </header>
+
+    <!--
+    <form class="search">
+        <input type="search" placeholder="Search" />
+    </form>
+    -->
+
+    <nav>
+        <div class="wrapper">
+            <h2>On This Page</h2>
+            <ol><li><a href="#relationships">Relationships</a><ul><li><a href="#relationships">Nested Types</a></li></ul></li><li><a href="#initializers">Initializers</a><ul><li class="initializer"><a href="#viewstore.init(_:removeduplicates:)">init(_:​remove​Duplicates:​)</a></li></ul></li><li><a href="#properties">Properties</a><ul><li class="variable"><a href="#viewstore.objectwillchange">object​Will​Change</a></li><li class="variable"><a href="#viewstore.produced">produced</a></li><li class="variable"><a href="#viewstore.state">state</a></li></ul></li><li><a href="#methods">Methods</a><ul><li class="function"><a href="#viewstore.binding(keypath:send:)">binding(key​Path:​send:​)</a></li><li class="function"><a href="#viewstore.send(_:)">send(_:​)</a></li><li class="function"><a href="#viewstore.send(_:animation:)">send(_:​animation:​)</a></li><li class="function"><a href="#viewstore.send(_:while:)">send(_:​while:​)</a></li><li class="function"><a href="#viewstore.send(_:animation:while:)">send(_:​animation:​while:​)</a></li><li class="function"><a href="#viewstore.yield(while:)">yield(while:​)</a></li><li class="function"><a href="#viewstore.binding(get:send:)">binding(get:​send:​)</a></li><li class="function"><a href="#viewstore.binding(get:send:)">binding(get:​send:​)</a></li><li class="function"><a href="#viewstore.binding(send:)">binding(send:​)</a></li><li class="function"><a href="#viewstore.binding(send:)">binding(send:​)</a></li></ul></li></ol>
+        </div>
+    </nav>
+
+    <main>
+        <article>
+            <h1>
+    <small>Class</small>
+    <code class="name">View​Store</code>
+</h1>
+
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">dynamicMemberLookup</span>
+<span class="keyword">public</span> <span class="attribute">final</span> <span class="keyword">class</span> <span class="type">ViewStore</span>&lt;<span class="variable">State</span>, <span class="variable">Action</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>A <code>ViewStore</code> is an object that can observe state changes and send actions. They are most
+commonly used in views, such as SwiftUI views, UIView or UIViewController, but they can be used
+anywhere it makes sense to observe state or send actions.</p>
+
+</div>
+<div class="discussion">
+    <p>In SwiftUI applications, a <code>ViewStore</code> is accessed most commonly using the <code>WithViewStore</code>
+view. It can be initialized with a store and a closure that is handed a view store and returns a
+view:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">var</span> <span class="variable">body</span>: <span class="keyword">some</span> <span class="type">View</span> {
+  <span class="variable">WithViewStore</span>(<span class="keyword">self</span>.<span class="variable">store</span>, <span class="variable">observe</span>: { <span class="variable">$0</span> }) { <span class="variable">viewStore</span> <span class="keyword">in</span>
+    <span class="variable">VStack</span> {
+      <span class="variable">Text</span>(<span class="string literal">"</span><span class="string literal">Current count: </span>\<span class="string literal">(</span><span class="variable">viewStore</span>.<span class="variable">count</span><span class="string literal">)</span><span class="string literal"/><span class="string literal">"</span>)
+      <span class="variable">Button</span>(<span class="string literal">"</span><span class="string literal">Increment</span><span class="string literal">"</span>) { <span class="variable">viewStore</span>.<span class="variable">send</span>(.<span class="variable">incrementButtonTapped</span>) }
+    }
+  }
+}
+</code></pre></body></html>
+<p>View stores can also be observed directly by views, scenes, commands, and other contexts that
+support the <code>@ObservedObject</code> property wrapper:</p>
+
+<html><body><pre class="highlight"><code><span class="attribute">@</span><span class="type">ObservedObject</span> <span class="keyword">var</span> <span class="variable">viewStore</span>: <span class="type">ViewStore</span>&lt;<span class="type">State</span>, <span class="type">Action</span>&gt;
+</code></pre></body></html>
+<blockquote>
+<p>Tip: If you experience compile-time issues with views that use <code>WithViewStore</code>, try
+observing the view store directly using the <code>@ObservedObject</code> property wrapper, instead, which
+is easier on the compiler.</p>
+</blockquote>
+
+<p>In UIKit applications a <code>ViewStore</code> can be created from a <code>Store</code> and then subscribed to for
+state updates:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">let</span> <span class="variable">store</span>: <a href="/reactiveswift-composable-architecture/Store"><span class="type">Store</span></a>&lt;<span class="type">State</span>, <span class="type">Action</span>&gt;
+<span class="keyword">let</span> <span class="variable">viewStore</span>: <span class="type">ViewStore</span>&lt;<span class="type">State</span>, <span class="type">Action</span>&gt;
+
+<span class="keyword">init</span>(<span class="variable">store</span>: <a href="/reactiveswift-composable-architecture/Store"><span class="type">Store</span></a>&lt;<span class="type">State</span>, <span class="type">Action</span>&gt;) {
+  <span class="keyword">self</span>.<span class="variable">store</span> = <span class="variable">store</span>
+  <span class="keyword">self</span>.<span class="variable">viewStore</span> = <span class="variable">ViewStore</span>(<span class="variable">store</span>)
+}
+
+<span class="keyword">func</span> <span class="function">viewDidLoad</span>() {
+  <span class="keyword">super</span>.<span class="variable">viewDidLoad</span>()
+
+  <span class="keyword">self</span>.<span class="variable">viewStore</span>.<span class="variable">produced</span>.<span class="variable">count</span>
+    .<span class="variable">startWithValues</span> { [<span class="variable">weak</span> <span class="keyword">self</span>] <span class="keyword">in</span> <span class="keyword">self</span>?.<span class="variable">countLabel</span>.<span class="variable">text</span> = <span class="variable">$0</span> }
+}
+
+<span class="attribute">@</span><span class="attribute">objc</span> <span class="keyword">func</span> <span class="function">incrementButtonTapped</span>() {
+  <span class="keyword">self</span>.<span class="variable">viewStore</span>.<span class="variable">send</span>(.<span class="variable">incrementButtonTapped</span>)
+}
+</code></pre></body></html>
+<blockquote>
+<p>Important: The <code>ViewStore</code> class is not thread-safe, and all interactions with it (and the
+store it was derived from) must happen on the same thread. Further, for SwiftUI applications,
+all interactions must happen on the <em>main</em> thread. See the documentation of the <code>Store</code>
+class for more information as to why this decision was made.</p>
+</blockquote>
+
+</div>
+<section id="relationships">
+    <h2 hidden>Relationships</h2>
+        
+        <h3>Nested Types</h3>
+<dl>
+    <dt class="class"><code><a href="/reactiveswift-composable-architecture/ViewStore_ObservableObjectPublisher">ViewStore.ObservableObjectPublisher</a></code></dt>
+<dd></dd>
+</dl>
+</section>
+    <section id="initializers">
+        <h2>Initializers</h2>
+
+        <div role="article" class="initializer" id="viewstore.init(_:removeduplicates:)">
+    <h3>
+        <code><a href="#viewstore.init(_:removeduplicates:)">init(_:​remove​Duplicates:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">init</span>(
+    <span class="keyword">_</span> <span class="variable">store</span>: <a href="/reactiveswift-composable-architecture/Store"><span class="type">Store</span></a>&lt;<span class="type">State</span>, <span class="type">Action</span>&gt;,
+    <span class="variable">removeDuplicates</span> <span class="variable">isDuplicate</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">State</span>, <span class="type">State</span>) -&gt; <span class="type">Bool</span>
+  )  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Initializes a view store from a store.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>store</th>
+    <td><code class="type">Store&lt;State, Action&gt;</code></td>
+    <td><p>A store.</p>
+</td>
+</tr>
+<tr>
+    <th>is​Duplicate</th>
+    <td><code class="type">@escaping (State, State) -&gt; Bool</code></td>
+    <td><p>A function to determine when two <code>State</code> values are equal. When values are equal, repeat view computations are removed.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+</div>
+    </section>
+    <section id="properties">
+        <h2>Properties</h2>
+
+        <div role="article" class="variable" id="viewstore.objectwillchange">
+    <h3>
+        <code><a href="#viewstore.objectwillchange">object​Will​Change</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">private</span>(<span class="variable">set</span>) <span class="attribute">lazy</span> <span class="keyword">var</span> <span class="variable">objectWillChange</span>  </body></html></code></pre>
+</div>
+</div>
+<div role="article" class="variable" id="viewstore.produced">
+    <h3>
+        <code><a href="#viewstore.produced">produced</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">var</span> <span class="variable">produced</span>: <a href="/reactiveswift-composable-architecture/StoreProducer"><span class="type">StoreProducer</span></a>&lt;<span class="type">State</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>A <code>SignalProducerConvertible</code> that emits when state changes.</p>
+
+</div>
+<div class="discussion">
+    <p>This producer supports dynamic member lookup so that you can pluck out a specific field in
+the state:</p>
+
+<html><body><pre class="highlight"><code><span class="variable">viewStore</span>.<span class="variable">produced</span>.<span class="variable">alert</span>
+  .<span class="variable">startWithValues</span> { ... }
+</code></pre></body></html>
+<p>When the emission happens the <code>ViewStore</code>'s state has been updated, and so the following
+precondition will pass:</p>
+
+<html><body><pre class="highlight"><code><span class="variable">viewStore</span>.<span class="variable">produced</span>.<span class="variable">producer</span>
+  .<span class="variable">startWithValues</span> { <span class="variable">precondition</span>(<span class="variable">$0</span> == <span class="variable">viewStore</span>.<span class="variable">state</span>) }
+</code></pre></body></html>
+<p>This means you can either use the value passed to the closure or you can reach into
+<code>viewStore.state</code> directly.</p>
+
+</div>
+</div>
+<div role="article" class="variable" id="viewstore.state">
+    <h3>
+        <code><a href="#viewstore.state">state</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">var</span> <span class="variable">state</span>: <span class="type">State</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>The current state.</p>
+
+</div>
+</div>
+    </section>
+    <section id="methods">
+        <h2>Methods</h2>
+
+        <div role="article" class="function" id="viewstore.binding(keypath:send:)">
+    <h3>
+        <code><a href="#viewstore.binding(keypath:send:)">binding(key​Path:​send:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(
+        *, <span class="variable">deprecated</span>,
+        <span class="variable">message</span>:
+          <span class="string literal">"""
+      For improved safety, bindable properties must now be wrapped explicitly in 'BindableState'. \
+      Bindings are now derived via 'ViewStore.binding' with a key path to that 'BindableState' \
+      (for example, 'viewStore.binding(\\.$value)'). For dynamic member lookup to be available, \
+      the view store's 'Action' type must also conform to 'BindableAction'.
+      """</span>
+      )
+      <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">binding</span>&lt;<span class="variable">Value</span>: <span class="type">Equatable</span>&gt;(
+        <span class="variable">keyPath</span>: <span class="type">WritableKeyPath</span>&lt;<span class="type">State</span>, <span class="type">Value</span>&gt;,
+        <span class="variable">send</span> <span class="variable">action</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<a href="/reactiveswift-composable-architecture/BindingAction"><span class="type">BindingAction</span></a>&lt;<span class="type">State</span>&gt;) -&gt; <span class="type">Action</span>
+      ) -&gt; <span class="type">Binding</span>&lt;<span class="type">Value</span>&gt;  </body></html></code></pre>
+</div>
+</div>
+<div role="article" class="function" id="viewstore.send(_:)">
+    <h3>
+        <code><a href="#viewstore.send(_:)">send(_:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">discardableResult</span>
+  <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">send</span>(<span class="keyword">_</span> <span class="variable">action</span>: <span class="type">Action</span>) -&gt; <span class="type">ViewStoreTask</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Sends an action to the store.</p>
+
+</div>
+<div class="discussion">
+    <p>This method returns a <code>ViewStoreTask</code>, which represents the lifecycle of the effect started
+from sending an action. You can use this value to tie the effect's lifecycle <em>and</em>
+cancellation to an asynchronous context, such as SwiftUI's <code>task</code> view modifier:</p>
+
+<html><body><pre class="highlight"><code>.<span class="variable">task</span> { <span class="variable">await</span> <span class="variable">viewStore</span>.<span class="variable">send</span>(.<span class="variable">task</span>).<span class="variable">finish</span>() }
+</code></pre></body></html>
+<blockquote>
+<p>Important: <code>ViewStore</code> is not thread safe and you should only send actions to it from the
+main thread. If you want to send actions on background threads due to the fact that the
+reducer is performing computationally expensive work, then a better way to handle this is to
+wrap that work in an <code>Effect</code> that is performed on a background thread so that the result
+can be fed back into the store.</p>
+</blockquote>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>action</th>
+    <td><code class="type">Action</code></td>
+    <td><p>An action.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A <code>ViewStoreTask</code> that represents the lifecycle of the effect executed when sending the action.</p>
+
+</div>
+<div role="article" class="function" id="viewstore.send(_:animation:)">
+    <h3>
+        <code><a href="#viewstore.send(_:animation:)">send(_:​animation:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">discardableResult</span>
+    <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">send</span>(<span class="keyword">_</span> <span class="variable">action</span>: <span class="type">Action</span>, <span class="variable">animation</span>: <span class="type">Animation</span>?) -&gt; <span class="type">ViewStoreTask</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Sends an action to the store with a given animation.</p>
+
+</div>
+<div class="discussion">
+    <p>See <code>ViewStore/send(_:)</code> for more info.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>action</th>
+    <td><code class="type">Action</code></td>
+    <td><p>An action.</p>
+</td>
+</tr>
+<tr>
+    <th>animation</th>
+    <td><code class="type">Animation?</code></td>
+    <td><p>An animation.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+</div>
+<div role="article" class="function" id="viewstore.send(_:while:)">
+    <h3>
+        <code><a href="#viewstore.send(_:while:)">send(_:​while:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="type">MainActor</span>
+    <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">send</span>(<span class="keyword">_</span> <span class="variable">action</span>: <span class="type">Action</span>, <span class="variable">while</span> <span class="variable">predicate</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">State</span>) -&gt; <span class="type">Bool</span>) </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Sends an action into the store and then suspends while a piece of state is <code>true</code>.</p>
+
+</div>
+<div class="discussion">
+    <p>This method can be used to interact with async/await code, allowing you to suspend while work
+is being performed in an effect. One common example of this is using SwiftUI's <code>.refreshable</code>
+method, which shows a loading indicator on the screen while work is being performed.</p>
+
+<p>For example, suppose we wanted to load some data from the network when a pull-to-refresh
+gesture is performed on a list. The domain and logic for this feature can be modeled like so:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">State</span>: <span class="type">Equatable</span> {
+  <span class="keyword">var</span> <span class="variable">isLoading</span> = <span class="keyword">false</span>
+  <span class="keyword">var</span> <span class="variable">response</span>: <span class="type">String</span>?
+}
+
+<span class="keyword">enum</span> <span class="type">Action</span> {
+  <span class="keyword">case</span> <span class="variable">pulledToRefresh</span>
+  <span class="keyword">case</span> <span class="variable">receivedResponse</span>(<span class="type">TaskResult</span>&lt;<span class="type">String</span>&gt;)
+}
+
+<span class="keyword">struct</span> <span class="type">Environment</span> {
+  <span class="keyword">var</span> <span class="variable">fetch</span>: () <span class="variable">async</span> <span class="keyword">throws</span> -&gt; <span class="variable">String</span>
+}
+
+<span class="keyword">let</span> <span class="variable">reducer</span> = <span class="variable">Reducer</span>&lt;<span class="type">State</span>, <span class="type">Action</span>, <span class="type">Environment</span>&gt; { <span class="variable">state</span>, <span class="variable">action</span>, <span class="variable">environment</span> <span class="keyword">in</span>
+  <span class="keyword">switch</span> <span class="variable">action</span> {
+  <span class="keyword">case</span> .<span class="variable">pulledToRefresh</span>:
+    <a href="/reactiveswift-composable-architecture/state"><span class="type">state</span></a>.<span class="variable">isLoading</span> = <span class="keyword">true</span>
+    <span class="keyword">return</span> .<span class="variable">task</span> {
+      <span class="variable">await</span> .<span class="variable">receivedResponse</span>(<span class="variable">TaskResult</span> { <span class="keyword">try</span> <span class="variable">await</span> <span class="variable">environment</span>.<span class="variable">fetch</span>() })
+    }
+
+  <span class="keyword">case</span> <span class="keyword">let</span> .<span class="variable">receivedResponse</span>(<span class="variable">result</span>):
+    <a href="/reactiveswift-composable-architecture/state"><span class="type">state</span></a>.<span class="variable">isLoading</span> = <span class="keyword">false</span>
+    <span class="variable">state</span>.<span class="variable">response</span> = <span class="keyword">try</span>? <span class="variable">result</span>.<span class="variable">value</span>
+    <span class="keyword">return</span> .<span class="variable">none</span>
+  }
+}
+</code></pre></body></html>
+<p>Note that we keep track of an <code>isLoading</code> boolean in our state so that we know exactly when
+the network response is being performed.</p>
+
+<p>The view can show the fact in a <code>List</code>, if it's present, and we can use the <code>.refreshable</code>
+view modifier to enhance the list with pull-to-refresh capabilities:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">MyView</span>: <span class="type">View</span> {
+  <span class="keyword">let</span> <span class="variable">store</span>: <a href="/reactiveswift-composable-architecture/Store"><span class="type">Store</span></a>&lt;<span class="type">State</span>, <span class="type">Action</span>&gt;
+
+  <span class="keyword">var</span> <span class="variable">body</span>: <span class="keyword">some</span> <span class="type">View</span> {
+    <span class="variable">WithViewStore</span>(<span class="keyword">self</span>.<span class="variable">store</span>, <span class="variable">observe</span>: { <span class="variable">$0</span> }) { <span class="variable">viewStore</span> <span class="keyword">in</span>
+      <span class="variable">List</span> {
+        <span class="keyword">if</span> <span class="keyword">let</span> <span class="variable">response</span> = <span class="variable">viewStore</span>.<span class="variable">response</span> {
+          <span class="variable">Text</span>(<span class="variable">response</span>)
+        }
+      }
+      .<span class="variable">refreshable</span> {
+        <span class="variable">await</span> <span class="variable">viewStore</span>.<span class="variable">send</span>(.<span class="variable">pulledToRefresh</span>, <span class="variable">while</span>: \.<span class="variable">isLoading</span>)
+      }
+    }
+  }
+}
+</code></pre></body></html>
+<p>Here we've used the <code>send(_:while:)</code> method to suspend while the <code>isLoading</code> state is
+<code>true</code>. Once that piece of state flips back to <code>false</code> the method will resume, signaling to
+<code>.refreshable</code> that the work has finished which will cause the loading indicator to disappear.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>action</th>
+    <td><code class="type">Action</code></td>
+    <td><p>An action.</p>
+</td>
+</tr>
+<tr>
+    <th>predicate</th>
+    <td><code class="type">@escaping (State) -&gt; Bool</code></td>
+    <td><p>A predicate on <code>State</code> that determines for how long this method should suspend.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+</div>
+<div role="article" class="function" id="viewstore.send(_:animation:while:)">
+    <h3>
+        <code><a href="#viewstore.send(_:animation:while:)">send(_:​animation:​while:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="type">MainActor</span>
+      <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">send</span>(
+        <span class="keyword">_</span> <span class="variable">action</span>: <span class="type">Action</span>,
+        <span class="variable">animation</span>: <span class="type">Animation</span>?,
+        <span class="variable">while</span> <span class="variable">predicate</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">State</span>) -&gt; <span class="type">Bool</span>
+      ) </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Sends an action into the store and then suspends while a piece of state is <code>true</code>.</p>
+
+</div>
+<div class="discussion">
+    <p>See the documentation of <code>send(_:while:)</code> for more information.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>action</th>
+    <td><code class="type">Action</code></td>
+    <td><p>An action.</p>
+</td>
+</tr>
+<tr>
+    <th>animation</th>
+    <td><code class="type">Animation?</code></td>
+    <td><p>The animation to perform when the action is sent.</p>
+</td>
+</tr>
+<tr>
+    <th>predicate</th>
+    <td><code class="type">@escaping (State) -&gt; Bool</code></td>
+    <td><p>A predicate on <code>State</code> that determines for how long this method should suspend.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+</div>
+<div role="article" class="function" id="viewstore.yield(while:)">
+    <h3>
+        <code><a href="#viewstore.yield(while:)">yield(while:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="type">MainActor</span>
+    <span class="keyword">public</span> <span class="keyword">func</span> <span class="function">yield</span>(<span class="variable">while</span> <span class="variable">predicate</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">State</span>) -&gt; <span class="type">Bool</span>) </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Suspends the current task while a predicate on state is <code>true</code>.</p>
+
+</div>
+<div class="discussion">
+    <p>If you want to suspend at the same time you send an action to the view store, use
+<code>send(_:while:)</code>.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>predicate</th>
+    <td><code class="type">@escaping (State) -&gt; Bool</code></td>
+    <td><p>A predicate on <code>State</code> that determines for how long this method should suspend.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+</div>
+<div role="article" class="function" id="viewstore.binding(get:send:)">
+    <h3>
+        <code><a href="#viewstore.binding(get:send:)">binding(get:​send:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">binding</span>&lt;<span class="variable">Value</span>&gt;(
+      <span class="variable">get</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">State</span>) -&gt; <span class="type">Value</span>,
+      <span class="variable">send</span> <span class="variable">valueToAction</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">Value</span>) -&gt; <span class="type">Action</span>
+    ) -&gt; <span class="type">Binding</span>&lt;<span class="type">Value</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Derives a binding from the store that prevents direct writes to state and instead sends
+actions to the store.</p>
+
+</div>
+<div class="discussion">
+    <p>The method is useful for dealing with SwiftUI components that work with two-way <code>Binding</code>s
+since the <code>Store</code> does not allow directly writing its state; it only allows reading state
+and sending actions.</p>
+
+<p>For example, a text field binding can be created like this:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">State</span> { <span class="keyword">var</span> <span class="variable">name</span> = <span class="string literal">"</span><span class="string literal"/><span class="string literal">"</span> }
+<span class="keyword">enum</span> <span class="type">Action</span> { <span class="keyword">case</span> <span class="variable">nameChanged</span>(<span class="type">String</span>) }
+
+<span class="variable">TextField</span>(
+  <span class="string literal">"</span><span class="string literal">Enter name</span><span class="string literal">"</span>,
+  <span class="variable">text</span>: <span class="type">viewStore</span>.<span class="variable">binding</span>(
+    <span class="variable">get</span>: { <span class="variable">$0</span>.<span class="variable">name</span> },
+    <span class="variable">send</span>: { <span class="variable">Action</span>.<span class="variable">nameChanged</span>(<span class="variable">$0</span>) }
+  )
+)
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>get</th>
+    <td><code class="type">@escaping (State) -&gt; Value</code></td>
+    <td><p>A function to get the state for the binding from the view store's full state.</p>
+</td>
+</tr>
+<tr>
+    <th>value​ToAction</th>
+    <td><code class="type">@escaping (Value) -&gt; Action</code></td>
+    <td><p>A function that transforms the binding's value into an action that can be sent to the store.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A binding.</p>
+
+</div>
+<div role="article" class="function" id="viewstore.binding(get:send:)">
+    <h3>
+        <code><a href="#viewstore.binding(get:send:)">binding(get:​send:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">binding</span>&lt;<span class="variable">Value</span>&gt;(
+      <span class="variable">get</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">State</span>) -&gt; <span class="type">Value</span>,
+      <span class="variable">send</span> <span class="variable">action</span>: <span class="type">Action</span>
+    ) -&gt; <span class="type">Binding</span>&lt;<span class="type">Value</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Derives a binding from the store that prevents direct writes to state and instead sends
+actions to the store.</p>
+
+</div>
+<div class="discussion">
+    <p>The method is useful for dealing with SwiftUI components that work with two-way <code>Binding</code>s
+since the <code>Store</code> does not allow directly writing its state; it only allows reading state
+and sending actions.</p>
+
+<p>For example, an alert binding can be dealt with like this:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">State</span> { <span class="keyword">var</span> <span class="variable">alert</span>: <span class="type">String</span>? }
+<span class="keyword">enum</span> <span class="type">Action</span> { <span class="keyword">case</span> <span class="variable">alertDismissed</span> }
+
+.<span class="variable">alert</span>(
+  <span class="variable">item</span>: <span class="keyword">self</span>.<span class="variable">store</span>.<span class="variable">binding</span>(
+    <span class="variable">get</span>: { <span class="variable">$0</span>.<span class="variable">alert</span> },
+    <span class="variable">send</span>: .<span class="variable">alertDismissed</span>
+  )
+) { <span class="variable">alert</span> <span class="keyword">in</span> <span class="variable">Alert</span>(<span class="variable">title</span>: <span class="type">Text</span>(<span class="variable">alert</span>.<span class="variable">message</span>)) }
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>get</th>
+    <td><code class="type">@escaping (State) -&gt; Value</code></td>
+    <td><p>A function to get the state for the binding from the view store's full state.</p>
+</td>
+</tr>
+<tr>
+    <th>action</th>
+    <td><code class="type">Action</code></td>
+    <td><p>The action to send when the binding is written to.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A binding.</p>
+
+</div>
+<div role="article" class="function" id="viewstore.binding(send:)">
+    <h3>
+        <code><a href="#viewstore.binding(send:)">binding(send:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">binding</span>(
+      <span class="variable">send</span> <span class="variable">valueToAction</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<span class="type">State</span>) -&gt; <span class="type">Action</span>
+    ) -&gt; <span class="type">Binding</span>&lt;<span class="type">State</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Derives a binding from the store that prevents direct writes to state and instead sends
+actions to the store.</p>
+
+</div>
+<div class="discussion">
+    <p>The method is useful for dealing with SwiftUI components that work with two-way <code>Binding</code>s
+since the <code>Store</code> does not allow directly writing its state; it only allows reading state
+and sending actions.</p>
+
+<p>For example, a text field binding can be created like this:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">typealias</span> <span class="variable">State</span> = <span class="type">String</span>
+<span class="keyword">enum</span> <span class="type">Action</span> { <span class="keyword">case</span> <span class="variable">nameChanged</span>(<span class="type">String</span>) }
+
+<span class="variable">TextField</span>(
+  <span class="string literal">"</span><span class="string literal">Enter name</span><span class="string literal">"</span>,
+  <span class="variable">text</span>: <span class="type">viewStore</span>.<span class="variable">binding</span>(
+    <span class="variable">send</span>: { <span class="variable">Action</span>.<span class="variable">nameChanged</span>(<span class="variable">$0</span>) }
+  )
+)
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>value​ToAction</th>
+    <td><code class="type">@escaping (State) -&gt; Action</code></td>
+    <td><p>A function that transforms the binding's value into an action that can be sent to the store.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A binding.</p>
+
+</div>
+<div role="article" class="function" id="viewstore.binding(send:)">
+    <h3>
+        <code><a href="#viewstore.binding(send:)">binding(send:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">func</span> <span class="function">binding</span>(<span class="variable">send</span> <span class="variable">action</span>: <span class="type">Action</span>) -&gt; <span class="type">Binding</span>&lt;<span class="type">State</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Derives a binding from the store that prevents direct writes to state and instead sends
+actions to the store.</p>
+
+</div>
+<div class="discussion">
+    <p>The method is useful for dealing with SwiftUI components that work with two-way <code>Binding</code>s
+since the <code>Store</code> does not allow directly writing its state; it only allows reading state
+and sending actions.</p>
+
+<p>For example, an alert binding can be dealt with like this:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">typealias</span> <span class="variable">State</span> = <span class="type">String</span>
+<span class="keyword">enum</span> <span class="type">Action</span> { <span class="keyword">case</span> <span class="variable">alertDismissed</span> }
+
+.<span class="variable">alert</span>(
+  <span class="variable">item</span>: <span class="type">viewStore</span>.<span class="variable">binding</span>(
+    <span class="variable">send</span>: .<span class="variable">alertDismissed</span>
+  )
+) { <span class="variable">title</span> <span class="keyword">in</span> <span class="variable">Alert</span>(<span class="variable">title</span>: <span class="type">Text</span>(<span class="variable">title</span>)) }
+</code></pre></body></html>
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>action</th>
+    <td><code class="type">Action</code></td>
+    <td><p>The action to send when the binding is written to.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+  <h4>Returns</h4>
+  <p>A binding.</p>
+
+</div>
+    </section>
+
+
+
+        </article>
+    </main>
+
+    <footer>
+        <p>
+    Generated on <time datetime="2022-12-31T17:25:39+0000">December 31, 2022</time> using <a href="https://github.com/SwiftDocOrg/swift-doc">swift-doc</a> <span class="version">1.0.0-rc.1</span>.
+</p>
+    </footer>
+</body>
+</html>

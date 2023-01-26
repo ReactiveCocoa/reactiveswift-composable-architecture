@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComposableArchitecture - ForEachStore</title>
+    <link rel="stylesheet" type="text/css" href="/reactiveswift-composable-architecture/all.css" media="all" />
+</head>
+<body>
+    <header>
+        <a href="/reactiveswift-composable-architecture/">
+            <strong>
+                ComposableArchitecture
+            </strong>
+            <span>Documentation</span>
+        </a>
+    </header>
+
+    <!--
+    <form class="search">
+        <input type="search" placeholder="Search" />
+    </form>
+    -->
+
+    <nav>
+        <div class="wrapper">
+            <h2>On This Page</h2>
+            <ol><li><a href="#relationships">Relationships</a><ul><li><a href="#relationships">Conforms To</a></li></ul></li><li><a href="#initializers">Initializers</a><ul><li class="initializer"><a href="#foreachstore.init(_:id:content:)">init(_:​id:​content:​)</a></li><li class="initializer"><a href="#foreachstore.init(_:content:)">init(_:​content:​)</a></li><li class="initializer"><a href="#foreachstore.init(_:content:)">init(_:​content:​)</a></li></ul></li><li><a href="#properties">Properties</a><ul><li class="variable"><a href="#foreachstore.data">data</a></li><li class="variable"><a href="#foreachstore.body">body</a></li></ul></li></ol>
+        </div>
+    </nav>
+
+    <main>
+        <article>
+            <h1>
+    <small>Structure</small>
+    <code class="name">For​Each​Store</code>
+</h1>
+
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">struct</span> <span class="type">ForEachStore</span>&lt;
+    <span class="variable">EachState</span>, <span class="variable">EachAction</span>, <span class="variable">Data</span>: <span class="type">Collection</span>, <span class="variable">ID</span>: <span class="type">Hashable</span>, <span class="variable">Content</span>: <span class="type">View</span>
+  &gt;: <span class="type">DynamicViewContent</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>A Composable Architecture-friendly wrapper around <code>ForEach</code> that simplifies working with
+collections of state.</p>
+
+</div>
+<div class="discussion">
+    <p><code>ForEachStore</code> loops over a store's collection with a store scoped to the domain of each
+element. This allows you to extract and modularize an element's view and avoid concerns around
+collection index math and parent-child store communication.</p>
+
+<p>For example, a todos app may define the domain and logic associated with an individual todo:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">TodoState</span>: <span class="type">Equatable</span>, <span class="type">Identifiable</span> {
+  <span class="keyword">let</span> <span class="variable">id</span>: <span class="type">UUID</span>
+  <span class="keyword">var</span> <span class="variable">description</span> = <span class="string literal">"</span><span class="string literal"/><span class="string literal">"</span>
+  <span class="keyword">var</span> <span class="variable">isComplete</span> = <span class="keyword">false</span>
+}
+<span class="keyword">enum</span> <span class="type">TodoAction</span> {
+  <span class="keyword">case</span> <span class="variable">isCompleteToggled</span>(<span class="type">Bool</span>)
+  <span class="keyword">case</span> <span class="variable">descriptionChanged</span>(<span class="type">String</span>)
+}
+<span class="keyword">struct</span> <span class="type">TodoEnvironment</span> {}
+<span class="keyword">let</span> <span class="variable">todoReducer</span> = <span class="variable">Reducer</span>&lt;<span class="variable">TodoState</span>, <span class="variable">TodoAction</span>, <span class="variable">TodoEnvironment</span> { ... }
+</code></pre></body></html>
+<p>As well as a view with a domain-specific store:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">TodoView</span>: <span class="type">View</span> {
+  <span class="keyword">let</span> <span class="variable">store</span>: <a href="/reactiveswift-composable-architecture/Store"><span class="type">Store</span></a>&lt;<span class="type">TodoState</span>, <span class="type">TodoAction</span>&gt;
+  <span class="keyword">var</span> <span class="variable">body</span>: <span class="keyword">some</span> <span class="type">View</span> { ... }
+}
+</code></pre></body></html>
+<p>For a parent domain to work with a collection of todos, it can hold onto this collection in
+state:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">AppState</span>: <span class="type">Equatable</span> {
+  <span class="keyword">var</span> <span class="variable">todos</span>: <span class="type">IdentifiedArrayOf</span>&lt;<span class="type">TodoState</span>&gt; = []
+}
+</code></pre></body></html>
+<p>Define a case to handle actions sent to the child domain:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">enum</span> <span class="type">AppAction</span> {
+  <span class="keyword">case</span> <span class="variable">todo</span>(<span class="variable">id</span>: <span class="type">TodoState</span>.<span class="type">ID</span>, <span class="variable">action</span>: <span class="type">TodoAction</span>)
+}
+</code></pre></body></html>
+<p>Enhance its reducer using <code>Reducer/forEach(state:action:environment:file:fileID:line:)-n7qj</code>:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">let</span> <span class="variable">appReducer</span> = <span class="variable">todoReducer</span>.<span class="variable">forEach</span>(
+  <span class="variable">state</span>: \.<span class="variable">todos</span>,
+  <span class="variable">action</span>: /<span class="variable">AppAction</span>.<span class="variable">todo</span>(<span class="variable">id</span>:<span class="type">action</span>:),
+  <span class="variable">environment</span>: { <span class="keyword">_</span> <span class="keyword">in</span> <span class="variable">TodoEnvironment</span>() }
+)
+</code></pre></body></html>
+<p>And finally render a list of <code>TodoView</code>s using <code>ForEachStore</code>:</p>
+
+<html><body><pre class="highlight"><code><span class="variable">ForEachStore</span>(
+  <span class="keyword">self</span>.<span class="variable">store</span>.<span class="variable">scope</span>(<span class="variable">state</span>: \.<span class="variable">todos</span>, <span class="variable">AppAction</span>.<span class="variable">todo</span>(<span class="variable">id</span>:<span class="type">action</span>:))
+) { <span class="variable">todoStore</span> <span class="keyword">in</span>
+  <span class="variable">TodoView</span>(<span class="variable">store</span>: <span class="type">todoStore</span>)
+}
+</code></pre></body></html>
+</div>
+<section id="relationships">
+    <h2 hidden>Relationships</h2>
+        <figure>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.40.1 (20161225.0304)
+ -->
+<!-- Title: %27 Pages: 1 -->
+<svg width="872pt" height="116pt"
+ viewBox="0.00 0.00 872.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>%27</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-112 868,-112 868,4 -4,4"/>
+<!-- ForEachStore -->
+<g id="node1" class="node structure current">
+<title>ForEachStore</title>
+<g id="a_node1"><a xlink:href="/reactiveswift-composable-architecture/ForEachStore" xlink:title="ForEachStore">
+<path fill="none" stroke="#000000" stroke-width="3" d="M528,-108C528,-108 336,-108 336,-108 330,-108 324,-102 324,-96 324,-96 324,-84 324,-84 324,-78 330,-72 336,-72 336,-72 528,-72 528,-72 534,-72 540,-78 540,-84 540,-84 540,-96 540,-96 540,-102 534,-108 528,-108"/>
+<text text-anchor="middle" x="432" y="-86.3" font-family="Menlo" font-size="14.00" fill="#000000">ForEachStore</text>
+</a>
+</g>
+</g>
+<!-- DynamicViewContent -->
+<g id="node2" class="node unknown">
+<title>DynamicViewContent</title>
+<path fill="none" stroke="#000000" d="M528,-36C528,-36 336,-36 336,-36 330,-36 324,-30 324,-24 324,-24 324,-12 324,-12 324,-6 330,0 336,0 336,0 528,0 528,0 534,0 540,-6 540,-12 540,-12 540,-24 540,-24 540,-30 534,-36 528,-36"/>
+<text text-anchor="middle" x="432" y="-14.3" font-family="Menlo" font-size="14.00" fill="#000000">DynamicViewContent</text>
+</g>
+<!-- ForEachStore&#45;&gt;DynamicViewContent -->
+<g id="edge1" class="edge conformsTo">
+<title>ForEachStore&#45;&gt;DynamicViewContent</title>
+<path fill="none" stroke="#000000" d="M432,-71.8314C432,-64.131 432,-54.9743 432,-46.4166"/>
+<polygon fill="#000000" stroke="#000000" points="435.5001,-46.4132 432,-36.4133 428.5001,-46.4133 435.5001,-46.4132"/>
+</g>
+</g>
+</svg>
+
+
+    <figcaption hidden>Inheritance graph for ForEachStore.</figcaption>
+</figure>
+        <h3>Conforms To</h3>
+<dl>
+    <dt class="unknown"><code>DynamicViewContent</code></dt>
+</dl>
+</section>
+    <section id="initializers">
+        <h2>Initializers</h2>
+
+        <div role="article" class="initializer" id="foreachstore.init(_:id:content:)">
+    <h3>
+        <code><a href="#foreachstore.init(_:id:content:)">init(_:​id:​content:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(*, <span class="variable">deprecated</span>, <span class="variable">message</span>: <span class="string literal">"Use the 'IdentifiedArray'-based version, instead."</span>)
+    <span class="keyword">public</span> <span class="keyword">init</span>&lt;<span class="variable">EachContent</span>&gt;(
+      <span class="keyword">_</span> <span class="variable">store</span>: <a href="/reactiveswift-composable-architecture/Store"><span class="type">Store</span></a>&lt;<span class="type">Data</span>, (<span class="type">Data</span>.<span class="type">Index</span>, <span class="type">EachAction</span>)&gt;,
+      <span class="variable">id</span>: <span class="type">KeyPath</span>&lt;<span class="type">EachState</span>, <span class="type">ID</span>&gt;,
+      <span class="attribute">@</span><span class="type">ViewBuilder</span> <span class="variable">content</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<a href="/reactiveswift-composable-architecture/Store"><span class="type">Store</span></a>&lt;<span class="type">EachState</span>, <span class="type">EachAction</span>&gt;) -&gt; <span class="type">EachContent</span>
+    )
+    <span class="keyword">where</span>
+      <span class="type">Data</span> == [<span class="type">EachState</span>],
+      <span class="type">Content</span> == <a href="/reactiveswift-composable-architecture/WithViewStore"><span class="type">WithViewStore</span></a>&lt;
+        [<span class="type">ID</span>], (<span class="type">Data</span>.<span class="type">Index</span>, <span class="type">EachAction</span>), <span class="type">ForEach</span>&lt;[(<span class="variable">offset</span>: <span class="type">Int</span>, <span class="variable">element</span>: <span class="type">ID</span>)], <span class="type">ID</span>, <span class="type">EachContent</span>&gt;
+      &gt;</body></html></code></pre>
+</div>
+</div>
+<div role="article" class="initializer" id="foreachstore.init(_:content:)">
+    <h3>
+        <code><a href="#foreachstore.init(_:content:)">init(_:​content:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">available</span>(*, <span class="variable">deprecated</span>, <span class="variable">message</span>: <span class="string literal">"Use the 'IdentifiedArray'-based version, instead."</span>)
+    <span class="keyword">public</span> <span class="keyword">init</span>&lt;<span class="variable">EachContent</span>&gt;(
+      <span class="keyword">_</span> <span class="variable">store</span>: <a href="/reactiveswift-composable-architecture/Store"><span class="type">Store</span></a>&lt;<span class="type">Data</span>, (<span class="type">Data</span>.<span class="type">Index</span>, <span class="type">EachAction</span>)&gt;,
+      <span class="attribute">@</span><span class="type">ViewBuilder</span> <span class="variable">content</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<a href="/reactiveswift-composable-architecture/Store"><span class="type">Store</span></a>&lt;<span class="type">EachState</span>, <span class="type">EachAction</span>&gt;) -&gt; <span class="type">EachContent</span>
+    )
+    <span class="keyword">where</span>
+      <span class="type">Data</span> == [<span class="type">EachState</span>],
+      <span class="type">Content</span> == <a href="/reactiveswift-composable-architecture/WithViewStore"><span class="type">WithViewStore</span></a>&lt;
+        [<span class="type">ID</span>], (<span class="type">Data</span>.<span class="type">Index</span>, <span class="type">EachAction</span>), <span class="type">ForEach</span>&lt;[(<span class="variable">offset</span>: <span class="type">Int</span>, <span class="variable">element</span>: <span class="type">ID</span>)], <span class="type">ID</span>, <span class="type">EachContent</span>&gt;
+      &gt;,
+      <span class="type">EachState</span>: <span class="type">Identifiable</span>,
+      <span class="type">EachState</span>.<span class="type">ID</span> == <span class="type">ID</span></body></html></code></pre>
+</div>
+</div>
+<div role="article" class="initializer" id="foreachstore.init(_:content:)">
+    <h3>
+        <code><a href="#foreachstore.init(_:content:)">init(_:​content:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">init</span>&lt;<span class="variable">EachContent</span>&gt;(
+      <span class="keyword">_</span> <span class="variable">store</span>: <a href="/reactiveswift-composable-architecture/Store"><span class="type">Store</span></a>&lt;<span class="type">IdentifiedArray</span>&lt;<span class="type">ID</span>, <span class="type">EachState</span>&gt;, (<span class="type">ID</span>, <span class="type">EachAction</span>)&gt;,
+      <span class="attribute">@</span><span class="type">ViewBuilder</span> <span class="variable">content</span>: <span class="attribute">@</span><span class="attribute">escaping</span> (<a href="/reactiveswift-composable-architecture/Store"><span class="type">Store</span></a>&lt;<span class="type">EachState</span>, <span class="type">EachAction</span>&gt;) -&gt; <span class="type">EachContent</span>
+    )
+    <span class="keyword">where</span>
+      <span class="type">Data</span> == <span class="type">IdentifiedArray</span>&lt;<span class="type">ID</span>, <span class="type">EachState</span>&gt;,
+      <span class="type">Content</span> == <a href="/reactiveswift-composable-architecture/WithViewStore"><span class="type">WithViewStore</span></a>&lt;
+        <span class="type">OrderedSet</span>&lt;<span class="type">ID</span>&gt;, (<span class="type">ID</span>, <span class="type">EachAction</span>), <span class="type">ForEach</span>&lt;<span class="type">OrderedSet</span>&lt;<span class="type">ID</span>&gt;, <span class="type">ID</span>, <span class="type">EachContent</span>&gt;
+      &gt;</body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Initializes a structure that computes views on demand from a store on a collection of data and
+an identified action.</p>
+
+</div>
+<h4>Parameters</h4>
+
+<table class="parameters">
+  <thead hidden>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <th>store</th>
+    <td><code class="type">Store&lt;Identified​Array&lt;ID, Each​State&gt;, (ID, Each​Action)&gt;</code></td>
+    <td><p>A store on an identified array of data and an identified action.</p>
+</td>
+</tr>
+<tr>
+    <th>content</th>
+    <td><code class="type">@escaping (Store&lt;Each​State, Each​Action&gt;) -&gt; Each​Content</code></td>
+    <td><p>A function that can generate content given a store of an element.</p>
+</td>
+</tr>
+  </tbody>
+</table>
+</div>
+    </section>
+    <section id="properties">
+        <h2>Properties</h2>
+
+        <div role="article" class="variable" id="foreachstore.data">
+    <h3>
+        <code><a href="#foreachstore.data">data</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">let</span> <span class="variable">data</span>: <span class="type">Data</span></body></html></code></pre>
+</div>
+</div>
+<div role="article" class="variable" id="foreachstore.body">
+    <h3>
+        <code><a href="#foreachstore.body">body</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">var</span> <span class="variable">body</span>: <span class="keyword">some</span> <span class="type">View</span>  </body></html></code></pre>
+</div>
+</div>
+    </section>
+
+
+
+        </article>
+    </main>
+
+    <footer>
+        <p>
+    Generated on <time datetime="2022-12-31T17:25:39+0000">December 31, 2022</time> using <a href="https://github.com/SwiftDocOrg/swift-doc">swift-doc</a> <span class="version">1.0.0-rc.1</span>.
+</p>
+    </footer>
+</body>
+</html>

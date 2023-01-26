@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComposableArchitecture - ActionFormat</title>
+    <link rel="stylesheet" type="text/css" href="/reactiveswift-composable-architecture/all.css" media="all" />
+</head>
+<body>
+    <header>
+        <a href="/reactiveswift-composable-architecture/">
+            <strong>
+                ComposableArchitecture
+            </strong>
+            <span>Documentation</span>
+        </a>
+    </header>
+
+    <!--
+    <form class="search">
+        <input type="search" placeholder="Search" />
+    </form>
+    -->
+
+    <nav>
+        <div class="wrapper">
+            <h2>On This Page</h2>
+            <ol><li><a href="#enumeration cases">Enumeration Cases</a><ul><li class="case"><a href="#actionformat.labelsonly">labels​Only</a></li><li class="case"><a href="#actionformat.prettyprint">pretty​Print</a></li></ul></li></ol>
+        </div>
+    </nav>
+
+    <main>
+        <article>
+            <h1>
+    <small>Enumeration</small>
+    <code class="name">Action​Format</code>
+</h1>
+
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">enum</span> <span class="type">ActionFormat</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Determines how the string description of an action should be printed when using the
+<code>Reducer/debug(_:state:action:actionFormat:environment:)</code> higher-order reducer.</p>
+
+</div>
+
+    <section id="enumeration cases">
+        <h2>Enumeration Cases</h2>
+
+        <div role="article" class="case" id="actionformat.labelsonly">
+    <h3>
+        <code><a href="#actionformat.labelsonly">labels​Only</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">case</span> <span class="variable">labelsOnly</span></body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Prints the action in a single line by only specifying the labels of the associated values:</p>
+
+</div>
+<div class="discussion">
+    <html><body><pre class="highlight"><code><span class="variable">Action</span>.<span class="variable">screenA</span>(.<span class="variable">row</span>(<span class="variable">index</span>:, <span class="variable">action</span>: .<span class="variable">textChanged</span>(<span class="variable">query</span>:)))
+</code></pre></body></html>
+</div>
+</div>
+<div role="article" class="case" id="actionformat.prettyprint">
+    <h3>
+        <code><a href="#actionformat.prettyprint">pretty​Print</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">case</span> <span class="variable">prettyPrint</span></body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Prints the action in a multiline, pretty-printed format, including all the labels of
+any associated values, as well as the data held in the associated values:</p>
+
+</div>
+<div class="discussion">
+    <html><body><pre class="highlight"><code><span class="variable">Action</span>.<span class="variable">screenA</span>(
+  <span class="variable">ScreenA</span>.<span class="variable">row</span>(
+    <span class="variable">index</span>: <span class="number literal">1</span>,
+    <span class="variable">action</span>: <span class="type">RowAction</span>.<span class="variable">textChanged</span>(
+      <span class="variable">query</span>: <span class="string literal">"</span><span class="string literal">Hi</span><span class="string literal">"</span>
+    )
+  )
+)
+</code></pre></body></html>
+</div>
+</div>
+    </section>
+
+
+
+        </article>
+    </main>
+
+    <footer>
+        <p>
+    Generated on <time datetime="2022-12-31T17:25:39+0000">December 31, 2022</time> using <a href="https://github.com/SwiftDocOrg/swift-doc">swift-doc</a> <span class="version">1.0.0-rc.1</span>.
+</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComposableArchitecture - BindableState</title>
+    <link rel="stylesheet" type="text/css" href="/reactiveswift-composable-architecture/all.css" media="all" />
+</head>
+<body>
+    <header>
+        <a href="/reactiveswift-composable-architecture/">
+            <strong>
+                ComposableArchitecture
+            </strong>
+            <span>Documentation</span>
+        </a>
+    </header>
+
+    <!--
+    <form class="search">
+        <input type="search" placeholder="Search" />
+    </form>
+    -->
+
+    <nav>
+        <div class="wrapper">
+            <h2>On This Page</h2>
+            <ol><li><a href="#relationships">Relationships</a><ul><li><a href="#relationships">Conforms To</a></li></ul></li><li><a href="#initializers">Initializers</a><ul><li class="initializer"><a href="#bindablestate.init(wrappedvalue:)">init(wrapped​Value:​)</a></li></ul></li><li><a href="#properties">Properties</a><ul><li class="variable"><a href="#bindablestate.wrappedvalue">wrapped​Value</a></li><li class="variable"><a href="#bindablestate.projectedvalue">projected​Value</a></li><li class="variable"><a href="#bindablestate.custommirror">custom​Mirror</a></li></ul></li></ol>
+        </div>
+    </nav>
+
+    <main>
+        <article>
+            <h1>
+    <small>Structure</small>
+    <code class="name">Bindable​State</code>
+</h1>
+
+<div class="declaration">
+<pre class="highlight"><code><html><body><span class="attribute">@</span><span class="attribute">dynamicMemberLookup</span>
+<span class="attribute">@</span><span class="attribute">propertyWrapper</span>
+<span class="keyword">public</span> <span class="keyword">struct</span> <span class="type">BindableState</span>&lt;<span class="variable">Value</span>&gt;  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>A property wrapper type that can designate properties of app state that can be directly
+bindable in SwiftUI views.</p>
+
+</div>
+<div class="discussion">
+    <p>Along with an action type that conforms to the <code>BindableAction</code> protocol, this type can be
+used to safely eliminate the boilerplate that is typically incurred when working with multiple
+mutable fields on state.</p>
+
+<p>For example, a settings screen may model its state with the following struct:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">SettingsState</span> {
+  <span class="keyword">var</span> <span class="variable">digest</span> = <span class="variable">Digest</span>.<span class="variable">daily</span>
+  <span class="keyword">var</span> <span class="variable">displayName</span> = <span class="string literal">"</span><span class="string literal"/><span class="string literal">"</span>
+  <span class="keyword">var</span> <span class="variable">enableNotifications</span> = <span class="keyword">false</span>
+  <span class="keyword">var</span> <span class="variable">isLoading</span> = <span class="keyword">false</span>
+  <span class="keyword">var</span> <span class="variable">protectMyPosts</span> = <span class="keyword">false</span>
+  <span class="keyword">var</span> <span class="variable">sendEmailNotifications</span> = <span class="keyword">false</span>
+  <span class="keyword">var</span> <span class="variable">sendMobileNotifications</span> = <span class="keyword">false</span>
+}
+</code></pre></body></html>
+<p>The majority of these fields should be editable by the view, and in the Composable
+Architecture this means that each field requires a corresponding action that can be sent to
+the store. Typically this comes in the form of an enum with a case per field:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">enum</span> <span class="type">SettingsAction</span> {
+  <span class="keyword">case</span> <span class="variable">digestChanged</span>(<span class="type">Digest</span>)
+  <span class="keyword">case</span> <span class="variable">displayNameChanged</span>(<span class="type">String</span>)
+  <span class="keyword">case</span> <span class="variable">enableNotificationsChanged</span>(<span class="type">Bool</span>)
+  <span class="keyword">case</span> <span class="variable">protectMyPostsChanged</span>(<span class="type">Bool</span>)
+  <span class="keyword">case</span> <span class="variable">sendEmailNotificationsChanged</span>(<span class="type">Bool</span>)
+  <span class="keyword">case</span> <span class="variable">sendMobileNotificationsChanged</span>(<span class="type">Bool</span>)
+}
+</code></pre></body></html>
+<p>And we're not even done yet. In the reducer we must now handle each action, which simply
+replaces the state at each field with a new value:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">let</span> <span class="variable">settingsReducer</span> = <span class="variable">Reducer</span>&lt;
+  <span class="type">SettingsState</span>, <span class="type">SettingsAction</span>, <span class="type">SettingsEnvironment</span>
+&gt; { <span class="variable">state</span>, <span class="variable">action</span>, <span class="variable">environment</span> <span class="keyword">in</span>
+  <span class="keyword">switch</span> <span class="variable">action</span> {
+  <span class="keyword">case</span> <span class="keyword">let</span> <span class="variable">digestChanged</span>(<span class="variable">digest</span>):
+    <a href="/reactiveswift-composable-architecture/state"><span class="type">state</span></a>.<span class="variable">digest</span> = <span class="variable">digest</span>
+    <span class="keyword">return</span> .<span class="variable">none</span>
+
+  <span class="keyword">case</span> <span class="keyword">let</span> <span class="variable">displayNameChanged</span>(<span class="variable">displayName</span>):
+    <a href="/reactiveswift-composable-architecture/state"><span class="type">state</span></a>.<span class="variable">displayName</span> = <span class="variable">displayName</span>
+    <span class="keyword">return</span> .<span class="variable">none</span>
+
+  <span class="keyword">case</span> <span class="keyword">let</span> <span class="variable">enableNotificationsChanged</span>(<span class="variable">isOn</span>):
+    <a href="/reactiveswift-composable-architecture/state"><span class="type">state</span></a>.<span class="variable">enableNotifications</span> = <span class="variable">isOn</span>
+    <span class="keyword">return</span> .<span class="variable">none</span>
+
+  <span class="keyword">case</span> <span class="keyword">let</span> <span class="variable">protectMyPostsChanged</span>(<span class="variable">isOn</span>):
+    <a href="/reactiveswift-composable-architecture/state"><span class="type">state</span></a>.<span class="variable">protectMyPosts</span> = <span class="variable">isOn</span>
+    <span class="keyword">return</span> .<span class="variable">none</span>
+
+  <span class="keyword">case</span> <span class="keyword">let</span> <span class="variable">sendEmailNotificationsChanged</span>(<span class="variable">isOn</span>):
+    <a href="/reactiveswift-composable-architecture/state"><span class="type">state</span></a>.<span class="variable">sendEmailNotifications</span> = <span class="variable">isOn</span>
+    <span class="keyword">return</span> .<span class="variable">none</span>
+
+  <span class="keyword">case</span> <span class="keyword">let</span> <span class="variable">sendMobileNotificationsChanged</span>(<span class="variable">isOn</span>):
+    <a href="/reactiveswift-composable-architecture/state"><span class="type">state</span></a>.<span class="variable">sendMobileNotifications</span> = <span class="variable">isOn</span>
+    <span class="keyword">return</span> .<span class="variable">none</span>
+  }
+}
+</code></pre></body></html>
+<p>This is a <em>lot</em> of boilerplate for something that should be simple. Luckily, we can
+dramatically eliminate this boilerplate using <code>BindableState</code> and <code>BindableAction</code>.</p>
+
+<p>First, we can annotate each bindable value of state with the <code>@BindableState</code> property
+wrapper:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">struct</span> <span class="type">SettingsState</span> {
+  <span class="attribute">@</span><span class="type">BindableState</span> <span class="keyword">var</span> <span class="variable">digest</span> = <span class="variable">Digest</span>.<span class="variable">daily</span>
+  <span class="attribute">@</span><span class="type">BindableState</span> <span class="keyword">var</span> <span class="variable">displayName</span> = <span class="string literal">"</span><span class="string literal"/><span class="string literal">"</span>
+  <span class="attribute">@</span><span class="type">BindableState</span> <span class="keyword">var</span> <span class="variable">enableNotifications</span> = <span class="keyword">false</span>
+  <span class="keyword">var</span> <span class="variable">isLoading</span> = <span class="keyword">false</span>
+  <span class="attribute">@</span><span class="type">BindableState</span> <span class="keyword">var</span> <span class="variable">protectMyPosts</span> = <span class="keyword">false</span>
+  <span class="attribute">@</span><span class="type">BindableState</span> <span class="keyword">var</span> <span class="variable">sendEmailNotifications</span> = <span class="keyword">false</span>
+  <span class="attribute">@</span><span class="type">BindableState</span> <span class="keyword">var</span> <span class="variable">sendMobileNotifications</span> = <span class="keyword">false</span>
+}
+</code></pre></body></html>
+<p>Each annotated field is directly to bindable to SwiftUI controls, like pickers, toggles, and
+text fields. Notably, the <code>isLoading</code> property is <em>not</em> annotated as being bindable, which
+prevents the view from mutating this value directly.</p>
+
+<p>Next, we can conform the action type to <code>BindableAction</code> by collapsing all of the
+individual, field-mutating actions into a single case that holds a <code>BindingAction</code> generic
+over the reducer's <code>SettingsState</code>:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">enum</span> <span class="type">SettingsAction</span>: <a href="/reactiveswift-composable-architecture/BindableAction"><span class="type">BindableAction</span></a> {
+  <span class="keyword">case</span> <span class="variable">binding</span>(<a href="/reactiveswift-composable-architecture/BindingAction"><span class="type">BindingAction</span></a>&lt;<span class="type">SettingsState</span>&gt;)
+}
+</code></pre></body></html>
+<p>And then, we can simplify the settings reducer by allowing the <code>binding</code> method to handle
+these field mutations for us:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">let</span> <span class="variable">settingsReducer</span> = <span class="variable">Reducer</span>&lt;
+  <span class="type">SettingsState</span>, <span class="type">SettingsAction</span>, <span class="type">SettingsEnvironment</span>
+&gt; {
+  <span class="keyword">switch</span> <span class="variable">action</span> {
+  <span class="keyword">case</span> .<span class="variable">binding</span>:
+    <span class="keyword">return</span> .<span class="variable">none</span>
+  }
+}
+.<span class="variable">binding</span>()
+</code></pre></body></html>
+<p>Binding actions are constructed and sent to the store by calling
+<code>ViewStore/binding(_:file:fileID:line:)</code> with a key path to the bindable state:</p>
+
+<html><body><pre class="highlight"><code><span class="variable">TextField</span>(<span class="string literal">"</span><span class="string literal">Display name</span><span class="string literal">"</span>, <span class="variable">text</span>: <span class="type">viewStore</span>.<span class="variable">binding</span>(\.<span class="variable">$displayName</span>))
+</code></pre></body></html>
+<p>Should you need to layer additional functionality over these bindings, your reducer can
+pattern match the action for a given key path:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">case</span> .<span class="variable">binding</span>(\.<span class="variable">$displayName</span>):
+  <span class="comment">// Validate display name</span>
+
+<span class="keyword">case</span> .<span class="variable">binding</span>(\.<span class="variable">$enableNotifications</span>):
+  <span class="comment">// Return an authorization request effect</span>
+</code></pre></body></html>
+<p>Binding actions can also be tested in much the same way regular actions are tested. Rather
+than send a specific action describing how a binding changed, such as
+<code>.displayNameChanged(&quot;Blob&quot;)</code>, you will send a <code>Reducer/binding(action:)</code> action that
+describes which key path is being set to what value, such as <code>.set(\.$displayName, &quot;Blob&quot;)</code>:</p>
+
+<html><body><pre class="highlight"><code><span class="keyword">let</span> <span class="variable">store</span> = <span class="variable">TestStore</span>(
+  <span class="variable">initialState</span>: <span class="type">SettingsState</span>(),
+  <span class="variable">reducer</span>: <span class="type">settingsReducer</span>,
+  <span class="variable">environment</span>: <span class="type">SettingsEnvironment</span>(...)
+)
+
+<span class="variable">store</span>.<span class="variable">send</span>(.<span class="variable">set</span>(\.<span class="variable">$displayName</span>, <span class="string literal">"</span><span class="string literal">Blob</span><span class="string literal">"</span>)) {
+  <span class="variable">$0</span>.<span class="variable">displayName</span> = <span class="string literal">"</span><span class="string literal">Blob</span><span class="string literal">"</span>
+}
+<span class="variable">store</span>.<span class="variable">send</span>(.<span class="variable">set</span>(\.<span class="variable">$protectMyPosts</span>, <span class="keyword">true</span>)) {
+  <span class="variable">$0</span>.<span class="variable">protectMyPosts</span> = <span class="keyword">true</span>
+)
+</code></pre></body></html>
+</div>
+<section id="relationships">
+    <h2 hidden>Relationships</h2>
+        <figure>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.40.1 (20161225.0304)
+ -->
+<!-- Title: %63 Pages: 1 -->
+<svg width="1128pt" height="243pt"
+ viewBox="0.00 0.00 1128.23 243.49" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 239.49)">
+<title>%63</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-239.49 1124.2314,-239.49 1124.2314,4 -4,4"/>
+<!-- BindableState -->
+<g id="node1" class="node structure current">
+<title>BindableState</title>
+<g id="a_node1"><a xlink:href="/reactiveswift-composable-architecture/BindableState" xlink:title="BindableState">
+<path fill="none" stroke="#000000" stroke-width="3" d="M654.5729,-136.0408C654.5729,-136.0408 462.5729,-136.0408 462.5729,-136.0408 456.5729,-136.0408 450.5729,-130.0408 450.5729,-124.0408 450.5729,-124.0408 450.5729,-112.0408 450.5729,-112.0408 450.5729,-106.0408 456.5729,-100.0408 462.5729,-100.0408 462.5729,-100.0408 654.5729,-100.0408 654.5729,-100.0408 660.5729,-100.0408 666.5729,-106.0408 666.5729,-112.0408 666.5729,-112.0408 666.5729,-124.0408 666.5729,-124.0408 666.5729,-130.0408 660.5729,-136.0408 654.5729,-136.0408"/>
+<text text-anchor="middle" x="558.5729" y="-114.3408" font-family="Menlo" font-size="14.00" fill="#000000">BindableState</text>
+</a>
+</g>
+</g>
+<!-- Decodable -->
+<g id="node2" class="node unknown">
+<title>Decodable</title>
+<path fill="none" stroke="#000000" d="M1108.2314,-71.1618C1108.2314,-71.1618 916.2314,-71.1618 916.2314,-71.1618 910.2314,-71.1618 904.2314,-65.1618 904.2314,-59.1618 904.2314,-59.1618 904.2314,-47.1618 904.2314,-47.1618 904.2314,-41.1618 910.2314,-35.1618 916.2314,-35.1618 916.2314,-35.1618 1108.2314,-35.1618 1108.2314,-35.1618 1114.2314,-35.1618 1120.2314,-41.1618 1120.2314,-47.1618 1120.2314,-47.1618 1120.2314,-59.1618 1120.2314,-59.1618 1120.2314,-65.1618 1114.2314,-71.1618 1108.2314,-71.1618"/>
+<text text-anchor="middle" x="1012.2314" y="-49.4618" font-family="Menlo" font-size="14.00" fill="#000000">Decodable</text>
+</g>
+<!-- BindableState&#45;&gt;Decodable -->
+<g id="edge4" class="edge conformsTo">
+<title>BindableState&#45;&gt;Decodable</title>
+<path fill="none" stroke="#000000" d="M666.659,-102.5831C735.1018,-92.7949 823.6315,-80.134 893.9498,-70.0776"/>
+<polygon fill="#000000" stroke="#000000" points="894.7842,-73.4939 904.188,-68.6134 893.7931,-66.5644 894.7842,-73.4939"/>
+</g>
+<!-- CustomDebugStringConvertible -->
+<g id="node3" class="node unknown">
+<title>CustomDebugStringConvertible</title>
+<path fill="none" stroke="#000000" d="M374.1734,-36C374.1734,-36 156.1734,-36 156.1734,-36 150.1734,-36 144.1734,-30 144.1734,-24 144.1734,-24 144.1734,-12 144.1734,-12 144.1734,-6 150.1734,0 156.1734,0 156.1734,0 374.1734,0 374.1734,0 380.1734,0 386.1734,-6 386.1734,-12 386.1734,-12 386.1734,-24 386.1734,-24 386.1734,-30 380.1734,-36 374.1734,-36"/>
+<text text-anchor="middle" x="265.1734" y="-14.3" font-family="Menlo" font-size="14.00" fill="#000000">CustomDebugStringConvertible</text>
+</g>
+<!-- BindableState&#45;&gt;CustomDebugStringConvertible -->
+<g id="edge1" class="edge conformsTo">
+<title>BindableState&#45;&gt;CustomDebugStringConvertible</title>
+<path fill="none" stroke="#000000" d="M505.7801,-100.04C455.7682,-82.9873 380.636,-57.3694 327.6594,-39.3059"/>
+<polygon fill="#000000" stroke="#000000" points="328.6309,-35.9394 318.0364,-36.0248 326.3718,-42.5648 328.6309,-35.9394"/>
+</g>
+<!-- CustomReflectable -->
+<g id="node4" class="node unknown">
+<title>CustomReflectable</title>
+<path fill="none" stroke="#000000" d="M204,-201.7784C204,-201.7784 12,-201.7784 12,-201.7784 6,-201.7784 0,-195.7784 0,-189.7784 0,-189.7784 0,-177.7784 0,-177.7784 0,-171.7784 6,-165.7784 12,-165.7784 12,-165.7784 204,-165.7784 204,-165.7784 210,-165.7784 216,-171.7784 216,-177.7784 216,-177.7784 216,-189.7784 216,-189.7784 216,-195.7784 210,-201.7784 204,-201.7784"/>
+<text text-anchor="middle" x="108" y="-180.0784" font-family="Menlo" font-size="14.00" fill="#000000">CustomReflectable</text>
+</g>
+<!-- BindableState&#45;&gt;CustomReflectable -->
+<g id="edge3" class="edge conformsTo">
+<title>BindableState&#45;&gt;CustomReflectable</title>
+<path fill="none" stroke="#000000" d="M450.3629,-133.8284C382.737,-143.6949 295.6207,-156.405 226.1903,-166.5347"/>
+<polygon fill="#000000" stroke="#000000" points="225.4692,-163.1028 216.0793,-168.0099 226.4798,-170.0294 225.4692,-163.1028"/>
+</g>
+<!-- Encodable -->
+<g id="node5" class="node unknown">
+<title>Encodable</title>
+<path fill="none" stroke="#000000" d="M952.8325,-235.49C952.8325,-235.49 760.8325,-235.49 760.8325,-235.49 754.8325,-235.49 748.8325,-229.49 748.8325,-223.49 748.8325,-223.49 748.8325,-211.49 748.8325,-211.49 748.8325,-205.49 754.8325,-199.49 760.8325,-199.49 760.8325,-199.49 952.8325,-199.49 952.8325,-199.49 958.8325,-199.49 964.8325,-205.49 964.8325,-211.49 964.8325,-211.49 964.8325,-223.49 964.8325,-223.49 964.8325,-229.49 958.8325,-235.49 952.8325,-235.49"/>
+<text text-anchor="middle" x="856.8325" y="-213.79" font-family="Menlo" font-size="14.00" fill="#000000">Encodable</text>
+</g>
+<!-- BindableState&#45;&gt;Encodable -->
+<g id="edge2" class="edge conformsTo">
+<title>BindableState&#45;&gt;Encodable</title>
+<path fill="none" stroke="#000000" d="M612.5854,-136.0503C663.3148,-152.9651 739.2465,-178.2831 792.959,-196.1925"/>
+<polygon fill="#000000" stroke="#000000" points="792.1249,-199.6038 802.7186,-199.4467 794.3392,-192.9632 792.1249,-199.6038"/>
+</g>
+</g>
+</svg>
+
+
+    <figcaption hidden>Inheritance graph for BindableState.</figcaption>
+</figure>
+        <h3>Conforms To</h3>
+<dl>
+    <dt class="unknown"><code>CustomDebugStringConvertible</code></dt>
+<dt class="unknown"><code>CustomReflectable</code></dt>
+<dt class="unknown"><code>Decodable</code></dt>
+<dt class="unknown"><code>Encodable</code></dt>
+</dl>
+</section>
+    <section id="initializers">
+        <h2>Initializers</h2>
+
+        <div role="article" class="initializer" id="bindablestate.init(wrappedvalue:)">
+    <h3>
+        <code><a href="#bindablestate.init(wrappedvalue:)">init(wrapped​Value:​)</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">init</span>(<span class="variable">wrappedValue</span>: <span class="type">Value</span>)  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>Creates bindable state from the value of another bindable state.</p>
+
+</div>
+</div>
+    </section>
+    <section id="properties">
+        <h2>Properties</h2>
+
+        <div role="article" class="variable" id="bindablestate.wrappedvalue">
+    <h3>
+        <code><a href="#bindablestate.wrappedvalue">wrapped​Value</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">var</span> <span class="variable">wrappedValue</span>: <span class="type">Value</span></body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>The underlying value wrapped by the bindable state.</p>
+
+</div>
+</div>
+<div role="article" class="variable" id="bindablestate.projectedvalue">
+    <h3>
+        <code><a href="#bindablestate.projectedvalue">projected​Value</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">var</span> <span class="variable">projectedValue</span>: <span class="keyword">Self</span>  </body></html></code></pre>
+</div>
+<div class="summary" role="doc-abstract">
+    <p>A projection that can be used to derive bindings from a view store.</p>
+
+</div>
+<div class="discussion">
+    <p>Use the projected value to derive bindings from a view store with properties annotated with
+<code>@BindableState</code>. To get the <code>projectedValue</code>, prefix the property with <code>$</code>:</p>
+
+<html><body><pre class="highlight"><code><span class="variable">TextField</span>(<span class="string literal">"</span><span class="string literal">Display name</span><span class="string literal">"</span>, <span class="variable">text</span>: <span class="type">viewStore</span>.<span class="variable">binding</span>(\.<span class="variable">$displayName</span>))
+</code></pre></body></html>
+<p>See <code>BindableState</code> for more details.</p>
+
+</div>
+</div>
+<div role="article" class="variable" id="bindablestate.custommirror">
+    <h3>
+        <code><a href="#bindablestate.custommirror">custom​Mirror</a></code>
+    </h3>
+    <div class="declaration">
+<pre class="highlight"><code><html><body><span class="keyword">public</span> <span class="keyword">var</span> <span class="variable">customMirror</span>: <span class="type">Mirror</span>  </body></html></code></pre>
+</div>
+</div>
+    </section>
+
+
+
+        </article>
+    </main>
+
+    <footer>
+        <p>
+    Generated on <time datetime="2022-12-31T17:25:39+0000">December 31, 2022</time> using <a href="https://github.com/SwiftDocOrg/swift-doc">swift-doc</a> <span class="version">1.0.0-rc.1</span>.
+</p>
+    </footer>
+</body>
+</html>
