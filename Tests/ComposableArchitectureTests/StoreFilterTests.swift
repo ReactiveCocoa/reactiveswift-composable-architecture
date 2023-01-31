@@ -1,12 +1,12 @@
-#if DEBUG
-  import Combine
+// `@MainActor` introduces issues gathering tests on Linux
+#if DEBUG && !os(Linux)
+  import ReactiveSwift
   import XCTest
 
   @testable import ComposableArchitecture
 
   @MainActor
   final class StoreFilterTests: XCTestCase {
-    var cancellables: Set<AnyCancellable> = []
 
     func testFilter() {
       let store = Store<Int?, Void>(initialState: nil, reducer: EmptyReducer())
@@ -14,9 +14,8 @@
 
       let viewStore = ViewStore(store)
       var count = 0
-      viewStore.publisher
-        .sink { _ in count += 1 }
-        .store(in: &self.cancellables)
+      viewStore.produced.producer
+        .startWithValues { _ in count += 1 }
 
       XCTAssertEqual(count, 1)
       viewStore.send(())

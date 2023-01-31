@@ -1,4 +1,4 @@
-#if DEBUG
+#if DEBUG && !os(Linux)
   import XCTest
 
   @testable import ComposableArchitecture

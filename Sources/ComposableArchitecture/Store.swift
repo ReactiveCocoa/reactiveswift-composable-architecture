@@ -399,16 +399,16 @@ public final class Store<State, Action> {
             }
           },
           completed: { [weak self] in
-              self?.threadCheck(status: .effectCompletion(action))
-              boxedTask.wrappedValue?.cancel()
-              didComplete = true
+            self?.threadCheck(status: .effectCompletion(action))
+            boxedTask.wrappedValue?.cancel()
+            didComplete = true
             self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
-            },
+          },
           interrupted: { [weak self] in
             boxedTask.wrappedValue?.cancel()
             didComplete = true
             self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
-              }
+          }
         )
 
         let effectDisposable = CompositeDisposable()
@@ -416,7 +416,7 @@ public final class Store<State, Action> {
         effectDisposable += AnyDisposable { [weak self] in
           self?.threadCheck(status: .effectCompletion(action))
           self?.effectDisposables.removeValue(forKey: uuid)?.dispose()
-            }
+        }
 
         if !didComplete {
           let task = Task<Void, Never> { @MainActor in
@@ -677,7 +677,7 @@ public typealias StoreOf<R: ReducerProtocol> = Store<R.State, R.Action>
       let reducer = ScopedReducer<RootState, RootAction, RescopedState, RescopedAction>(
         rootStore: self.rootStore,
         state: { _ in toRescopedState(store.state) },
-        action: { fromRescopedAction($0, $1).flatMap { fromScopedAction(store.state.value, $0) } },
+        action: { fromRescopedAction($0, $1).flatMap { fromScopedAction(store.state, $0) } },
         parentStores: self.parentStores + [store]
       )
       let childStore = Store<RescopedState, RescopedAction>(
