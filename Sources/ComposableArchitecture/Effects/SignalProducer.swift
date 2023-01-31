@@ -323,9 +323,9 @@ extension EffectProducer where Failure == Swift.Error {
   }
 }
 
-extension Effect {
+extension EffectProducer {
 
-  /// Turns any effect into an ``Effect`` for any output and failure type by ignoring all output
+  /// Turns any effect into an ``EffectProducer`` for any output and failure type by ignoring all output
   /// and any failure.
   ///
   /// This is useful for times you want to fire off an effect but don't want to feed any data back
@@ -348,7 +348,7 @@ extension Effect {
   public func fireAndForget<NewValue, NewError>(
     outputType: NewValue.Type = NewValue.self,
     failureType: NewError.Type = NewError.self
-  ) -> Effect<NewValue, NewError> {
+  ) -> EffectProducer<NewValue, NewError> {
     self
       .producer
       .flatMapError { _ in .empty }

@@ -68,15 +68,17 @@ final class EffectCancellationTests: XCTestCase {
   func testCancellationAfterDelay() {
     var value: Int?
 
+    let scheduler = QueueScheduler()
+
     Effect(value: 1)
-      .deferred(for: 0.5, scheduler: QueueScheduler.main)
+      .deferred(for: 0.5, scheduler: scheduler)
       .cancellable(id: CancelID())
       .producer
       .startWithValues { value = $0 }
 
     XCTAssertEqual(value, nil)
 
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+    scheduler.queue.asyncAfter(deadline: .now() + 0.05) {
       _ = EffectTask<Never>.cancel(id: CancelID())
         .producer
         .start()

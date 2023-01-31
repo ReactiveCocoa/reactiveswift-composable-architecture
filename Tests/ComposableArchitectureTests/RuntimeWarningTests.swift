@@ -206,8 +206,6 @@
         reducer: EmptyReducer<State, Action>()
       )
 
-      let viewStore = ViewStore(store)
-
       var line: UInt = 0
       XCTExpectFailure {
         line = #line

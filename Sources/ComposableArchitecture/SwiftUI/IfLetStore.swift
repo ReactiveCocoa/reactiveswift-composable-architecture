@@ -58,10 +58,12 @@
         if var state = viewStore.state {
           return ViewBuilder.buildEither(
             first: ifContent(
-              store.scope {
-                state = $0 ?? state
-                return state
-              }
+              store
+                .filter { state, _ in state == nil ? !BindingLocal.isActive : true }
+                .scope {
+                  state = $0 ?? state
+                  return state
+                }
             )
           )
         } else {
@@ -85,10 +87,12 @@
       self.content = { viewStore in
         if var state = viewStore.state {
           return ifContent(
-            store.scope {
-              state = $0 ?? state
-              return state
-            }
+            store
+              .filter { state, _ in state == nil ? !BindingLocal.isActive : true }
+              .scope {
+                state = $0 ?? state
+                return state
+              }
           )
         } else {
           return nil
